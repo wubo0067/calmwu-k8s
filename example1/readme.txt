@@ -35,11 +35,14 @@ kubectl describe svc myweb
 kubectl describe pod myweb
 
 kubectl get ep
-
+--------------------------------------------------------------------------------
 查询service的标签选择器
 kubectl get svc mywebpodsvc -o jsonpath='{.spec.selector}'
 可以根据标签进行查询
 kubectl get pod calmwupod -o jsonpath='{.metadata.labels.app}'
+
+kubectl get pods -l key1=value1,key2=value2
+--------------------------------------------------------------------------------
 
 登录到容器
 docker exec -it 1470cfaa1b1c /bin/bash
@@ -65,3 +68,19 @@ pod期待的副本数量(replicas)
 1：什么是共享pod的ip，每个docker实例都有自己的ip地址，这个是挂在主机网桥上的
 
 2：对于资源pod、ReplicationController区别在哪。资源之间的区别是什么？
+
+--------------------------------------------------------------------------------
+节点扩容
+kubectl scale rc frontend --replicas=2
+会在创建一个pod和svc对应上
+Name:			frontend
+Namespace:		default
+Labels:			<none>
+Selector:		tier=frontend
+Type:			NodePort
+IP:			10.254.110.244
+Port:			<unset>	8889/TCP
+NodePort:		<unset>	30003/TCP
+Endpoints:		172.17.0.5:8080,172.17.0.6:8080
+Session Affinity:	None
+No events.
