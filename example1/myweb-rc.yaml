@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ReplicationController #副本控制器
+metadata:
+  name: myweb #rc的名称，全局唯一
+spec:
+  replicas: 1 #Pod副本期待数量，可是我就是单机，这个暴露的端口会不会出问题
+  selector:
+    app: myweb
+  template:
+    metadata:
+      labels:
+        app: myweb #pod副本拥有的标签，对应RC的Selector 这就是pod的标签
+    spec:
+      containers: #Pod内容器的定义部分
+      - name: myweb #容器名称
+        image: kubeguide/tomcat-app:v1 #容器对应的Docker Image
+        ports:
+        - containerPort: 8080 #容器暴露的端口号
+        #env:
+        #- name: MYSQL_SERVICE_HOST
+        #  value: "mysql"
+        #- name: MYSQL_SERVICE_PORT
+        #  value: '3306'

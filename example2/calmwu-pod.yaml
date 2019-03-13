@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: calmwupod
+  labels:
+    app: calmwupod
+spec:
+  #selector:
+  #  app: calmwupod
+  containers:
+  - name: calmwupod
+    image: kubeguide/tomcat-app:v1
+    ports:
+    - containerPort: 9090
+

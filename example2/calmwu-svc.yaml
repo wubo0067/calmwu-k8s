@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service #表明是kubernetes Service
+metadata:
+  name: calmwusvc #service的全局唯一名称
+spec:
+  type: NodePort #开启了NodePort方式的外网访问
+  ports:
+    - port: 9090 #service提供服务的端口号
+      targetPort: 8080 #这里是容器的端口，需要指定，不然会默认使用9090
+      nodePort: 30002 #在k8s之外，用户使用30001端口访问myweb的虚端口
+  selector: #Service对应的Pod拥有这里定义的标签，这个标签就是选择的方式，
+    # 获取svc选择pod的方式，kubectl get svc <service-name> -o jsonpath='{.spec.selector}'
+    # 然后根据输出去查询pod kubectl get pods -l key1=value1,key2=value2，例如
+    #[root@localhost example2]# kubectl get pods -l app=calmwupod
+    #NAME        READY     STATUS    RESTARTS   AGE
+    #calmwupod   1/1       Running   0          6m
+    app: calmwupod
