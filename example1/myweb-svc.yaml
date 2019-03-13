@@ -7,5 +7,5 @@ spec:
   ports:
     - port: 8080 #service提供服务的端口号
       nodePort: 30001 #在k8s之外，用户使用30001端口访问myweb的虚端口
-  selector: #Service对应的Pod拥有这里定义的标签
+  selector: #Service对应的Pod拥有这里定义的标签，对应的是.spec.selector
     app: myweb

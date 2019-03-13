@@ -38,6 +38,8 @@ kubectl get ep
 
 查询service的标签选择器
 kubectl get svc mywebpodsvc -o jsonpath='{.spec.selector}'
+可以根据标签进行查询
+kubectl get pod calmwupod -o jsonpath='{.metadata.labels.app}'
 
 登录到容器
 docker exec -it 1470cfaa1b1c /bin/bash
@@ -49,7 +51,15 @@ MYSQL_SERVICE_HOST=mysql
 最后数据库访问的问题
 https://stackoverflow.com/questions/49204339/mysql-communications-link-failure-in-kubernetes-sample
 
+Label Selector在kubernetes中重要的使用场景
+1：RC上定义的Label Selector来筛选要监控的Pod副本的数量
+2：kube-proxy进程通过Service的Label Selector来选择对应的Pod，自动建立起每个Service到对应Pod的请求转发路由表，从而实现Service的智能负债均衡机制
+3：通过对某些Node定义特定的Label，并且在Pod定义文件中使用NodeSelector这种标签调度策略，实现Pod“定向调度”特性。
 
+Replication controller
+pod期待的副本数量(replicas)
+用于筛选目标pod的label selector
+当pod的副本数量小于预期数量的时候，用于创建新pod的pod模板
 
 问题
 1：什么是共享pod的ip，每个docker实例都有自己的ip地址，这个是挂在主机网桥上的

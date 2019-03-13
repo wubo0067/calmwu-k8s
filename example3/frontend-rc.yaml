@@ -1,0 +1,24 @@
+#验证标签的选择
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: frontend
+spec:
+  replicas: 1
+  selector: # pod的选择标签，svc会根据这个来选择
+    tier: frontend
+  template: # 生成pod的模板
+    metadata:
+      labels: # 标签数据，service选择靠该标签 kubectl get pod -l app=app-demo,tier=frontend
+        app: app-demo
+        tier: frontend
+    spec:
+      containers: #定义容器
+      - name: tomcat-demo
+        image: tomcat
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 8080 #容器的端口

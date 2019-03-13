@@ -4,12 +4,12 @@ metadata:
   name: mysql #rc的名称，全局唯一
 spec:
   replicas: 1 #Pod副本期待数量
-  selector:
+  selector: # rc的选择器
     app: mysql
-  template:
+  template: # 这是个模板，如果直接是pod，这里就是明确的内容了
     metadata:
       labels:
-        app: mysql #pod副本拥有的标签，对应RC的Selector 这就是pod的标签
+        app: mysql #pod副本拥有的标签，service的select会通过这个来选择对应的pod
     spec:
       containers: #Pod内容器的定义部分
       - name: mysql #容器名称

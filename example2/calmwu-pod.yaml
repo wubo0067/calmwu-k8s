@@ -3,10 +3,10 @@ kind: Pod
 metadata:
   name: calmwupod
   labels:
-    app: calmwupod
+    app: calmwupod #service通过该标签与其对应
 spec:
-  #selector:
-  #  app: calmwupod
+  #selector: 对于资源是pod，这里无法使用selector，因为不需要对应，是唯一的，只能用meta中的标签
+  #  app: calmwupod 
   containers:
   - name: calmwupod
     image: kubeguide/tomcat-app:v1
