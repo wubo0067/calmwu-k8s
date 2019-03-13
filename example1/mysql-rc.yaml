@@ -4,7 +4,7 @@ metadata:
   name: mysql #rc的名称，全局唯一
 spec:
   replicas: 1 #Pod副本期待数量
-  selector: # rc的选择器
+  selector: # 这是rc用来圈定选择pod的条件，这个必须匹配.spec.template.metadata.labels .spec.selector是可选字段，用来指定 label selector
     app: mysql
   template: # 这是个模板，如果直接是pod，这里就是明确的内容了
     metadata:
