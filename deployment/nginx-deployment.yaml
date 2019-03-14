@@ -4,7 +4,7 @@ metadata:
   name: nginx-deployment
   namespace: nm-nginxdeployment
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: nginx

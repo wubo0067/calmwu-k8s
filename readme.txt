@@ -17,6 +17,8 @@ systemctl start kube-scheduler
 systemctl start kubelet
 systemctl start kube-proxy
 
+---------------------------------------------------------------------------
+
 kubectl delete -f mysql-rc.yaml
 kubectl delete -f mysql-svc.yaml
 
@@ -34,7 +36,11 @@ kubectl logs -f -c myweb myweb-d3560
 kubectl describe svc myweb
 kubectl describe pod myweb
 
+使用namespace查询
 kubectl get pods --namespace=nm-nginxdeployment
+
+#用yaml格式输出
+kubectl get svc --namespace=nm-nginxdeployment -o yaml
 
 kubectl get ep
 --------------------------------------------------------------------------------
@@ -44,6 +50,12 @@ kubectl get svc mywebpodsvc -o jsonpath='{.spec.selector}'
 kubectl get pod calmwupod -o jsonpath='{.metadata.labels.app}'
 
 kubectl get pods -l key1=value1,key2=value2
+
+#一旦使用了namespace后必须带上该参数
+kubectl get pods -l app=nginx --namespace=nm-nginxdeployment
+
+查看标签
+kubectl get pods --show-labels --namespace=nm-nginxdeployment
 --------------------------------------------------------------------------------
 
 登录到容器
