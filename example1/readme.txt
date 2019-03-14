@@ -34,6 +34,8 @@ kubectl logs -f -c myweb myweb-d3560
 kubectl describe svc myweb
 kubectl describe pod myweb
 
+kubectl get pods --namespace=nm-nginxdeployment
+
 kubectl get ep
 --------------------------------------------------------------------------------
 查询service的标签选择器
