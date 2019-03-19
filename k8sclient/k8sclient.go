@@ -38,6 +38,7 @@ func listPod(clientSet *kubernetes.Clientset) {
 }
 
 func listDeployment(clientSet *kubernetes.Clientset) {
+	// 由于我的yam文件中写的是apiVersion: extensions/v1beta1，所以这里使用ExtensionsV1beta1来查询，这点很重要
 	deploymentsClient := clientSet.ExtensionsV1beta1().Deployments(apiv1.NamespaceDefault)
 	//deploymentsClient := clientSet.AppsV1().Deployments(apiv1.NamespaceDefault)
 
