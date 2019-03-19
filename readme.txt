@@ -11,11 +11,11 @@ systemctl enable kube-proxy
 
 systemctl start etcd
 systemctl start docker
-systemctl start kube-apiserver
-systemctl start kube-controller-manager
-systemctl start kube-scheduler
-systemctl start kubelet
-systemctl start kube-proxy
+systemctl restart kube-apiserver
+systemctl restart kube-controller-manager
+systemctl restart kube-scheduler
+systemctl restart kubelet
+systemctl restart kube-proxy
 
 ---------------------------------------------------------------------------
 
