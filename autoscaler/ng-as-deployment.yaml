@@ -1,0 +1,26 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: as-nginx
+  name: as-nginx-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: as-nginx
+  template:
+    metadata:
+      labels:
+        app: as-nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.7.9
+        resources:
+          requests:
+            cpu: "2"
+            memory: 1Gi
+        ports:
+        - containerPort: 80
+    
