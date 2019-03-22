@@ -1,4 +1,6 @@
 关闭防火墙
+systemctl disable firewalld
+systemctl stop firewalld
 
 启动相关服务
 systemctl enable etcd

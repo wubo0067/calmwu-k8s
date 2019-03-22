@@ -15,3 +15,9 @@ curl https://10.254.0.1:6443 --cacert /run/secrets/kubernetes.io/serviceaccount/
 
 token=`cat /run/secrets/kubernetes.io/serviceaccount/token`
 curl https://10.254.0.1:443 --cacert /run/secrets/kubernetes.io/serviceaccount/ca.crt -H "Authorization: Bearer $token"
+
+启动cluster_autoscaler
+./cluster-autoscaler --kubeconfig=/home/calm/config --v=1
+
+编译
+go build -x -v -mod=vendor -o cluster-autoscaler main.go version.go

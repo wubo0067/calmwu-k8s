@@ -2,12 +2,16 @@
  * @Author: calm.wu
  * @Date: 2019-03-18 18:31:10
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-03-19 14:13:22
+ * @Last Modified time: 2019-03-20 16:22:08
  */
 
 package main
 
 import (
+	// "k8s.io/kubernetes/pkg/controller/deployment"
+	// "k8s.io/kubernetes/pkg/registry/apps/deployment"
+	// "k8s.io/kubernetes/pkg/kubectl/util/deployment"
+	// "k8s.io/kubernetes/pkg/api/v1/service"
 	"log"
 	"os"
 
@@ -30,9 +34,9 @@ func listPod(clientSet *kubernetes.Clientset) {
 	}
 	for i, pod := range pods.Items {
 		if pod.Status.Phase == apiv1.PodPending {
-			color.New(color.FgBlue).Printf("\t{%d}: pod:%+v\n", i, pod)
+			color.New(color.FgBlue).Printf("\t{%d}: pod:%s status:%s PodIP:%s\n", i, pod.Name, pod.Status.Phase, pod.Status.PodIP)
 		} else {
-			logger.Printf("\t{%d}: pod:%+v\n", i, pod)
+			logger.Printf("\t{%d}: pod:%s status:%s PodIP:%s\n", i, pod.Name, pod.Status.Phase, pod.Status.PodIP)
 		}
 	}
 }
@@ -48,7 +52,22 @@ func listDeployment(clientSet *kubernetes.Clientset) {
 	}
 	
 	for i, deployment := range deployments.Items {
-		logger.Printf("\t{%d}: %s (%d replicas)\n", i, deployment.Name, *deployment.Spec.Replicas)
+		logger.Printf("\t{%d}: deployment:%s (%d replicas)\n", i, deployment.Name, *deployment.Spec.Replicas)
+	}
+}
+
+func listServices(clientSet *kubernetes.Clientset) {
+	var kubeClient kubernetes.Interface = clientSet
+	servicesClient := kubeClient.CoreV1().Services(apiv1.NamespaceDefault)
+
+	services, err := servicesClient.List(metav1.ListOptions{})
+	if err != nil {
+		logger.Fatal(err)
+	}
+	
+	for i := range services.Items {
+		service := &services.Items[i]
+		logger.Printf("\t{%d}: service:%s labes:%#v\n", i, service.Name, service.Labels)
 	}
 }
 
@@ -84,6 +103,7 @@ func main() {
 
 		listPod(clientSet)
 		listDeployment(clientSet)
+		listServices(clientSet)
 		return nil
 	}
 

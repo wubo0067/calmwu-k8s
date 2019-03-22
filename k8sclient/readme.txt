@@ -4,6 +4,8 @@
 
 编译命令：go build -x -v -mod=vendor k8sclient.go
 
+./k8sclent 
+
 mklink /J D:\develope\gopath\src\k8s.io\klog D:\develope\gopath\src\k8sclient\vendor\k8s.io\klog
 mklink /J D:\develope\gopath\src\k8s.io\client-go D:\develope\gopath\src\k8sclient\vendor\k8s.io\client-go
 mklink /J D:\develope\gopath\src\k8s.io\api D:\develope\gopath\src\k8sclient\vendor\k8s.io\api
