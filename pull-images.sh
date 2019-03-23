@@ -11,3 +11,6 @@ done
 docker pull coredns/coredns:1.2.6
 docker tag coredns/coredns:1.2.6 k8s.gcr.io/coredns:1.2.6
 docker rmi coredns/coredns:1.2.6
+
+
+kubeadm join 192.168.6.131:6443 --token vawgip.ysfbx5kfogpb3u0o --discovery-token-ca-cert-hash sha256:43efc95b8d3edc43b3f3fdf6233395f593af48b8ac3a32c19bb7742bdf4b9160
