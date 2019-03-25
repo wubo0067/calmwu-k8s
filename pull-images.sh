@@ -1,17 +1,22 @@
 #!/bin/bash
-images=(kube-apiserver:v1.13.2 kube-controller-manager:v1.13.2 kube-scheduler:v1.13.2 kube-proxy:v1.13.2 pause:3.1 etcd:3.2.24)
+images=(kubernetes-apiserver:v1.13.4 kubernetes-controller-manager:v1.13.4 kubernetes-scheduler:v1.13.4 kubernetes-proxy:v1.13.4 pause:3.1 etcd:3.2.24)
 
 for ima in ${images[@]}
 do
-   docker pull   mirrorgooglecontainers/$ima
-   docker tag    mirrorgooglecontainers/$ima   k8s.gcr.io/$ima
-   docker rmi  -f  mirrorgooglecontainers/$ima
+   docker pull   openstackmagnum/$ima
+   docker tag    openstackmagnum/$ima   k8s.gcr.io/$ima
+   docker rmi  -f  openstackmagnum/$ima
 done
 
 docker pull coredns/coredns:1.2.6
 docker tag coredns/coredns:1.2.6 k8s.gcr.io/coredns:1.2.6
 docker rmi coredns/coredns:1.2.6
 
+docker pull jmgao1983/flannel:v0.11.0-amd64
+docker tag jmgao1983/flannel:v0.11.0-amd64 quay.io/coreos/flannel:v0.11.0-amd64
+docker rmi jmgao1983/flannel:v0.11.0-amd64
+
+////////////////////////////////////////////////////////////////////////////////////
 
 kubeadm join 192.168.6.131:6443 --token vawgip.ysfbx5kfogpb3u0o --discovery-token-ca-cert-hash sha256:43efc95b8d3edc43b3f3fdf6233395f593af48b8ac3a32c19bb7742bdf4b9160 --ignore-preflight-errors=Swap
 
@@ -20,6 +25,8 @@ vim /etc/docker/daemon.conf 加入{"registry-mirrors": ["http://f1361db2.m.daocl
 curl -sSL https://get.daocloud.io/daotools/set_mirror.sh | sh -s http://f1361db2.m.daocloud.io
 
 我把kube-flannel.yml依赖的镜像版本从v0.11改为v0.10，我从这里下载的，docker pull cnych/flannel:v0.10.0-amd64
+
+docker pull jmgao1983/flannel:v0.11.0-amd64
 
 
 [root@k8snode2 calmwu]# docker pull mirrorgooglecontainers/pause:3.1
@@ -36,3 +43,6 @@ docker rmi mirrorgooglecontainers/kube-proxy:v1.13.2
 
 如果子节点起不来就重启下该服务
 systemctl restart kubelet
+
+让master可以作为工作节点
+kubectl taint nodes --all node-role.kubernetes.io/master-
