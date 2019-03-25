@@ -15,9 +15,9 @@ docker pull openstackmagnum/kubernetes-proxy:v1.13.4
 docker tag openstackmagnum/kubernetes-proxy:v1.13.4 k8s.gcr.io/kube-proxy:1.2.6
 docker rmi openstackmagnum/kubernetes-proxy:v1.13.4
 
-docker pull openstackmagnum/pause:3.1
-docker tag openstackmagnum/pause:3.1 k8s.gcr.io/pause:3.1
-docker rmi openstackmagnum/pause:3.1
+docker pull ibmcom/pause:3.1
+docker tag ibmcom/pause:3.1 k8s.gcr.io/pause:3.1
+docker rmi ibmcom/pause:3.1
 
 docker pull ibmcom/etcd:3.2.24
 docker tag ibmcom/etcd:3.2.24 k8s.gcr.io/etcd:3.2.24
