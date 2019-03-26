@@ -12,7 +12,7 @@ docker tag openstackmagnum/kubernetes-scheduler:v1.13.4 k8s.gcr.io/kube-schedule
 docker rmi openstackmagnum/kubernetes-scheduler:v1.13.4
 
 docker pull openstackmagnum/kubernetes-proxy:v1.13.4
-docker tag openstackmagnum/kubernetes-proxy:v1.13.4 k8s.gcr.io/kube-proxy:1.2.6
+docker tag openstackmagnum/kubernetes-proxy:v1.13.4 k8s.gcr.io/kube-proxy:v1.13.4
 docker rmi openstackmagnum/kubernetes-proxy:v1.13.4
 
 docker pull ibmcom/pause:3.1
