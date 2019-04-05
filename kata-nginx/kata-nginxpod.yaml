@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kata-nginxpod
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"
+  labels:
+    name: kata-nginxpod
+spec:
+  containers:
+  - name: kata-nginxpod
+    image: nginx:1.7.9
+    ports:
+    - containerPort: 80
+    resources:
+      requests:
+        memory: 512Mi
+        cpu: "2"
