@@ -5,8 +5,8 @@ metadata:
 spec:
   type: NodePort #开启了NodePort方式的外网访问
   ports:
-    - port: 9002 #service提供服务的端口号 绑定在clusterip上
+    - port: 3001 #service提供服务的端口号 绑定在clusterip上
       targetPort: 80 #这里是容器的服务端口
-      nodePort: 3006 #在k8s之外，用户使用30001端口访问myweb的虚端口
+      nodePort: 3004 #在k8s之外，用户使用30001端口访问myweb的虚端口
   selector: #Service对应的Pod拥有这里定义的标签，这个标签就是选择的方式，
-    app: kata-ngdp
+    app: nginx

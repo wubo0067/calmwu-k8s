@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kata-ngdp
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"  
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kata-ngdp
+  template:
+    metadata:
+      labels:
+        app: kata-ngdp
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"         
+    spec:
+      containers:
+      - name: kata-ngdp
+        image: nginx
+        ports:
+        - containerPort: 80

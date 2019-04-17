@@ -9,10 +9,6 @@ metadata:
 spec:
   containers:
   - name: kata-nginxpod
-    image: nginx:1.7.9
+    image: nginx
     ports:
     - containerPort: 80
-    resources:
-      requests:
-        memory: 512Mi
-        cpu: "2"
