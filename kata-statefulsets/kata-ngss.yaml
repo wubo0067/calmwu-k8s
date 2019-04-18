@@ -1,0 +1,23 @@
+apiVersion: extensions/v1beta1
+kind: StatefulSet
+metadata:
+  name: kata-ngss
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"  
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kata-ngss
+  template:
+    metadata:
+      labels:
+        app: kata-ngss
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"         
+    spec:
+      containers:
+      - name: kata-ngss
+        image: nginx
+        ports:
+        - containerPort: 80
