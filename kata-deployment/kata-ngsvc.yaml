@@ -9,4 +9,4 @@ spec:
       targetPort: 80 #这里是容器的服务端口
       nodePort: 3004 #在k8s之外，用户使用30001端口访问myweb的虚端口
   selector: #Service对应的Pod拥有这里定义的标签，这个标签就是选择的方式，
-    app: nginx
+    app: kata-ngdp

@@ -1,23 +1,21 @@
 apiVersion: extensions/v1beta1
 kind: StatefulSet
 metadata:
-  name: kata-ngss
+  name: kata-redisss
   annotations:
     io.kubernetes.cri.untrusted-workload: "true"  
 spec:
+  serviceName: "redis"
   replicas: 2
-  selector:
-    matchLabels:
-      app: kata-ngss
   template:
     metadata:
       labels:
-        app: kata-ngss
+        app: kata-redisss
       annotations:
         io.kubernetes.cri.untrusted-workload: "true"         
     spec:
       containers:
-      - name: kata-ngss
-        image: nginx
+      - name: kata-redisss
+        image: redis
         ports:
-        - containerPort: 80
+        - containerPort: 6379

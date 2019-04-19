@@ -8,7 +8,7 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: kata-ngdp
+      app: kata-ngdp #这是标明deployment对pod的管控
   template:
     metadata:
       labels:
