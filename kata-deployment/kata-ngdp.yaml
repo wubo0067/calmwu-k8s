@@ -5,16 +5,18 @@ metadata:
   annotations:
     io.kubernetes.cri.untrusted-workload: "true"  
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: kata-ngdp #这是标明deployment对pod的管控
+      app: kata-ngdp
   template:
     metadata:
       labels:
         app: kata-ngdp
       annotations:
-        io.kubernetes.cri.untrusted-workload: "true"         
+        io.kubernetes.cri.untrusted-workload: "true"  
+        # "Error adding network: cannot have more than one IPv4 address for "cni.projectcalico.org/ipAddrs" annotation"
+        cni.projectcalico.org/ipAddrs : "[\"10.244.53.166\"]"   #这里只能是一个，不然报错
     spec:
       containers:
       - name: kata-ngdp
