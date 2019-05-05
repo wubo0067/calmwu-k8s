@@ -8,6 +8,7 @@
 package main
 
 import (
+	"flag"
 	"runtime"
 	"sync"
 	"strconv"
@@ -21,6 +22,11 @@ import (
 	uuid "github.com/satori/go.uuid"
 	cnet "github.com/projectcalico/libcalico-go/lib/net"
 	"github.com/projectcalico/libcalico-go/lib/ipam"
+)
+
+var (
+	allocCount = flag.Int("allocount", 1, "alloc ip count")
+	isRecycled = flag.Bool("recycle", true, "ip is recycled")
 )
 
 type InheritanceInt struct {
@@ -59,7 +65,7 @@ func createCalicoClient() client.Interface {
 	return calicoClient
 }
 
-func allocCalicoIP(calicoClient client.Interface) {
+func allocCalicoIP(calicoClient client.Interface, i int) {
 	ctx := context.Background()
 	v4pools := []cnet.IPNet{}	
 	v6pools := []cnet.IPNet{}	
@@ -74,9 +80,7 @@ func allocCalicoIP(calicoClient client.Interface) {
 		//Attrs:     attrs,
 	}
 
-	var wg sync.WaitGroup
 	af := func(id int) {
-		defer wg.Done()
 		assignedV4, _, err := calicoClient.IPAM().AutoAssign(ctx, assignArgs)
 		if err != nil {
 			fmt.Println("AutoAssign failed! reason:%s\n", err.Error())
@@ -87,33 +91,44 @@ func allocCalicoIP(calicoClient client.Interface) {
 		fmt.Printf("[%d]----------autoassign ip:%s\n", id, allocIP.String())
 	
 		//_, err = calicoClient.IPAM().ReleaseIPs(ctx, []cnet.IP{cnet.IP{allocIP},})
-		_, err = calicoClient.IPAM().ReleaseIPs(ctx, []cnet.IP{cnet.IP{allocIP},})
-		if err != nil {
-			fmt.Println("ReleaseIPs failed! reason:%s\n", err.Error())
-			return		
+		if *isRecycled {
+			_, err = calicoClient.IPAM().ReleaseIPs(ctx, []cnet.IP{cnet.IP{allocIP},})
+			if err != nil {
+				fmt.Println("ReleaseIPs failed! reason:%s\n", err.Error())
+				return		
+			}
+			fmt.Printf("[%d]++++++++++release ip:%s\n", id, allocIP)
 		}
-		fmt.Printf("[%d]++++++++++release ip:%s\n", id, allocIP)
-	}
-	
-	parallelCount := 10
-	runtime.GOMAXPROCS(parallelCount)
-	wg.Add(parallelCount)
-	for i := 0; i < parallelCount; i++ {
-		go af(i)
-	}
 
-	wg.Wait()
+	}
+	af(i)
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU() * 2)
+	flag.Parse()
+	// 继承int
 	di := InheritanceInt{9996}
 	di.String()
 
 	fmt.Println(uuid.NewV4().String())
 	parseCIDR()
-	client := createCalicoClient()
-	if client == nil {
-		fmt.Println("create failed!")
+
+	
+	var wg sync.WaitGroup
+	wg.Add(*allocCount)
+
+	af := func(i int) {
+		defer wg.Done()
+		client := createCalicoClient()
+		if client == nil {
+			fmt.Println("create failed!")
+		}
+		allocCalicoIP(client, i)
 	}
-	allocCalicoIP(client)
+
+	for i:= 0; i < *allocCount;i ++ {
+		af(i)
+	}
+	wg.Wait()
 }
