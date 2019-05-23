@@ -20,10 +20,10 @@ type Config struct {
 }
 
 func (c *Config) addFlags() {
-	flag.StringVar(&c.CertFile, "tls-cert-file", "/etc/kubernetes/pki/apiserver-etcd-client.crt", `
+	flag.StringVar(&c.CertFile, "tls-cert-file", "/etc/kubernetes/pki/webhook-calm-tls.crt", `
 		File containing the default x509 Certificate for HTTPS. (CA cert, if any, concatenated
 		after server cert).`)
-	flag.StringVar(&c.KeyFile, "tls-private-key-file", "/etc/kubernetes/pki/apiserver-etcd-client.key",
+	flag.StringVar(&c.KeyFile, "tls-private-key-file", "/etc/kubernetes/pki/webhook-calm-tls.key",
 		"File containing the default x509 private key matching --tls-cert-file.")
 }
 

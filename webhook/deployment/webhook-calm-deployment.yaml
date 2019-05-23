@@ -23,7 +23,7 @@ spec:
       #  runAsNonRoot: true
       #  runAsUser: 1234
       containers:
-      - name: server
+      - name: webhook-calm-server
         image: docker.io/littlebull/webhook-calm:v2
         imagePullPolicy: Always
         ports:
@@ -55,15 +55,15 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: webhook-calm
 webhooks:
-  - name: webhook-calm-server.webhook-demo.svc
+  - name: webhook-calm-server.default.svc
     clientConfig:
       service:
         name: webhook-calm-server
         namespace: default
         path: "/add-label"
-      caBundle: CA_PEM_B64
+      caBundle: CA_BUNDLE
     rules:
-      - operations: [ "CREATE" ]
-        apiGroups: [""]
-        apiVersions: ["v1", "extensions/v1beta1"]
-        resources: ["pods", "deployments"]
+      - operations: [ "CREATE", "UPDATE" ]
+        apiGroups: ["apps", ""]
+        apiVersions: ["v1", "v1beta1"]
+        resources: ["pods", "deployments", "statefulsets"]

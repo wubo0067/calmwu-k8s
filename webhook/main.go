@@ -15,8 +15,8 @@ import (
 	"os"
 
 	"k8s.io/api/admission/v1beta1"
-	"k8s.io/klog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog"
 )
 
 // toAdmissionResponse is a helper function to create an AdmissionResponse
@@ -35,6 +35,7 @@ type admitFunc func(v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
 // serve handles the http portion of a request prior to handing to an admit
 // function
 func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
+
 	var body []byte
 	if r.Body != nil {
 		if data, err := ioutil.ReadAll(r.Body); err == nil {
@@ -81,10 +82,12 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 }
 
 func serveAddLabel(w http.ResponseWriter, r *http.Request) {
+	klog.V(0).Infof("serveAddLabel req:%#v", r)
 	serve(w, r, addLabel)
 }
 
 func servePods(w http.ResponseWriter, r *http.Request) {
+	klog.V(0).Infof("servePods req:%#v", r)
 	serve(w, r, admitPods)
 }
 
@@ -101,7 +104,7 @@ func main() {
 	klog.V(0).Info("webhook start running.....")
 
 	http.HandleFunc("/add-label", serveAddLabel)
-	http.HandleFunc("/pods", servePods)
+	//http.HandleFunc("/pods", servePods)
 	httpServer := &http.Server{
 		Addr:      ":443",
 		TLSConfig: configTLS(config),
