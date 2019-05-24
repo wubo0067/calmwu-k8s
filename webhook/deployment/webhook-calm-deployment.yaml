@@ -60,7 +60,7 @@ webhooks:
       service:
         name: webhook-calm-server
         namespace: default
-        path: "/add-label"
+        path: "/mutate"
       caBundle: CA_BUNDLE
     rules:
       - operations: [ "CREATE", "UPDATE" ]

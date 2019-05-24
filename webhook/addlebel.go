@@ -9,9 +9,10 @@ package main
 
 import (
 	"encoding/json"
+
 	"k8s.io/api/admission/v1beta1"
-	"k8s.io/klog"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/klog"
 )
 
 const (
@@ -49,7 +50,7 @@ func addLabel(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	}
 	pt := v1beta1.PatchTypeJSONPatch
 	reviewResponse.PatchType = &pt
-	return &reviewResponse	
+	return &reviewResponse
 
 	return nil
 }
