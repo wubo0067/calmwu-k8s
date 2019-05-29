@@ -1,0 +1,25 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kata-ngdp-2
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"  
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kata-ngdp
+  template:
+    metadata:
+      labels:
+        app: kata-ngdp
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"  
+        # "Error adding network: cannot have more than one IPv4 address for "cni.projectcalico.org/ipAddrs" annotation"
+        cni.projectcalico.org/ipAddrs : "[\"10.244.53.181\"]"   #这里只能是一个，不然报错
+    spec:
+      containers:
+      - name: kata-ngdp
+        image: nginx
+        ports:
+        - containerPort: 80
