@@ -8,19 +8,22 @@
 package main
 
 import (
+	admissionv1beta1 "k8s.io/api/admission/v1beta1"
+	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	admissionv1beta1 "k8s.io/api/admission/v1beta1"
-	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
-	corev1 "k8s.io/api/core/v1"	
 )
 
-var scheme = runtime.NewScheme()
-var codecs = serializer.NewCodecFactory(scheme)
+var (
+	runtimeScheme         = runtime.NewScheme()
+	codecs                = serializer.NewCodecFactory(runtimeScheme)
+	universalDeserializer = codecs.UniversalDeserializer()
+)
 
 func init() {
-	addToScheme(scheme)
+	addToScheme(runtimeScheme)
 }
 
 func addToScheme(scheme *runtime.Scheme) {
