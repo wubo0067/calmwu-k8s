@@ -107,6 +107,7 @@ func webHookServerHandler(w http.ResponseWriter, r *http.Request) {
 	admissionReviewRes := v1beta1.AdmissionReview{}
 	if admissionResponse != nil {
 		admissionReviewRes.Response = admissionResponse
+		admissionReviewRes.Response.UID = admissionReviewReq.Request.UID
 	} else {
 		admissionReviewRes.Response = &v1beta1.AdmissionResponse{
 			UID:     admissionReviewReq.Request.UID,

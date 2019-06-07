@@ -63,7 +63,7 @@ webhooks:
         path: "/mutate"
       caBundle: CA_BUNDLE
     rules:
-      - operations: [ "CREATE", "UPDATE" ]
+      - operations: [ "CREATE", "UPDATE", "DELETE", "CONNECT" ]
         apiGroups: ["apps", ""]
         apiVersions: ["v1", "v1beta1"]
         resources: ["pods", "deployments", "statefulsets"]

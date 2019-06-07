@@ -5,7 +5,12 @@ metadata:
   annotations:
     io.kubernetes.cri.untrusted-workload: "true"  
 spec:
-  replicas: 1
+  replicas: 2
+  strategy:
+    rollingUpdate:
+      maxSurge: 1         #
+      maxUnavailable: 0   #
+    type: RollingUpdate   #    
   selector:
     matchLabels:
       app: kata-ngdp
@@ -18,6 +23,6 @@ spec:
     spec:
       containers:
       - name: kata-ngdp
-        image: nginx
+        image: nginx:1.16.0
         ports:
         - containerPort: 80
