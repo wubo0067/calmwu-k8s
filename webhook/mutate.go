@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	admissionWebHookAnnotationMutateKey = "admission-webhook-calmwu/mutate"
+	//admissionWebHookAnnotationMutateKey = "admission-webhook-calmwu/mutate"
 	admissionWebhookAnnotationCreateKey = "admission-webhook-calmwu/create"
 )
 
@@ -37,9 +37,9 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		objectMeta                            *metav1.ObjectMeta
 		resourceNamespace, resourceName       string
 	)
-
-	klog.Infof("AdmissionReview for Resource=%s, Namespace=%s, Name=%s, UID=%s patchOperation=%v, UserInfo=%v",
-		req.Resource.String(), req.Namespace, req.Name, req.UID, req.Operation, req.UserInfo)
+	klog.Infof("AdmissionReview for Resource=[%s], Namespace=[%s], Name=[%s], UID=[%s] patchOperation=[%v]"+
+		"Kind:%#v, UserInfo=%#v",
+		req.Resource.String(), req.Namespace, req.Name, req.UID, req.Operation, req.Kind, req.UserInfo)
 
 	if req.Operation == "DELETE" {
 		klog.Info("Operation[DELETE] default passed!")
@@ -65,6 +65,10 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		resourceName, resourceNamespace, objectMeta = deployment.Name, deployment.Namespace, &deployment.ObjectMeta
 		availableLabels = deployment.Labels
 		availableAnnotations = objectMeta.GetAnnotations()
+
+		// 判断etcd中是否有该deployment的地址集合，没有就创建，同时比较Replicas的数量。
+		// 通过这个去nsp获取pod地址集合
+		klog.Infof("deployment.spec.replicas:%d", *deployment.Spec.Replicas)
 		klog.Infof("deployment:%#v", deployment)
 	case "Service":
 		var service corev1.Service
@@ -94,18 +98,16 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	// 判断这个key是否已经存在
 	if _, exist := availableAnnotations[admissionWebhookAnnotationCreateKey]; exist {
 		patches = append(patches, patchOperation{
-			Op:   "replace",
-			Path: "/metadata/annotations/" + admissionWebhookAnnotationCreateKey,
-			Value: map[string]string{
-				"CreateBy": value,
-			},
+			Op:    "replace",
+			Path:  "/metadata/annotations/" + admissionWebhookAnnotationCreateKey,
+			Value: value,
 		})
 	} else {
 		patches = append(patches, patchOperation{
 			Op:   "add",
-			Path: "/metadata/annotations/" + admissionWebhookAnnotationCreateKey,
+			Path: "/metadata/annotations",
 			Value: map[string]string{
-				"CreateBy": value,
+				admissionWebhookAnnotationCreateKey: value,
 			},
 		})
 	}
