@@ -4,9 +4,7 @@
  * @Last Modified by: calm.wu
  * @Last Modified time: 2019-05-22 14:55:23
  */
-
 package main
-
 import (
 	admissionv1beta1 "k8s.io/api/admission/v1beta1"
 	admissionregistrationv1beta1 "k8s.io/api/admissionregistration/v1beta1"
@@ -31,3 +29,4 @@ func addToScheme(scheme *runtime.Scheme) {
 	utilruntime.Must(admissionv1beta1.AddToScheme(scheme))
 	utilruntime.Must(admissionregistrationv1beta1.AddToScheme(scheme))
 }
+

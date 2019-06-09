@@ -1,10 +1,3 @@
-/*
- * @Author: calm.wu
- * @Date: 2019-05-24 14:55:51
- * @Last Modified by: calm.wu
- * @Last Modified time: 2019-05-24 14:58:48
- */
-
 package main
 
 import (
