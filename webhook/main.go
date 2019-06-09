@@ -13,7 +13,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"runtime"
 
 	"k8s.io/api/admission/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -103,7 +102,6 @@ func webHookServerHandler(w http.ResponseWriter, r *http.Request) {
 			// 处理请求
 			admissionResponse = serveMutate(&admissionReviewReq)
 		} else {
-			runtime.
 			klog.Infof("no-Kubernetes namespaces req:%#v", admissionReviewReq)
 		}
 	}
@@ -142,7 +140,6 @@ func main() {
 	//fLog, _ := os.OpenFile("webhook.log", os.O_RDWR|os.O_CREATE, 0666)
 	//defer fLog.Close()
 	klog.SetOutputBySeverity("INFO", os.Stderr)
-
 	klog.V(0).Info("webhook start running.....")
 
 	http.HandleFunc("/mutate", webHookServerHandler)

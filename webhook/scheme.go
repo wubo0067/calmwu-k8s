@@ -27,7 +27,6 @@ func init() {
 }
 
 func addToScheme(scheme *runtime.Scheme) {
-	utilruntime.
 	utilruntime.Must(corev1.AddToScheme(scheme))
 	utilruntime.Must(admissionv1beta1.AddToScheme(scheme))
 	utilruntime.Must(admissionregistrationv1beta1.AddToScheme(scheme))
