@@ -31,7 +31,7 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		resourceNamespace, resourceName       string
 	)
 	klog.Infof("AdmissionReview for Resource=[%s], Namespace=[%s], Name=[%s], UID=[%s] patchOperation=[%v]"+
-		"Kind:%#v, UserInfo=%#v",
+		" Kind:%#v, UserInfo=%#v",
 		req.Resource.String(), req.Namespace, req.Name, req.UID, req.Operation, req.Kind, req.UserInfo)
 
 	if req.Operation == "DELETE" {
@@ -44,6 +44,7 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 
 	switch req.Kind.Kind {
 	case "Deployment":
+		// 这里要根据不同的req.Kind，Group，Version，Kind来找到具体的对象，Deployment也有多种类型的，要兼容用户的需求。
 		var deployment appsv1.Deployment
 		// 反序列化
 		if err := json.Unmarshal(req.Object.Raw, &deployment); err != nil {
@@ -77,6 +78,8 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
 		availableLabels = service.Labels
 		availableAnnotations = objectMeta.GetAnnotations()
+	default:
+		klog.Infof("this Kind:%s resource using default process", req.Kind.Kind)
 	}
 
 	klog.Infof("resourceName:%s", resourceName)
