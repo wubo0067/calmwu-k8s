@@ -8,6 +8,7 @@ import (
 	"k8s.io/api/admission/v1beta1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	extensionv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/klog"
 )
@@ -23,6 +24,12 @@ type patchOperation struct {
 	Value interface{} `json:"value,omitempty"`
 }
 
+var (
+	ignoreSubResouces = map[string]struct{}{
+		"status": struct{}{},
+	}
+)
+
 func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	req := ar.Request
 	var (
@@ -30,16 +37,19 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		objectMeta                            *metav1.ObjectMeta
 		resourceNamespace, resourceName       string
 	)
-	klog.Infof("AdmissionReview for Resource=[%s], Namespace=[%s], Name=[%s], UID=[%s] patchOperation=[%v]"+
+	klog.Infof("AdmissionReview for Resource=[%s], SubResource=[%s], Namespace=[%s], Name=[%s], UID=[%s] patchOperation=[%v]"+
 		" Kind:%#v, UserInfo=%#v",
-		req.Resource.String(), req.Namespace, req.Name, req.UID, req.Operation, req.Kind, req.UserInfo)
+		req.Resource.String(), req.SubResource, req.Namespace, req.Name, req.UID, req.Operation, req.Kind, req.UserInfo)
 
-	if req.Operation == "DELETE" {
-		klog.Info("Operation[DELETE] default passed!")
-		return &v1beta1.AdmissionResponse{
-			UID:     req.UID,
-			Allowed: true,
-		}
+	if req.Name == "webhook-calm-server" ||
+		req.Operation == "DELETE" {
+		klog.Info("Operation[DELETE] or Name[webhook-calm-server] default allows passed!")
+		return nil
+	}
+
+	if _, exists := ignoreSubResouces[req.SubResource]; exists {
+		klog.Infof("SubResource[%s] default allows passed!", req.SubResource)
+		return nil
 	}
 
 	switch req.Kind.Kind {
@@ -64,6 +74,22 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		// 通过这个去nsp获取pod地址集合
 		klog.Infof("deployment.spec.replicas:%d", *deployment.Spec.Replicas)
 		klog.Infof("deployment:%#v", deployment)
+	case "StatefulSet":
+		var statefulset appsv1.StatefulSet
+		if err := json.Unmarshal(req.Object.Raw, &statefulset); err != nil {
+			klog.Error(err.Error())
+			return &v1beta1.AdmissionResponse{
+				Allowed: false,
+				Result: &metav1.Status{
+					Message: err.Error(),
+				},
+			}
+		}
+		resourceName, resourceNamespace, objectMeta = statefulset.Name, statefulset.Namespace, &statefulset.ObjectMeta
+		availableLabels = statefulset.Labels
+		availableAnnotations = objectMeta.GetAnnotations()
+		klog.Infof("statefulset.spec.replicas:%d", *statefulset.Spec.Replicas)
+		klog.Infof("statefulset:%#v", statefulset)
 	case "Service":
 		var service corev1.Service
 		if err := json.Unmarshal(req.Object.Raw, &service); err != nil {
@@ -78,8 +104,24 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		resourceName, resourceNamespace, objectMeta = service.Name, service.Namespace, &service.ObjectMeta
 		availableLabels = service.Labels
 		availableAnnotations = objectMeta.GetAnnotations()
+	case "Scale":
+		var scale extensionv1beta1.Scale
+		if err := json.Unmarshal(req.Object.Raw, &scale); err != nil {
+			klog.Error(err.Error())
+			return &v1beta1.AdmissionResponse{
+				Allowed: false,
+				Result: &metav1.Status{
+					Message: err.Error(),
+				},
+			}
+		}
+		klog.Infof("scale:%#v", scale)
+		resourceName, resourceNamespace, objectMeta = scale.Name, scale.Namespace, &scale.ObjectMeta
+		availableLabels = scale.Labels
+		availableAnnotations = objectMeta.GetAnnotations()
 	default:
 		klog.Infof("this Kind:%s resource using default process", req.Kind.Kind)
+		return nil
 	}
 
 	klog.Infof("resourceName:%s", resourceName)
@@ -95,7 +137,7 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	if _, exist := availableAnnotations[admissionWebhookAnnotationCreateKey]; exist {
 		patches = append(patches, patchOperation{
 			Op:    "replace",
-			Path:  "/metadata/annotations/" + admissionWebhookAnnotationCreateKey,
+			Path:  "/metadata/annotations/" + admissionWebhookAnnotationCreateKey, // 如果修改，直接将key拼接到path中。
 			Value: value,
 		})
 	} else {
@@ -103,7 +145,7 @@ func serveMutate(ar *v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 			Op:   "add",
 			Path: "/metadata/annotations",
 			Value: map[string]string{
-				admissionWebhookAnnotationCreateKey: value,
+				admissionWebhookAnnotationCreateKey: value, // 第一次要将key作为map的key
 			},
 		})
 	}

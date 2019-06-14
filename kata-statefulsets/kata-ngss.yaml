@@ -1,20 +1,24 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: kata-ngss
+  name: kata-ngsvr-ss
   annotations:
     io.kubernetes.cri.untrusted-workload: "true"  
 spec:
+  serviceName: kata-ngsvr-ss
+  selector:
+    matchLabels:
+      app: kata-ngsvr-ss
   replicas: 2
   template:
     metadata:
       labels:
-        app: kata-ngss
+        app: kata-ngsvr-ss
       annotations:
         io.kubernetes.cri.untrusted-workload: "true"         
     spec:
       containers:
-      - name: kata-ngss
+      - name: kata-ngsvr-ss
         image: nginx:1.16.0
         ports:
         - containerPort: 80

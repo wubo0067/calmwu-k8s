@@ -96,7 +96,7 @@ func webHookServerHandler(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 	} else {
-		klog.Info(r.URL.Path)
+		klog.Infof("request path:%s", r.URL.Path)
 		// only for non-Kubernetes namespaces. For objects in Kubernetes namespaces
 		if !isKubeNamespace(admissionReviewReq.Request.Namespace) {
 			// 处理请求
@@ -108,14 +108,18 @@ func webHookServerHandler(w http.ResponseWriter, r *http.Request) {
 
 	admissionReviewRes := v1beta1.AdmissionReview{}
 	if admissionResponse != nil {
+		klog.Infof("admissionResponse is not nil, use admissionResponse")
 		admissionReviewRes.Response = admissionResponse
 		admissionReviewRes.Response.UID = admissionReviewReq.Request.UID
 	} else {
+		klog.Infof("admissionResponse is nil, default allow passed!")
 		admissionReviewRes.Response = &v1beta1.AdmissionResponse{
 			UID:     admissionReviewReq.Request.UID,
 			Allowed: true,
 		}
 	}
+
+	klog.Infof("Response:%#v", admissionReviewRes.Response)
 
 	resp, err := json.Marshal(admissionReviewRes)
 	if err != nil {
@@ -123,7 +127,7 @@ func webHookServerHandler(w http.ResponseWriter, r *http.Request) {
 		klog.Error(errStr)
 		http.Error(w, errStr, http.StatusInternalServerError)
 	}
-	klog.Info("Ready to write reponse ...")
+	klog.Info("------------ Ready to write reponse ... ------------")
 	if _, err := w.Write(resp); err != nil {
 		errStr = fmt.Sprintf("Can't write response: %v", err)
 		klog.Error(errStr)

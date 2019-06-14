@@ -64,6 +64,6 @@ webhooks:
       caBundle: CA_BUNDLE
     rules:
       - operations: [ "CREATE", "UPDATE", "DELETE", "CONNECT" ]
-        apiGroups: ["apps", "extensions"]
-        apiVersions: ["v1", "v1beta1"]
-        resources: ["pods", "deployments", "services", "statefulsets"]
+        apiGroups: ["apps", "extensions", "autoscaling"]
+        apiVersions: ["v1", "v1beta1", "autoscaling/v1", "autoscaling/v2beta1", "autoscaling/v2beta2"]
+        resources: ["pods", "deployments", "deployments/*", "services", "statefulsets", "horizontalpodautoscalers"]    
