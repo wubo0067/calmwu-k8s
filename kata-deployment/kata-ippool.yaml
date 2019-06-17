@@ -3,8 +3,8 @@ kind: IPPool
 metadata:
   name: calm.ippool-1
 spec:
-  blockSize: 31
-  cidr: 10.245.55.200/31
+  blockSize: 30
+  cidr: 10.245.55.200/30
   ipipMode: CrossSubnet
   natOutgoing: true
   disabled: false
