@@ -43,9 +43,11 @@ LDFLAGS     =   -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTI
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
 
-build: $(BIN)/hello-microsvr
+build: proto $(BIN)/hello-microsvr
+
+proto: 
+	make -C api/protobuf/hello
 
 $(BIN)/hello-microsvr : $(SRCFILES)
-	make -C api/protobuf/hello
 	gofmt -l -w $(SRCFILES)
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/hello-microsvr ./cmd
