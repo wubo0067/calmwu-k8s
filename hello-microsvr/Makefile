@@ -50,4 +50,5 @@ proto:
 
 $(BIN)/hello-microsvr : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/hello-microsvr ./cmd
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/hello-server ./cmd/hello-server
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/hello-client ./cmd/hello-client
