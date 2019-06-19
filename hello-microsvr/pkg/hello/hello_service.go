@@ -11,14 +11,15 @@ import (
 	"context"
 	"fmt"
 
-	"hello-microsvr/api/protobuf/hello"
+	proto_hello "hello-microsvr/api/protobuf/hello"
 
 	micro "github.com/micro/go-micro"
+	"github.com/micro/cli"
 )
 
 type HelloService struct{}
 
-func (h *HelloService) Ping(ctx context.Context, req *hello.Request, res *hello.Response) error {
+func (h *HelloService) Ping(ctx context.Context, req *proto_hello.Request, res *proto_hello.Response) error {
 	res.Msg = "Hello" + req.Name
 	return nil
 }
@@ -27,9 +28,16 @@ func Main() {
 	fmt.Println("hello.Main")
 
 	service := micro.NewService(micro.Name("Hello"))
-	service.Init()
 
-	hello.RegisterHelloHandler(service.Server(), new(HelloService))
+	// 这里负责服务的初始化工作, 例如存储、传输等等
+	// https://github.com/micro-in-cn/tutorials/tree/master/microservice-in-micro/part1
+	service.Init(
+		micro.Action(func(c *cli.Context){
+			fmt.Println("Hello Service Init")
+		}),
+	)
+
+	proto_hello.RegisterHelloHandler(service.Server(), new(HelloService))
 	if err := service.Run(); err != nil {
 		fmt.Println(err)
 	}

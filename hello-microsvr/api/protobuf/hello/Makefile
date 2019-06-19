@@ -5,4 +5,5 @@ PROTO_SRCS	= $(wildcard *.proto)
 all : proto
 
 proto:
-	protoc --go_out=./ --micro_out=. $(PROTO_SRCS)
+	protoc --proto_path=.:${GOPATH}/src --go_out=./ --micro_out=. $(PROTO_SRCS)
+

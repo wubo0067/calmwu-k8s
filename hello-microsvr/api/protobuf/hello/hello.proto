@@ -1,7 +1,7 @@
 syntax = "proto3";
 
-package protobuf.hello;
-option go_package = "hello";
+package go.micro.protobuf.hello;
+//option go_package = "hello";
 
 service Hello {
     rpc Ping(Request) returns (Response) {}
