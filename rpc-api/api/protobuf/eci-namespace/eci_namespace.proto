@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package eci.v1.namespace;
+
+service NamespaceSvr {
+	rpc GetNamespace(CallRequest) returns(CallResponse) {};
+}
+
+message CallRequest {
+	string name = 1;
+}
+
+message CallResponse {
+	string namespaceInfo = 2;
+}
