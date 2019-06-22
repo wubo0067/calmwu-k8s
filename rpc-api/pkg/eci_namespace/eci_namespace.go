@@ -18,9 +18,9 @@ import (
 	"github.com/micro/go-micro"
 )
 
-type NamespaceSvr struct{}
+type NamespaceService struct{}
 
-func (ns *NamespaceSvr) GetNamespace(ctx context.Context, in *ns_proto.CallRequest, out *ns_proto.CallResponse) error {
+func (ns *NamespaceService) GetNamespace(ctx context.Context, in *ns_proto.CallRequest, out *ns_proto.CallResponse) error {
 	log.Println("receive getnamespace request")
 
 	out.NamespaceInfo = in.Name + "_namespace"
@@ -31,6 +31,7 @@ func Main() {
 	fmt.Println("eci-namespace service")
 
 	service := micro.NewService(
+		// 这个名字必须是protobuf的service名字
 		micro.Name("eci.v1.api.NamespaceSvr"),
 	)
 
@@ -41,7 +42,7 @@ func Main() {
 		}),
 	)
 
-	ns_proto.RegisterNamespaceSvrHandler(service.Server(), new(NamespaceSvr))
+	ns_proto.RegisterNamespaceSvrHandler(service.Server(), new(NamespaceService))
 
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
