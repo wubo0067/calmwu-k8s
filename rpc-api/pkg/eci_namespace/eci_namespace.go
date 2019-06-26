@@ -32,6 +32,7 @@ func Main() {
 
 	service := micro.NewService(
 		// 这个名字必须是protobuf的service名字
+		// 这里是有namespace的
 		micro.Name("eci.v1.api.NamespaceSvr"),
 	)
 
