@@ -18,9 +18,10 @@ tcp6       0      0 192.168.6.134:38791     192.168.6.134:54270     ESTABLISHED 
 #### 使用get
 ```
 curl "http://localhost:8080/hello/call?name=john"
-
+[GET] Hello client john!
 ```
 #### 使用post
 ```
 curl -H 'Content-Type: application/json' -d '{"name": "john"}' http://localhost:8080/hello/call
+[POST] Hello client john!
 ```
