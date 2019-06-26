@@ -51,5 +51,4 @@ proto:
 
 $(BIN)/gas : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
-	#CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/web/web-hello ./cmd/web/hello
-	go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/web/web-hello ./cmd/web/hello
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/web/web-hello ./cmd/web/hello
