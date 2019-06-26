@@ -8,7 +8,7 @@
 package main
 
 import (
-	pkg_hello "gas/api-hello/pkg/hello"
+	pkg_hello "gas/web/hello"
 )
 
 func main() {

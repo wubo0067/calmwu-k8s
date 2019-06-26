@@ -17,7 +17,7 @@ import (
 	"syscall"
 	"time"
 
-	hello_proto "gas/api-hello/api/protobuf"
+	hello_proto "gas/api/protobuf/web/hello"
 
 	api "github.com/micro/go-api/proto"
 	"github.com/micro/go-micro"
