@@ -24,6 +24,7 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/errors"
 	"github.com/micro/go-micro/server"
+	"github.com/micro/go-micro/client"
 )
 
 type APIHello struct{
@@ -40,11 +41,14 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 		}
 
 		spClient := sp_proto.NewStringProcessService("eci.v1.svr.stringprocess", ah.Client)
-		res, _ := spClient.ToUpper(ctx, &sp_proto.OriginalStrReq{name})
 		
-
+		res, err := spClient.ToUpper(ctx, &sp_proto.OriginalStrReq{OriginalString: name.Values[0]})
+		if err != nil {
+			return errors.BadRequest("eci.v1.svr.stringprocess", err.Error())
+		}
+		
 		rsp.StatusCode = 200
-		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", res.upperString)
+		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", res.UpperString)
 		return nil
 	} else if req.Method == "POST" {
 		ct, ok := req.Header["Content-Type"]

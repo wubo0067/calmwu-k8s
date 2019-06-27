@@ -24,6 +24,8 @@ require (
 	github.com/gogo/googleapis v1.2.0 // indirect
 	github.com/golang/protobuf v1.3.1
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
+	github.com/hashicorp/consul v1.5.1
+	github.com/hashicorp/consul/api v1.1.0
 	github.com/hashicorp/go-discover v0.0.0-20190522154730-8aba54d36e17 // indirect
 	github.com/hashicorp/go-memdb v1.0.3 // indirect
 	github.com/hashicorp/hil v0.0.0-20190212132231-97b3a9cdfa93 // indirect

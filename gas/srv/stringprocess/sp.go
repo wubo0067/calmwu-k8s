@@ -8,9 +8,15 @@
 package stringprocess
 
 import (
+	"log"
+	"context"
+	"strings"
+
 	//"github.com/micro/cli"
 	sp_proto "gas/api/protobuf/srv/stringprocess"
 	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/transport"
+	"github.com/micro/go-micro/transport/grpc"
 )
 
 type StringProcessImpl struct{}
@@ -23,10 +29,13 @@ func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.Original
 }
 
 func Main() {
-	service := micro.NewService(
+	svrTransport := grpc.NewTransport(transportOptions)
+
+	service := grpc.NewService(
 		// 这个名字必须是protobuf的service名字
 		// 这里是有namespace的
 		micro.Name("eci.v1.svr.stringprocess"),
+		micro.Transport(svrTransport)
 	)
 
 	service.Init()
@@ -36,4 +45,7 @@ func Main() {
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}	
+}
+
+func transportOptions(ops *transport.Options) {
 }
