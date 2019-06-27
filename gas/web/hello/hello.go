@@ -18,6 +18,7 @@ import (
 	"time"
 
 	hello_proto "gas/api/protobuf/web/hello"
+	sp_proto "gas/api/protobuf/srv/stringprocess"
 
 	api "github.com/micro/go-api/proto"
 	"github.com/micro/go-micro"
@@ -25,7 +26,9 @@ import (
 	"github.com/micro/go-micro/server"
 )
 
-type APIHello struct{}
+type APIHello struct{
+	Client client.Client
+}
 
 func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Response) error {
 	log.Println("Receive Hello.Call request")
@@ -36,8 +39,12 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 			return errors.BadRequest("eci.v1.api.hello", "no content")
 		}
 
+		spClient := sp_proto.NewStringProcessService("eci.v1.svr.stringprocess", ah.Client)
+		res, _ := spClient.ToUpper(ctx, &sp_proto.OriginalStrReq{name})
+		
+
 		rsp.StatusCode = 200
-		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", name.GetValues()[0])
+		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", res.upperString)
 		return nil
 	} else if req.Method == "POST" {
 		ct, ok := req.Header["Content-Type"]
@@ -103,7 +110,7 @@ func Main() {
 		log.Fatal(err.Error())
 	}
 
-	hello_proto.RegisterHelloHandler(service.Server(), new(APIHello))
+	hello_proto.RegisterHelloHandler(service.Server(), &APIHello{service.Client()})
 
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
