@@ -9,13 +9,16 @@ package stringprocess
 
 import (
 	//"github.com/micro/cli"
-	sp_proto "gas/svr/stringprocess/protobuf"
+	sp_proto "gas/api/protobuf/srv/stringprocess"
 	"github.com/micro/go-micro"
 )
 
 type StringProcessImpl struct{}
 
 func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.UpperStrRes) error {
+	log.Println("receive eci.v1.svr.stringprocess.ToUpper request")
+
+	out.UpperString = strings.ToUpper(in.OriginalString)
 	return nil
 }
 

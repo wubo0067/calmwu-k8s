@@ -8,7 +8,7 @@
  package main
 
  import (
-	 "gas/svr/stringprocess/pkg"
+	 "gas/svr/stringprocess"
  )
 
  func main() {
