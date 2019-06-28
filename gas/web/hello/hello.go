@@ -17,17 +17,17 @@ import (
 	"syscall"
 	"time"
 
-	hello_proto "gas/api/protobuf/web/hello"
 	sp_proto "gas/api/protobuf/srv/stringprocess"
+	hello_proto "gas/api/protobuf/web/hello"
 
 	api "github.com/micro/go-api/proto"
 	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/errors"
 	"github.com/micro/go-micro/server"
-	"github.com/micro/go-micro/client"
 )
 
-type APIHello struct{
+type APIHello struct {
 	Client client.Client
 }
 
@@ -35,18 +35,21 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 	log.Println("Receive Hello.Call request")
 
 	if req.Method == "GET" {
+		log.Printf("req.Method is GET")
+
 		name, ok := req.Get["name"]
 		if !ok || len(name.Values) == 0 {
 			return errors.BadRequest("eci.v1.api.hello", "no content")
 		}
 
 		spClient := sp_proto.NewStringProcessService("eci.v1.svr.stringprocess", ah.Client)
-		
+
 		res, err := spClient.ToUpper(ctx, &sp_proto.OriginalStrReq{OriginalString: name.Values[0]})
 		if err != nil {
+			log.Printf("invoke service:eci.v1.svr.stringprocess.ToUpper failed! reason:%s", err.Error())
 			return errors.BadRequest("eci.v1.svr.stringprocess", err.Error())
 		}
-		
+
 		rsp.StatusCode = 200
 		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", res.UpperString)
 		return nil
@@ -108,7 +111,7 @@ func Main() {
 
 	// graceful shutdown
 	err := service.Server().Init(
-		server.Wait(true),
+		server.Wait(nil),
 	)
 	if err != nil {
 		log.Fatal(err.Error())
