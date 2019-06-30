@@ -16,8 +16,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	"io"
 
 	sp_proto "gas/api/protobuf/srv/stringprocess"
+	user_proto "gas/api/protobuf/srv/usermgr"
 	hello_proto "gas/api/protobuf/web/hello"
 
 	api "github.com/micro/go-api/proto"
@@ -68,6 +70,28 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 		json.Unmarshal([]byte(req.Body), &body)
 		if nameValueI, exists := body["name"]; exists {
 			nameValue := nameValueI.(string)
+
+			userClient := user_proto.NewUserService("", ah.Client)
+			stream, err := userClient.GetUserInfoServerStream(ctx, &user_proto.UserRequest{ID: 999})
+			if err != nil {
+				return errors.BadRequest("eci.v1.svr.user", err.Error())
+			}
+
+			for {
+				rsp, err := stream.Recv()
+				if err == io.EOF {
+					log.Printf("rsp recv completed!")
+					break
+				}
+			
+				if err != nil {
+					log.Printf("recv err:%s\n", err.Error())
+					return errors.BadRequest("eci.v1.svr.user", err.Error())
+				}
+
+				log.Printf("recv rsp:%#v\n", rsp)
+				nameValue = fmt.Sprintf("%s-%d", rsp.Name, rsp.Age)
+			}			
 			rsp.StatusCode = 200
 			rsp.Body = fmt.Sprintf("[POST] Hello client %s!", nameValue)
 			return nil

@@ -35,6 +35,8 @@ func (usi *UserServiceImpl) GetUserInfoServerStream(ctx context.Context, req *us
 	for _, user := range users {
 		stream.Send(&user)
 	}
+
+	stream.Close()
 	return nil
 }
 
