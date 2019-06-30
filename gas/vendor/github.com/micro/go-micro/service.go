@@ -44,10 +44,11 @@ func (s *service) Init(opts ...Option) {
 
 	s.once.Do(func() {
 		// Initialise the command flags, overriding new service
+		// 让默认的命令行参数有效，必须调用Init的方法，这里可以根据命令行参数对默认对象进行替换
 		_ = s.opts.Cmd.Init(
 			cmd.Broker(&s.opts.Broker),
 			cmd.Registry(&s.opts.Registry),
-			cmd.Transport(&s.opts.Transport),
+			cmd.Transport(&s.opts.Transport), // 就是替换
 			cmd.Client(&s.opts.Client),
 			cmd.Server(&s.opts.Server),
 		)
@@ -71,6 +72,7 @@ func (s *service) String() string {
 }
 
 func (s *service) Start() error {
+	// cmd是有BeforeStart的
 	for _, fn := range s.opts.BeforeStart {
 		if err := fn(); err != nil {
 			return err

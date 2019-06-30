@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package eci.v1.server.user;
+
+service UserService {
+    // client <--- server stream
+    rpc GetUserInfoServerStream(UserRequest) returns (stream UserResponse);
+
+    // client <---> server stream
+    rpc GetUserInfoBidirectionalStream(stream UserRequest) returns (stream UserResponse);
+}
+
+message UserRequest {
+    int32 ID = 1;
+}
+
+message UserResponse {
+    string name = 1;
+    int32 age = 2;
+}
