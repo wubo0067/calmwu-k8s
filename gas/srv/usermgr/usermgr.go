@@ -59,7 +59,9 @@ func (usi *UserServiceImpl) GetUserInfoBidirectionalStream(ctx context.Context,
 
 		log.Printf("Receive req:%#v\n", req)
 
-		if err = stream.Send(&users[req.ID%3]); err != nil {
+		var index int32 = req.ID % 3
+		useRsp, _ := users[index]
+		if err = stream.Send(&useRsp); err != nil {
 			log.Printf("stream Send err:%s\n", err.Error())
 			return err
 		}
