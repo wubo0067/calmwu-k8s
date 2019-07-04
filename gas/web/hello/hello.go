@@ -11,12 +11,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-	"io"
 
 	sp_proto "gas/api/protobuf/srv/stringprocess"
 	user_proto "gas/api/protobuf/srv/usermgr"
@@ -26,7 +26,11 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/errors"
+	"github.com/micro/go-micro/metadata"
 	"github.com/micro/go-micro/server"
+
+	uuid "github.com/nu7hatch/gouuid"
+	"golang.org/x/net/trace"
 )
 
 type APIHello struct {
@@ -35,6 +39,28 @@ type APIHello struct {
 
 func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Response) error {
 	log.Println("Receive Hello.Call request")
+
+	tr := trace.New("eci.vi.api.hello", "APIHello.Call")
+	defer tr.Finish()
+
+	// context
+	ctx = trace.NewContext(ctx, tr)
+	// 从context中获取值
+	md, ok := metadata.FromContext(ctx)
+	if !ok {
+		md = metadata.Metadata{}
+	}
+
+	// add a unqiue request id to context
+	if traceID, err := uuid.NewV4(); err == nil {
+		tmd := metadata.Metadata{}
+		for k, v := range md {
+			tmd[k] = v
+		}
+		tmd["traceID"] = traceID.String()
+		tmd["fromName"] = "eci.vi.api.hello"
+		ctx = metadata.NewContext(ctx, tmd)
+	}
 
 	if req.Method == "GET" {
 		log.Printf("req.Method is GET")
@@ -80,10 +106,11 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 			for {
 				rsp, err := stream.Recv()
 				if err == io.EOF {
+					// 服务端会关闭流，这里会收到EOF
 					log.Printf("rsp recv completed!")
 					break
 				}
-			
+
 				if err != nil {
 					log.Printf("recv err:%s\n", err.Error())
 					return errors.BadRequest("eci.v1.svr.user", err.Error())
@@ -91,7 +118,7 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 
 				log.Printf("recv rsp:%#v\n", rsp)
 				nameValue = fmt.Sprintf("%s-%d", rsp.Name, rsp.Age)
-			}			
+			}
 			rsp.StatusCode = 200
 			rsp.Body = fmt.Sprintf("[POST] Hello client %s!", nameValue)
 			return nil

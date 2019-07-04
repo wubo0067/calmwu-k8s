@@ -16,7 +16,10 @@ import (
 	sp_proto "gas/api/protobuf/srv/stringprocess"
 
 	"github.com/micro/go-micro"
+	"github.com/micro/go-micro/metadata"
+	"github.com/micro/go-micro/server"
 	"github.com/micro/go-micro/transport"
+	"golang.org/x/net/trace"
 )
 
 type StringProcessImpl struct{}
@@ -24,8 +27,29 @@ type StringProcessImpl struct{}
 func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.UpperStrRes) error {
 	log.Println("receive eci.v1.svr.stringprocess.ToUpper request")
 
+	// 从ctx中获取metadata数据
+	md, _ := metadata.FromContext(ctx)
+	traceID := md["traceID"]
+	fromName := md["fromName"]
+
+	// 获取tr
+	if tr, ok := trace.FromContext(ctx); ok {
+		tr.LazyPrintf("fromName: %s traceID %s", fromName, traceID)
+	} else {
+		log.Println("from context get trace object is nil")
+	}
+
 	out.UpperString = strings.ToUpper(in.OriginalString)
 	return nil
+}
+
+// logWrapper is a handler wrapper
+func logWrapper(fn server.HandlerFunc) server.HandlerFunc {
+	return func(ctx context.Context, req server.Request, rsp interface{}) error {
+		log.Printf("[wrapper] server request: %v", req.Endpoint())
+		err := fn(ctx, req, rsp)
+		return err
+	}
 }
 
 func Main() {
@@ -36,6 +60,7 @@ func Main() {
 		// 这里是有namespace的
 		micro.Name("eci.v1.svr.stringprocess"),
 		//micro.Transport(svrTransport),
+		micro.WrapHandler(logWrapper), // 这里是handlerwapper，是对回调方法的封装
 	)
 
 	service.Init()

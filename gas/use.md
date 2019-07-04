@@ -1,3 +1,8 @@
+### 启动consul
+```
+/usr/local/bin/consul agent -node node0 -bind 192.168.6.134 -dev -client 0.0.0.0
+```
+
 ### 启动网关，web层使用的是api
 ```
 micro --registry=consul api --handler=api --namespace=eci.v1.api
@@ -19,12 +24,12 @@ tcp6       0      0 192.168.6.134:38791     192.168.6.134:54270     ESTABLISHED 
 ```
 
 ### 调用
-#### 使用get
+- 使用get
 ```
 curl "http://localhost:8080/hello/call?name=john"
 [GET] Hello client john!
 ```
-#### 使用post
+- 使用post
 ```
 curl -H 'Content-Type: application/json' -d '{"name": "john"}' http://localhost:8080/hello/call
 [POST] Hello client john!
@@ -34,4 +39,13 @@ curl -H 'Content-Type: application/json' -d '{"name": "john"}' http://localhost:
 所有模块都指定transport=grpc，这样才能打通三层
 ```
 ./srv-stringprocess --registry=consul --transport=grpc
+./srv-usermgr --registry=consul --transport=grpc
 ```
+
+### 配置管理使用consul集中配置
+
+### 启动调链跟踪Jaeger
+```
+docker run -d --name jaeger -e COLLECTOR_ZIPKIN_HTTP_PORT=9411 -p 5775:5775/udp -p 6831:6831/udp -p 6832:6832/udp -p 5778:5778 -p 16686:16686 -p 14268:14268 -p 9411:9411 jaegertracing/all-in-one:1.6
+```
+- 打开界面：http://192.168.6.134:16686/search

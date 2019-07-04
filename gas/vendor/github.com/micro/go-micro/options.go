@@ -40,12 +40,11 @@ func newOptions(opts ...Option) Options {
 		Client:    client.DefaultClient,
 		Server:    server.DefaultServer,
 		Registry:  registry.DefaultRegistry,
-		Transport: transport.DefaultTransport, // 默认是使用http，如果使用grpc可以，在命令行中加上--transport=grpc
+		Transport: transport.DefaultTransport,
 		Context:   context.Background(),
 	}
 
 	for _, o := range opts {
-		// 调用外部传入的初始化方法对这些初始化对象进行自定义初始化
 		o(&opt)
 	}
 
