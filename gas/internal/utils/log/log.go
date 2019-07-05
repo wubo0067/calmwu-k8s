@@ -16,6 +16,6 @@ import (
 
 // 创建一个ZapLog对象
 func NewZapLog(logFullName string, logLevel zapcore.Level) *zap.SugaredLogger {
-	zapLog := calm_utils.CreateZapLog(logFullName, 100, 7, 7, true, logLevel)
-	return zapLog
+	calm_utils.InitDefaultZapLog(logFullName, logLevel)
+	return calm_utils.ZLog
 }
