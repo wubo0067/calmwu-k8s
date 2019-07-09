@@ -58,8 +58,12 @@ srv_usermgr:
 srv_stringprocess:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv_stringprocess ./cmd/srv/stringprocess	
 
+pci_gateway:
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci_gateway ./cmd/gateway
+
 $(BIN)/gas : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/web/web-hello ./cmd/web/hello
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-stringprocess ./cmd/srv/stringprocess
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-usermgr ./cmd/srv/usermgr
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci_gateway ./cmd/gateway

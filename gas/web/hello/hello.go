@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-06-25 10:29:43
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-06-25 10:30:12
+ * @Last Modified time: 2019-07-09 19:02:31
  */
 
 package hello
@@ -21,6 +21,7 @@ import (
 	sp_proto "gas/api/protobuf/srv/stringprocess"
 	user_proto "gas/api/protobuf/srv/usermgr"
 	hello_proto "gas/api/protobuf/web/hello"
+	"gas/internal/utils/tracer"
 
 	api "github.com/micro/go-api/proto"
 	"github.com/micro/go-micro"
@@ -31,6 +32,9 @@ import (
 
 	uuid "github.com/nu7hatch/gouuid"
 	"golang.org/x/net/trace"
+
+	ocplugin "github.com/micro/go-plugins/wrapper/trace/opentracing"
+	opentracing "github.com/opentracing/opentracing-go"
 )
 
 type APIHello struct {
@@ -150,18 +154,27 @@ func Main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	setupSignalHandler(cancel)
 
+	t, io, err := tracer.NewTracer("eci.v1.api.hello", "localhost:6831")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer io.Close()
+	opentracing.SetGlobalTracer(t)
+
 	// 本身是个服务
 	service := micro.NewService(
 		micro.Name("eci.v1.api.hello"),
 		micro.RegisterTTL(time.Second*30), // 这里会设置consul.go Start中的ttl参数，func (s *rpcServer) Register() error {
 		micro.RegisterInterval(time.Second*10),
-		micro.Context(ctx), // 停服控制，用信号处理
+		micro.Context(ctx),                                                        // 停服控制，用信号处理
+		micro.WrapHandler(ocplugin.NewHandlerWrapper(opentracing.GlobalTracer())), // 调链跟踪
 	)
 
 	service.Init()
 
 	// graceful shutdown
-	err := service.Server().Init(
+	err = service.Server().Init(
 		server.Wait(nil),
 	)
 	if err != nil {

@@ -11,15 +11,20 @@ import (
 	"context"
 	"log"
 	"strings"
+	"time"
 
 	//"github.com/micro/cli"
 	sp_proto "gas/api/protobuf/srv/stringprocess"
+	"gas/internal/utils/tracer"
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/metadata"
 	"github.com/micro/go-micro/server"
 	"github.com/micro/go-micro/transport"
 	"golang.org/x/net/trace"
+
+	ocplugin "github.com/micro/go-plugins/wrapper/trace/opentracing"
+	opentracing "github.com/opentracing/opentracing-go"
 )
 
 type StringProcessImpl struct{}
@@ -54,15 +59,26 @@ func logWrapper(fn server.HandlerFunc) server.HandlerFunc {
 
 func Main() {
 	//svrTransport := grpc.NewTransport(transportOptions)
+	t, io, err := tracer.NewTracer("eci.v1.svr.stringprocess", "localhost:6831")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer io.Close()
+	opentracing.SetGlobalTracer(t)
 
 	service := micro.NewService(
 		// 这个名字必须是protobuf的service名字
 		// 这里是有namespace的
 		micro.Name("eci.v1.svr.stringprocess"),
+		micro.RegisterTTL(time.Second*15),
+		micro.RegisterInterval(time.Second*10),
 		//micro.Transport(svrTransport),
 		micro.WrapHandler(logWrapper), // 这里是handlerwapper，是对回调方法的封装
+		micro.WrapHandler(ocplugin.NewHandlerWrapper(opentracing.GlobalTracer())), // 调链跟踪
 	)
 
+	// 服务初始化
 	service.Init()
 
 	sp_proto.RegisterStringProcessHandler(service.Server(), new(StringProcessImpl))
