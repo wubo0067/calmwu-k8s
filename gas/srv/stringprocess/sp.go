@@ -49,6 +49,7 @@ func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.Original
 }
 
 // logWrapper is a handler wrapper
+// 传入实际的接口函数
 func logWrapper(fn server.HandlerFunc) server.HandlerFunc {
 	return func(ctx context.Context, req server.Request, rsp interface{}) error {
 		log.Printf("[wrapper] server request: %v", req.Endpoint())
@@ -67,6 +68,7 @@ func Main() {
 	defer io.Close()
 	opentracing.SetGlobalTracer(t)
 
+	// 这里传入各种option函数，用于修改server的options
 	service := micro.NewService(
 		// 这个名字必须是protobuf的service名字
 		// 这里是有namespace的
@@ -75,7 +77,7 @@ func Main() {
 		micro.RegisterInterval(time.Second*10),
 		//micro.Transport(svrTransport),
 		micro.WrapHandler(logWrapper), // 这里是handlerwapper，是对回调方法的封装
-		micro.WrapHandler(ocplugin.NewHandlerWrapper(opentracing.GlobalTracer())), // 调链跟踪
+		micro.WrapHandler(ocplugin.NewHandlerWrapper(opentracing.GlobalTracer())), // 调链跟踪，NewHandlerWrapper返回一个HandlerWrapper函数对象
 	)
 
 	// 服务初始化

@@ -28,6 +28,7 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/encoding"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
 )
 
@@ -56,8 +57,8 @@ type grpcServer struct {
 }
 
 func init() {
-	encoding.RegisterCodec(wrapCodec{protoCodec{}})
 	encoding.RegisterCodec(wrapCodec{jsonCodec{}})
+	encoding.RegisterCodec(wrapCodec{protoCodec{}})
 	encoding.RegisterCodec(wrapCodec{bytesCodec{}})
 }
 
@@ -202,6 +203,12 @@ func (g *grpcServer) handler(srv interface{}, stream grpc.ServerStream) error {
 
 	// create new context
 	ctx := meta.NewContext(stream.Context(), md)
+
+	// get peer from context
+	if p, ok := peer.FromContext(stream.Context()); ok {
+		md["Remote"] = p.Addr.String()
+		ctx = peer.NewContext(ctx, p)
+	}
 
 	// set the timeout if we have it
 	if len(to) > 0 {

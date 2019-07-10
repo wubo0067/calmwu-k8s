@@ -15,14 +15,14 @@ github.com/chzyer/readline
 github.com/forestgiant/sliceutil
 # github.com/fsnotify/fsnotify v1.4.7
 github.com/fsnotify/fsnotify
-# github.com/ghodss/yaml v1.0.0
+# github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 github.com/ghodss/yaml
-# github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74
+# github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3
 github.com/gin-contrib/sse
-# github.com/gin-gonic/gin v1.3.0
+# github.com/gin-gonic/gin v1.4.0
 github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
-github.com/gin-gonic/gin/json
+github.com/gin-gonic/gin/internal/json
 github.com/gin-gonic/gin/render
 # github.com/go-log/log v0.1.0
 github.com/go-log/log
@@ -46,15 +46,20 @@ github.com/gorilla/mux
 # github.com/gorilla/websocket v1.4.0
 github.com/gorilla/websocket
 # github.com/hashicorp/consul/api v1.1.0
+github.com/hashicorp/consul/api
 github.com/hashicorp/consul/api/watch
 # github.com/hashicorp/errwrap v1.0.0
 github.com/hashicorp/errwrap
+# github.com/hashicorp/go-cleanhttp v0.5.1
+github.com/hashicorp/go-cleanhttp
 # github.com/hashicorp/go-immutable-radix v1.1.0
 github.com/hashicorp/go-immutable-radix
 # github.com/hashicorp/go-msgpack v0.5.5
 github.com/hashicorp/go-msgpack/codec
 # github.com/hashicorp/go-multierror v1.0.0
 github.com/hashicorp/go-multierror
+# github.com/hashicorp/go-rootcerts v1.0.1
+github.com/hashicorp/go-rootcerts
 # github.com/hashicorp/go-sockaddr v1.0.2
 github.com/hashicorp/go-sockaddr
 # github.com/hashicorp/golang-lru v0.5.1
@@ -71,6 +76,8 @@ github.com/hashicorp/hcl/json/scanner
 github.com/hashicorp/hcl/json/token
 # github.com/hashicorp/memberlist v0.1.4
 github.com/hashicorp/memberlist
+# github.com/hashicorp/serf v0.8.3
+github.com/hashicorp/serf/coordinate
 # github.com/imdario/mergo v0.3.7
 github.com/imdario/mergo
 # github.com/joncalhoun/qson v0.0.0-20170526102502-8a9cab3a62b1
@@ -85,7 +92,7 @@ github.com/mattn/go-runewidth
 github.com/micro/cli
 # github.com/micro/go-api v0.6.0
 github.com/micro/go-api/proto
-# github.com/micro/go-micro v1.7.0
+# github.com/micro/go-micro v1.7.1-0.20190627135301-d8e998ad85fe
 github.com/micro/go-micro/client
 github.com/micro/go-micro/server
 github.com/micro/go-micro/config
@@ -95,6 +102,7 @@ github.com/micro/go-micro/metadata
 github.com/micro/go-micro/transport
 github.com/micro/go-micro/errors
 github.com/micro/go-micro/broker
+github.com/micro/go-micro/client/selector
 github.com/micro/go-micro/codec
 github.com/micro/go-micro/codec/bytes
 github.com/micro/go-micro/codec/grpc
@@ -103,11 +111,10 @@ github.com/micro/go-micro/codec/jsonrpc
 github.com/micro/go-micro/codec/proto
 github.com/micro/go-micro/codec/protorpc
 github.com/micro/go-micro/registry
-github.com/micro/go-micro/selector
 github.com/micro/go-micro/server/debug
 github.com/micro/go-micro/util/addr
 github.com/micro/go-micro/util/log
-github.com/micro/go-micro/cmd
+github.com/micro/go-micro/config/cmd
 github.com/micro/go-micro/config/loader
 github.com/micro/go-micro/config/loader/memory
 github.com/micro/go-micro/config/reader
@@ -124,12 +131,13 @@ github.com/micro/go-micro/broker/memory
 github.com/micro/go-micro/broker/nats
 github.com/micro/go-micro/client/grpc
 github.com/micro/go-micro/client/mucp
+github.com/micro/go-micro/client/selector/dns
+github.com/micro/go-micro/client/selector/router
+github.com/micro/go-micro/client/selector/static
 github.com/micro/go-micro/registry/consul
 github.com/micro/go-micro/registry/gossip
 github.com/micro/go-micro/registry/mdns
 github.com/micro/go-micro/registry/memory
-github.com/micro/go-micro/selector/dns
-github.com/micro/go-micro/selector/static
 github.com/micro/go-micro/server/grpc
 github.com/micro/go-micro/server/mucp
 github.com/micro/go-micro/transport/grpc
@@ -157,11 +165,12 @@ github.com/micro/go-micro/agent/input/slack
 github.com/micro/go-micro/agent/input/telegram
 github.com/micro/go-micro/agent/proto
 github.com/micro/go-micro/config/options
-github.com/micro/go-micro/proxy
-github.com/micro/go-micro/proxy/grpc
-github.com/micro/go-micro/proxy/http
-github.com/micro/go-micro/proxy/mucp
-github.com/micro/go-micro/router
+github.com/micro/go-micro/network/proxy
+github.com/micro/go-micro/network/proxy/grpc
+github.com/micro/go-micro/network/proxy/http
+github.com/micro/go-micro/network/proxy/mucp
+github.com/micro/go-micro/network/router
+github.com/micro/go-micro/network/router/proto
 github.com/micro/go-micro/config/encoder/hcl
 github.com/micro/go-micro/config/encoder/json
 github.com/micro/go-micro/config/encoder/toml
@@ -174,11 +183,11 @@ github.com/micro/go-micro/api
 github.com/micro/go-micro/api/proto
 github.com/micro/go-micro/util/ctx
 github.com/micro/go-micro/api/internal/proto
-# github.com/micro/go-plugins v0.24.1
+# github.com/micro/go-plugins v1.1.1
 github.com/micro/go-plugins/wrapper/trace/opentracing
-# github.com/micro/mdns v0.1.0
+# github.com/micro/mdns v0.1.1-0.20190624125042-790ba6222fe3
 github.com/micro/mdns
-# github.com/micro/micro v1.7.0
+# github.com/micro/micro v1.7.1-0.20190627121529-410a2eba67f1
 github.com/micro/micro/cmd
 github.com/micro/micro/plugin
 github.com/micro/micro/api
@@ -187,6 +196,7 @@ github.com/micro/micro/cli
 github.com/micro/micro/internal/usage
 github.com/micro/micro/new
 github.com/micro/micro/proxy
+github.com/micro/micro/router
 github.com/micro/micro/server
 github.com/micro/micro/service
 github.com/micro/micro/web
@@ -198,8 +208,11 @@ github.com/micro/micro/internal/command/cli
 github.com/micro/micro/internal/usage/proto
 github.com/micro/micro/internal/version
 github.com/micro/micro/internal/template
+github.com/micro/micro/router/handler
 # github.com/miekg/dns v1.1.14
 github.com/miekg/dns
+# github.com/mitchellh/go-homedir v1.1.0
+github.com/mitchellh/go-homedir
 # github.com/mitchellh/hashstructure v1.0.0
 github.com/mitchellh/hashstructure
 # github.com/mitchellh/mapstructure v1.1.2
@@ -212,7 +225,7 @@ github.com/modern-go/reflect2
 github.com/monnand/dhkx
 # github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a
 github.com/mozhata/merr
-# github.com/nats-io/nats.go v1.8.1
+# github.com/nats-io/nats.go v1.8.2-0.20190607221125-9f4d16fe7c2d
 github.com/nats-io/nats.go
 github.com/nats-io/nats.go/encoders/builtin
 github.com/nats-io/nats.go/util
@@ -261,13 +274,13 @@ github.com/uber/jaeger-client-go/thrift-gen/agent
 github.com/uber/jaeger-client-go/thrift-gen/baggage
 # github.com/uber/jaeger-lib v2.0.0+incompatible
 github.com/uber/jaeger-lib/metrics
-# github.com/ugorji/go/codec v0.0.0-20190128213124-ee1426cffec0
+# github.com/ugorji/go v1.1.4
 github.com/ugorji/go/codec
 # github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba
 github.com/wubo0067/calmwu-go/utils
 # github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca
 github.com/xlab/treeprint
-# go.uber.org/atomic v1.3.2
+# go.uber.org/atomic v1.4.0
 go.uber.org/atomic
 # go.uber.org/multierr v1.1.0
 go.uber.org/multierr
@@ -300,7 +313,7 @@ golang.org/x/net/ipv6
 golang.org/x/net/bpf
 golang.org/x/net/internal/iana
 golang.org/x/net/internal/socket
-# golang.org/x/sys v0.0.0-20190624142023-c5567b49c5d0
+# golang.org/x/sys v0.0.0-20190626221950-04f50cda93cb
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 golang.org/x/sys/cpu
@@ -311,7 +324,7 @@ golang.org/x/text/unicode/norm
 golang.org/x/text/transform
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
-# google.golang.org/genproto v0.0.0-20190620144150-6af8c5fc6601
+# google.golang.org/genproto v0.0.0-20190626174449-989357319d63
 google.golang.org/genproto/googleapis/rpc/status
 # google.golang.org/grpc v1.21.1
 google.golang.org/grpc

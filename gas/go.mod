@@ -9,6 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.4.0 // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api v4.6.4+incompatible // indirect
 	github.com/golang/protobuf v1.3.1
+	github.com/hashicorp/consul v1.5.1 // indirect
 	github.com/lusis/go-slackbot v0.0.0-20180109053408-401027ccfef5 // indirect
 	github.com/lusis/slack-test v0.0.0-20190426140909-c40012f20018 // indirect
 	github.com/micro/go-api v0.6.0
@@ -27,3 +28,5 @@ require (
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 )
+
+exclude github.com/hashicorp/consul v1.4.2

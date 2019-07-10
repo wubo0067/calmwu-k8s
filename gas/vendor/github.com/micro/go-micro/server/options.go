@@ -16,7 +16,7 @@ type Options struct {
 	Codecs       map[string]codec.NewCodec
 	Broker       broker.Broker
 	Registry     registry.Registry
-	Transport    transport.Transport // server的options有grpc和http选择，这是为什么
+	Transport    transport.Transport
 	Metadata     map[string]string
 	Name         string
 	Address      string
