@@ -1,8 +1,16 @@
-### 接口描述
+### 1. 公共类型描述
 
-#### 1. 创建IPPool
+#### 1.1 K8SApiResourceKindType
+	const (
+		K8SApiResourceKindDeployment K8SApiResourceKindType = iota // 0 = Deployment
+		K8SApiResourceKindStatefulSet // 1 = StatefulSet
+	)
 
-`Url: http://api.ipresmgr.com/v1/IPPool/Create`
+### 2. WEBHOOK到IPResMgr接口描述
+
+#### 2.1 创建IPPool
+
+`Url: http://api.ipresmgr.com/v1/ippool/create`
 
 `Method: Post`
 
@@ -21,9 +29,9 @@ type WB2IPResMgrCreateIPPoolReq struct {
 }
 ```
 
-#### 2. 释放IPPool
+#### 2.2 释放IPPool
 
-`Url: http://api.ipresmgr.com/v1/IPPool/Release`
+`Url: http://api.ipresmgr.com/v1/ippool/release`
 
 `Method: Post`
 
@@ -39,9 +47,9 @@ type WB2IPResMgrReleaseIPPoolReq struct {
 }
 ```
 
-### 3. IPPool扩缩容
+#### 2.3 IPPool扩缩容
 
-`Url: http://api.ipresmgr.com/v1/IPPool/Scale`
+`Url: http://api.ipresmgr.com/v1/ippool/scale`
 
 `Method: Post`
 
@@ -59,7 +67,7 @@ type WB2IPResMgrScaleIPPoolReq struct {
 }
 ```
 
-### 4. 请求回应
+#### 2.4 请求回应
 
 `BodyType: Json`
 ```
@@ -68,5 +76,60 @@ type IPResMgr2WBRes struct {
 	ReqType WB2IPResMgrRequestType `json:"ReqType" mapstructure:"ReqType"`
 	Code    IPResMgrErrorCode      `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
 	Msg     string                 `json:"Msg" mapstructure:"Msg"`
+}
+```
+
+### 3. IPAM到IPResMgr接口描述
+
+#### 3.1 IPAM获取IP
+
+`Url: http://api.ipresmgr.com/v1/ip/require`
+
+`Method: Post`
+
+`BodyType: Json`
+```
+// ipam向ipresmgr请求ip地址
+type IPAM2IPResMgrRequireIPReq struct {
+	ReqID              string                 `json:"ReqID" mapstructure:"ReqID"`
+	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
+	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`         // k8s集群id
+	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`         // 对应的namespace
+	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
+	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
+	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id
+}
+
+// ipresmgr给ipam返回ip地址
+type IPResMgr2IPAMRequireIPRes struct {
+	ReqID string            `json:"ReqID" mapstructure:"ReqID"`
+	IP    string            `json:"IP" mapstructure:"IP"`
+	Code  IPResMgrErrorCode `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
+	Msg   string            `json:"Msg" mapstructure:"Msg"`
+}
+```
+
+#### 3.2 IPAM释放IP
+`Url: http://api.ipresmgr.com/v1/ip/release`
+
+`Method: Post`
+
+`BodyType: Json`
+```
+type IPAM2IPResMgrReleaseIPReq struct {
+	ReqID              string                 `json:"ReqID" mapstructure:"ReqID"`
+	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
+	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`         // k8s集群id
+	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`         // 对应的namespace
+	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
+	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
+	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"`
+	IP                 string                 `json:"IP" mapstructure:"IP"`
+}
+
+type IPResMgr2IPAMReleaseIPRes struct {
+	ReqID string            `json:"ReqID" mapstructure:"ReqID"`
+	Code  IPResMgrErrorCode `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
+	Msg   string            `json:"Msg" mapstructure:"Msg"`
 }
 ```
