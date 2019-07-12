@@ -15,7 +15,7 @@ type IPAM2IPResMgrRequireIPReq struct {
 	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`         // 对应的namespace
 	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
-	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id
+	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id 不是podname
 }
 
 // ipresmgr给ipam返回ip地址
@@ -34,7 +34,7 @@ type IPAM2IPResMgrReleaseIPReq struct {
 	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`         // 对应的namespace
 	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
-	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"`
+	K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id 不是podname
 	IP                 string                 `json:"IP" mapstructure:"IP"`
 }
 
