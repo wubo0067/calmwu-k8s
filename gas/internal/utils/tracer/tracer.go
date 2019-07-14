@@ -8,13 +8,20 @@
 package tracer
 
 import (
+	"context"
 	"io"
+	"net/http"
 	"time"
 
+	"github.com/gin-gonic/gin"
+	"github.com/micro/go-micro/metadata"
 	opentracing "github.com/opentracing/opentracing-go"
+	"github.com/opentracing/opentracing-go/ext"
 	jaeger "github.com/uber/jaeger-client-go"
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 )
+
+const ginTracerKey = "ginTracerKey-context"
 
 //
 func NewTracer(serviceName string, jaegerAddr string) (opentracing.Tracer, io.Closer, error) {
@@ -44,3 +51,56 @@ func NewTracer(serviceName string, jaegerAddr string) (opentracing.Tracer, io.Cl
 
 	return tracer, closer, err
 }
+
+//
+func GinTracerWrapper(c *gin.Context) {
+	md := make(map[string]string)
+	spanCtx, _ := opentracing.GlobalTracer().Extract(opentracing.HTTPHeaders, opentracing.HTTPHeadersCarrier(c.Request.Header))
+	sp := opentracing.GlobalTracer().StartSpan(c.Request.URL.Path, opentracing.ChildOf(spanCtx))
+	defer sp.Finish()
+
+	if err := opentracing.GlobalTracer().Inject(sp.Context(),
+		opentracing.TextMap,
+		opentracing.TextMapCarrier(md)); err != nil {
+	}
+
+	ctx := context.TODO()
+	ctx = opentracing.ContextWithSpan(ctx, sp)
+	ctx = metadata.NewContext(ctx, md)
+	c.Set(ginTracerKey, ctx)
+
+	c.Next()
+
+	statusCode := c.Writer.Status()
+	ext.HTTPStatusCode.Set(sp, uint16(statusCode))
+	ext.HTTPMethod.Set(sp, c.Request.Method)
+	ext.HTTPUrl.Set(sp, c.Request.URL.EscapedPath())
+	if statusCode >= http.StatusInternalServerError {
+		ext.Error.Set(sp, true)
+	}
+}
+
+// GinContextWithSpan 返回context
+func GinContextWithSpan(c *gin.Context) (ctx context.Context, ok bool) {
+	v, exist := c.Get(ginTracerKey)
+	if exist == false {
+		ok = false
+		ctx = context.TODO()
+		return
+	}
+
+	ctx, ok = v.(context.Context)
+	return
+}
+
+/*
+	router := gin.Default()
+	r := router.Group("/user")
+	r.Use(tracer.GinTracerWrapper)
+
+	在方法中调用GinContextWithSpan
+
+	ctx, ok := tracer.GinContextWithSpan(c)，将这个ctx传递给rpc的的方法
+
+	https://github.com/Allenxuxu/microservices/blob/master/api/user/
+*/
