@@ -13,6 +13,7 @@ require (
 	github.com/hashicorp/consul v1.5.1 // indirect
 	github.com/lusis/go-slackbot v0.0.0-20180109053408-401027ccfef5 // indirect
 	github.com/lusis/slack-test v0.0.0-20190426140909-c40012f20018 // indirect
+	github.com/micro/cli v0.2.0
 	github.com/micro/go-api v0.6.0
 	github.com/micro/go-micro v1.7.1-0.20190627135301-d8e998ad85fe
 	github.com/micro/go-plugins v1.1.1
@@ -21,10 +22,11 @@ require (
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d
 	github.com/opentracing/opentracing-go v1.1.0
+	github.com/pquerna/ffjson v0.0.0-20181028064349-e517b90714f7
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/uber/jaeger-client-go v2.16.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190715031055-aed7e565ec50
+	github.com/wubo0067/calmwu-go v0.0.0-20190715080445-279a65dee221
 	go.uber.org/zap v1.10.0
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
