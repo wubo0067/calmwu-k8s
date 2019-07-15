@@ -208,6 +208,7 @@ func (s *service) call(ctx context.Context, router *router, sending *sync.Mutex,
 		}
 
 		// wrap the handler
+		// 这里是形成多层嵌套，最后在下面去执行，nb死了
 		for i := len(router.hdlrWrappers); i > 0; i-- {
 			fn = router.hdlrWrappers[i-1](fn)
 		}

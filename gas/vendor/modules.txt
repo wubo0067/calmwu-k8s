@@ -276,7 +276,7 @@ github.com/uber/jaeger-client-go/thrift-gen/baggage
 github.com/uber/jaeger-lib/metrics
 # github.com/ugorji/go v1.1.4
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba
+# github.com/wubo0067/calmwu-go v0.0.0-20190715031055-aed7e565ec50
 github.com/wubo0067/calmwu-go/utils
 # github.com/xlab/treeprint v0.0.0-20181112141820-a009c3971eca
 github.com/xlab/treeprint

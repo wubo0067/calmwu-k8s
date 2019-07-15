@@ -23,7 +23,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/uber/jaeger-client-go v2.16.0+incompatible
 	github.com/uber/jaeger-lib v2.0.0+incompatible // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba
+	github.com/wubo0067/calmwu-go v0.0.0-20190715031055-aed7e565ec50
 	go.uber.org/zap v1.10.0
 	golang.org/x/net v0.0.0-20190620200207-3b0461eec859
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

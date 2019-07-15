@@ -667,6 +667,8 @@ github.com/vmware/govmomi v0.18.0/go.mod h1:URlwyTFZX72RmxtxuaFL2Uj3fD1JTvZdx59b
 github.com/willf/bitset v1.1.9/go.mod h1:RjeCKbqT1RxIR/KWY6phxZiaY1IyutSBfGjNPySAYV4=
 github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba h1:clw2Rk6p3aMPbc3SKo/mTFCEBCKAUtFLiVTKCNuA0t8=
 github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
+github.com/wubo0067/calmwu-go v0.0.0-20190715031055-aed7e565ec50 h1:Ew2nOP8y6DGtj9Ucf/3NsU4itJYCg+IYVmOMxcU76Nk=
+github.com/wubo0067/calmwu-go v0.0.0-20190715031055-aed7e565ec50/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
 github.com/xanzy/ssh-agent v0.2.1/go.mod h1:mLlQY/MoOhWBj+gOGMQkOeiEvkx+8pJSI+0Bx9h2kr4=
 github.com/xdg/scram v0.0.0-20180814205039-7eeb5667e42c/go.mod h1:lB8K/P019DLNhemzwFU4jHLhdvlE6uDZjXFejJXr49I=
 github.com/xdg/stringprep v1.0.0/go.mod h1:Jhud4/sHMO4oL310DaZAKk9ZaJ08SJfe+sJh0HrGL1Y=

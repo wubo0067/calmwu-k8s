@@ -198,6 +198,7 @@ func WrapCall(w ...client.CallWrapper) Option {
 // WrapHandler adds a handler Wrapper to a list of options passed into the server
 func WrapHandler(w ...server.HandlerWrapper) Option {
 	return func(o *Options) {
+		// 对server.Option初始化的方法
 		var wrappers []server.Option
 
 		for _, wrap := range w {
