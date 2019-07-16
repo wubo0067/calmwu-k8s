@@ -1,0 +1,4 @@
+{
+    "logPath" : "./log",
+    "jaegerSvrAddr" : "127.0.0.1:6831"
+}

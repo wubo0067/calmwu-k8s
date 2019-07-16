@@ -10,6 +10,7 @@ package k8soperator
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,6 +28,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 			case syscall.SIGINT:
 				fallthrough
 			case syscall.SIGTERM:
+				fmt.Println("catch shutdown signal")
 				cancel()
 				return
 			case syscall.SIGUSR1:

@@ -19,13 +19,14 @@ import (
 
 const (
 	// consul配置路径
-	srvK8sOperatorConfigConsulPath = "config/srv/k8soperator"
+	srvConfigPath         = "config/srv"
+	k8sOperatorConfigNode = "k8soperator"
 )
 
 // 具体的配置信息
 type srvK8sOperatorConfigInfo struct {
-	logPath       string `json:"logPath" mapstructure:"logPath"`             // log的存放路径
-	jaegerSvrAddr string `json:"jaegerSvrAddr" mapstructure:"jaegerSvrAddr"` // 调链跟踪服务的地址信息ip:port
+	LogPath       string `json:"logPath" mapstructure:"logPath"`             // log的存放路径
+	JaegerSvrAddr string `json:"jaegerSvrAddr" mapstructure:"jaegerSvrAddr"` // 调链跟踪服务的地址信息ip:port
 }
 
 // 服务的配置模块
@@ -50,7 +51,7 @@ func (cm *srvK8sOperatorConfigMgr) init() error {
 	var err error
 	// ensure init once
 	cm.initOnce.Do(func() {
-		cm.consulConfig, err = config.NewConfigMgr(srvK8sOperatorConfigConsulPath)
+		cm.consulConfig, err = config.NewConfigMgr(srvConfigPath)
 		if err != nil {
 			return
 		}
@@ -76,6 +77,7 @@ func (cm *srvK8sOperatorConfigMgr) watchCfg() {
 			stackInfo := calm_utils.CallStack(1)
 			fmt.Println(stackInfo)
 		}
+		fmt.Println("srvK8sOperatorConfigMgr config watch routine exit")
 	}()
 
 L:
@@ -89,6 +91,8 @@ L:
 				fmt.Printf("config change notify channel is closed!\n")
 				break L
 			}
+		case <-cm.quitCh:
+			break L
 		}
 	}
 	return
@@ -98,12 +102,15 @@ func (cm *srvK8sOperatorConfigMgr) getConfigInfo() (*srvK8sOperatorConfigInfo, e
 	cm.monitor.Lock()
 	defer cm.monitor.Unlock()
 
-	configData := cm.consulConfig.GetConfigData()
+	configData := cm.consulConfig.GetConfigData(k8sOperatorConfigNode)
+	//fmt.Printf("configData:%s\n", string(configData))
 	// unmarshal
 	cm.configInfo = new(srvK8sOperatorConfigInfo)
 	err := ffjson.Unmarshal(configData, cm.configInfo)
 	if err != nil {
+		//fmt.Printf("err:%s\n", err.Error())
 		return nil, err
 	}
+	//fmt.Printf("configInfo:%v\n", cm.configInfo)
 	return cm.configInfo, nil
 }

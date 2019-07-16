@@ -43,6 +43,9 @@ curl -H 'Content-Type: application/json' -d '{"name": "john"}' http://localhost:
 ```
 
 ### 配置管理使用consul集中配置
+1. 在路径中设置配置信息
+
+    consul kv put config/srv/k8soperator "$(cat ./config.json)"
 
 ### 启动调链跟踪Jaeger
 ```

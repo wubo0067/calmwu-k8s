@@ -62,7 +62,7 @@ pci_gateway:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci_gateway ./cmd/gateway
 
 pci_srv_k8soperator:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/k8s-operator ./cmd/srv/k8s-operator
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/k8s-operator ./cmd/srv/k8s-operator
 
 $(BIN)/gas : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
@@ -70,3 +70,4 @@ $(BIN)/gas : $(SRCFILES)
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-stringprocess ./cmd/srv/stringprocess
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-usermgr ./cmd/srv/usermgr
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci_gateway ./cmd/gateway
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/k8s-operator ./cmd/srv/k8s-operator

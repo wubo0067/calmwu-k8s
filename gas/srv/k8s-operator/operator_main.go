@@ -11,18 +11,18 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"time"
 	"log"
+	"time"
 
 	"gas/internal/utils/tracer"
 
+	"github.com/micro/cli"
+	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/registry/consul"
-	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/server"
-	"github.com/micro/cli"
-	opentracing "github.com/opentracing/opentracing-go"
 	ocplugin "github.com/micro/go-plugins/wrapper/trace/opentracing"
+	opentracing "github.com/opentracing/opentracing-go"
 )
 
 const (
@@ -44,8 +44,10 @@ func Main() {
 	// 得到配置信息
 	configInfo, err := srvConfig.getConfigInfo()
 	if err != nil {
+		log.Fatalf("get configInfo failed! reason:%s", err.Error())
 		return
 	}
+	fmt.Printf("configInfo:%v\n", configInfo)
 
 	// 初始化log
 
@@ -57,7 +59,7 @@ func Main() {
 	svrReg := consul.NewRegistry(registryOptions)
 
 	// 调链跟踪
-	tracerIO, err := initTracer(configInfo.jaegerSvrAddr)
+	tracerIO, err := initTracer(configInfo.JaegerSvrAddr)
 	if err != nil {
 		return
 	}
@@ -68,9 +70,9 @@ func Main() {
 		micro.RegisterTTL(time.Second*30), // 这里会设置consul.go Start中的ttl参数，func (s *rpcServer) Register() error {
 		micro.RegisterInterval(time.Second*10),
 		micro.Registry(svrReg),
-		micro.Context(ctx),                                                        // 停服控制，用信号处理
+		micro.Context(ctx), // 停服控制，用信号处理
 		micro.WrapHandler(ocplugin.NewHandlerWrapper(opentracing.GlobalTracer())), // 调链跟踪
-	)	
+	)
 
 	service.Init(
 		micro.Action(func(c *cli.Context) {
@@ -80,7 +82,7 @@ func Main() {
 
 	service.Server().Init(
 		server.Wait(nil), // graceful
-	)	
+	)
 
 	// 注册服务接口
 
@@ -88,6 +90,8 @@ func Main() {
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
 	}
+
+	fmt.Printf("srv[%s] exit\n", srvName)
 	return
 }
 
@@ -106,7 +110,7 @@ func registryOptions(ops *registry.Options) {
 	ops.Timeout = time.Second * 5
 	ops.Addrs = []string{fmt.Sprintf("%s:%d", "127.0.0.1", 8500)}
 	// 设定tcp检测时间间隔
-	ops.Context = context.WithValue(context.Background(), "consul_tcp_check", 5*time.Second)
+	//ops.Context = context.WithValue(context.Background(), "consul_tcp_check", 5*time.Second)
 }
 
 // 初始化调链跟踪

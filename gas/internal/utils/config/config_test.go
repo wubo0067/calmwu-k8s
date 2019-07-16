@@ -16,15 +16,15 @@ import (
 )
 
 func TestReadConsulConfig(t *testing.T) {
-	keyPath := "/micro/config/cache"
+	keyPath := "config/srv"
 
 	config, err := NewConfigMgr(keyPath)
 	if err != nil {
-		t.Errorf("NewConfigMgr micro/config/cache failed! reason:%s", err.Error())
+		t.Errorf("NewConfigMgr config/srv/k8soperator failed! reason:%s", err.Error())
 		return
 	}
 
-	configData := config.GetConfigData()
+	configData := config.GetConfigData("k8soperator")
 	fmt.Printf("configData:%s\n", calm_utils.Bytes2String(configData))
 
 	go func() {
@@ -42,9 +42,9 @@ func TestReadConsulConfig(t *testing.T) {
 		}
 	}()
 
-	time.Sleep(10 * time.Second)
+	time.Sleep(3 * time.Second)
 	// 这个不在关注的keypath中，所以获取不到数据
-	configData = config.GetConfigData("micro", "config", "database")
+	configData = config.GetConfigData("k8soperator", "jaegerSvrAddr")
 	fmt.Printf("configData:%s\n", calm_utils.Bytes2String(configData))
 
 	config.Stop()
