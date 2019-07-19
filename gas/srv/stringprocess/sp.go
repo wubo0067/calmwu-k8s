@@ -53,7 +53,7 @@ type SplitProcessHandlerImpl struct{}
 func (sph *SplitProcessHandlerImpl) Split(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.SplitStrRes) error {
 	log.Println("service: eci.v1.svr.stringprocess handler:SplitProcessHandler method:Split")
 
-	out.SplitStrs = strings.Split(in.OriginalString, " ")
+	out.SplitStrs = strings.Split(in.OriginalString, "-")
 	return nil
 }
 
@@ -65,6 +65,11 @@ func logWrapper(fn server.HandlerFunc) server.HandlerFunc {
 		err := fn(ctx, req, rsp)
 		return err
 	}
+}
+
+type StringProcessServiceHandler struct {
+	sp_proto.StringProcessHandler
+	sp_proto.SplitProcessHandler
 }
 
 func Main() {
@@ -93,8 +98,16 @@ func Main() {
 	service.Init()
 
 	// 这里会注册多个handler
-	sp_proto.RegisterStringProcessHandler(service.Server(), new(StringProcessHandlerImpl))
-	sp_proto.RegisterStringProcessHandler(service.Server(), new(SplitProcessHandlerImpl))
+	serviceHandler := &StringProcessServiceHandler{
+		&StringProcessHandlerImpl{},
+		&SplitProcessHandlerImpl{},
+	}
+
+	sp_proto.RegisterStringProcessHandler(service.Server(), serviceHandler)
+	sp_proto.RegisterSplitProcessHandler(service.Server(), serviceHandler)
+
+	// sp_proto.RegisterStringProcessHandler(service.Server(), new(StringProcessHandlerImpl))
+	// sp_proto.RegisterSplitProcessHandler(service.Server(), new(SplitProcessHandlerImpl))
 
 	if err := service.Run(); err != nil {
 		log.Fatal(err)

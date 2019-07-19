@@ -52,16 +52,16 @@ proto:
 web-hello:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/web/web-hello ./cmd/web/hello	
 
-srv_usermgr:
+srv-usermgr:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-usermgr ./cmd/srv/usermgr	
 
-srv_stringprocess:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv_stringprocess ./cmd/srv/stringprocess	
+srv-stringprocess:
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-stringprocess ./cmd/srv/stringprocess	
 
-pci_gateway:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci_gateway ./cmd/gateway
+pci-gateway:
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci-gateway ./cmd/gateway
 
-pci_srv_k8soperator:
+pci-srv-k8soperator:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/k8s-operator ./cmd/srv/k8s-operator
 
 $(BIN)/gas : $(SRCFILES)

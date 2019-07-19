@@ -84,14 +84,14 @@ func (ah *APIHello) Call(ctx context.Context, req *api.Request, rsp *api.Respons
 
 		// 在切割下
 		spSplitClient := sp_proto.NewSplitProcessService("eci.v1.svr.stringprocess", ah.Client)
-		res, err := spSplitClient.Split(ctx, &sp_proto.OriginalStrReq{OriginalString: res.UpperString})
+		splitRes, err := spSplitClient.Split(ctx, &sp_proto.OriginalStrReq{OriginalString: res.UpperString})
 		if err != nil {
 			log.Printf("invoke service:eci.v1.svr.stringprocess.Split failed! reason:%s", err.Error())
 			return errors.BadRequest("eci.v1.svr.stringprocess", err.Error())
 		}
 
 		rsp.StatusCode = 200
-		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", res.SplitStrs[0])
+		rsp.Body = fmt.Sprintf("[GET] Hello client %s!", splitRes.SplitStrs[0])
 		return nil
 	} else if req.Method == "POST" {
 		ct, ok := req.Header["Content-Type"]

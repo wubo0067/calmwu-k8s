@@ -11,6 +11,8 @@ micro --registry=consul --transport=grpc api --handler=api --namespace=eci.v1.ap
 ```
 
 ### 启动web层
+
+web层是api实现的，example在micro-in-cn/all-in-one/basic-practices/micro-api
 ```
 ./web-hello --registry=consul
 
