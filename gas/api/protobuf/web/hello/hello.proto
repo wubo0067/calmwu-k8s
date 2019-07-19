@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package eci.v1.access;
-
-import "github.com/micro/go-api/proto/api.proto";
-
-service Hello {
-	rpc Call(go.api.Request) returns(go.api.Response) {};
-}

@@ -89,3 +89,62 @@ type stringProcessHandler struct {
 func (h *stringProcessHandler) ToUpper(ctx context.Context, in *OriginalStrReq, out *UpperStrRes) error {
 	return h.StringProcessHandler.ToUpper(ctx, in, out)
 }
+
+// Client API for SplitProcess service
+
+type SplitProcessService interface {
+	Split(ctx context.Context, in *OriginalStrReq, opts ...client.CallOption) (*SplitStrRes, error)
+}
+
+type splitProcessService struct {
+	c    client.Client
+	name string
+}
+
+func NewSplitProcessService(name string, c client.Client) SplitProcessService {
+	if c == nil {
+		c = client.NewClient()
+	}
+	if len(name) == 0 {
+		name = "eci.v1.svr.stringprocess"
+	}
+	return &splitProcessService{
+		c:    c,
+		name: name,
+	}
+}
+
+func (c *splitProcessService) Split(ctx context.Context, in *OriginalStrReq, opts ...client.CallOption) (*SplitStrRes, error) {
+	req := c.c.NewRequest(c.name, "SplitProcess.Split", in)
+	out := new(SplitStrRes)
+	err := c.c.Call(ctx, req, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// Server API for SplitProcess service
+
+type SplitProcessHandler interface {
+	Split(context.Context, *OriginalStrReq, *SplitStrRes) error
+}
+
+func RegisterSplitProcessHandler(s server.Server, hdlr SplitProcessHandler, opts ...server.HandlerOption) error {
+	type splitProcess interface {
+		Split(ctx context.Context, in *OriginalStrReq, out *SplitStrRes) error
+	}
+	type SplitProcess struct {
+		splitProcess
+	}
+	h := &splitProcessHandler{hdlr}
+	return s.Handle(s.NewHandler(&SplitProcess{h}, opts...))
+}
+
+type splitProcessHandler struct {
+	SplitProcessHandler
+}
+
+func (h *splitProcessHandler) Split(ctx context.Context, in *OriginalStrReq, out *SplitStrRes) error {
+	return h.SplitProcessHandler.Split(ctx, in, out)
+}

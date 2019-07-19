@@ -6,10 +6,18 @@ service StringProcess {
     rpc ToUpper(OriginalStrReq) returns (UpperStrRes) {}
 }
 
+service SplitProcess {
+    rpc Split(OriginalStrReq) returns (SplitStrRes) {}
+}
+
 message OriginalStrReq {
     string originalString = 1;
 }
 
 message UpperStrRes {
     string upperString = 1;
+}
+
+message SplitStrRes {
+    repeated string splitStrs = 1;
 }

@@ -27,10 +27,10 @@ import (
 	opentracing "github.com/opentracing/opentracing-go"
 )
 
-type StringProcessImpl struct{}
+type StringProcessHandlerImpl struct{}
 
-func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.UpperStrRes) error {
-	log.Println("receive eci.v1.svr.stringprocess.ToUpper request")
+func (spi *StringProcessHandlerImpl) ToUpper(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.UpperStrRes) error {
+	log.Println("service: eci.v1.svr.stringprocess handler:StringProcessHandler method:ToUpper")
 
 	// 从ctx中获取metadata数据
 	md, _ := metadata.FromContext(ctx)
@@ -45,6 +45,15 @@ func (spi *StringProcessImpl) ToUpper(ctx context.Context, in *sp_proto.Original
 	}
 
 	out.UpperString = strings.ToUpper(in.OriginalString)
+	return nil
+}
+
+type SplitProcessHandlerImpl struct{}
+
+func (sph *SplitProcessHandlerImpl) Split(ctx context.Context, in *sp_proto.OriginalStrReq, out *sp_proto.SplitStrRes) error {
+	log.Println("service: eci.v1.svr.stringprocess handler:SplitProcessHandler method:Split")
+
+	out.SplitStrs = strings.Split(in.OriginalString, " ")
 	return nil
 }
 
@@ -83,7 +92,9 @@ func Main() {
 	// 服务初始化
 	service.Init()
 
-	sp_proto.RegisterStringProcessHandler(service.Server(), new(StringProcessImpl))
+	// 这里会注册多个handler
+	sp_proto.RegisterStringProcessHandler(service.Server(), new(StringProcessHandlerImpl))
+	sp_proto.RegisterStringProcessHandler(service.Server(), new(SplitProcessHandlerImpl))
 
 	if err := service.Run(); err != nil {
 		log.Fatal(err)
