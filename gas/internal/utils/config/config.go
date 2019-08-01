@@ -38,10 +38,14 @@ func NewConfigMgr(configPath string) (*ConfigMgr, error) {
 
 	var err error
 
+	// 如果使用toml
+	//enc := toml.NewEncoder()
+
 	consulConfSource := consul.NewSource(
 		consul.WithAddress("127.0.0.1:8500"),
 		consul.WithPrefix(configPath),
 		consul.StripPrefix(true),
+		//source.WithEncoder(enc), 指定编解码类型
 	)
 
 	// 设置source

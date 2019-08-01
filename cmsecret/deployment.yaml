@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cmsecret
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"  
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: cmsecret
+  template:
+    metadata:
+      labels:
+        app: cmsecret
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"
+    spec:
+      volumes:  # 使用卷来加载secret
+      - name: secrets
+        secret:
+          secretName: mysecret #secret的名字
+      - name: config-volume # 使用卷来挂载configmap
+        configMap:
+          name: example-config # configmap名字
+      containers:
+      - name: cmsecret
+        image: nginx:1.16.0
+        volumeMounts:
+        - name: secrets # 对应卷的名字
+          mountPath: /etc/secrets
+          readOnly: true  
+        - name: config-volume #对应卷的名字
+          mountPath: /etc/configmap      
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        env:
+          - name: SPECIAL_LEVEL_KEY
+            valueFrom:
+              configMapKeyRef:
+                name: example-config
+                key: example.property.1
+
