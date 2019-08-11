@@ -32,8 +32,10 @@ require (
 	github.com/wubo0067/calmwu-go v0.0.0-20190704033350-ce82d28b6dba
 	go.uber.org/zap v1.10.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4 // indirect
-	golang.org/x/net v0.0.0-20190628185345-da137c7871d7
-	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
+	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80
+	golang.org/x/sys v0.0.0-20190804053845-51ab0e2deafa // indirect
+	golang.org/x/tools v0.0.0-20190809145639-6d4652c779c4 // indirect
+	golang.org/x/tools/gopls v0.0.0-20190809145639-6d4652c779c4 // indirect
 	google.golang.org/genproto v0.0.0-20190708153700-3bdd9d9f5532 // indirect
 	google.golang.org/grpc v1.22.0 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

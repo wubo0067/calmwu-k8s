@@ -1,0 +1,13 @@
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: InitializerConfiguration
+metadata:
+name: custom-pod-initializer
+initializers:
+- name: podimage.example.com
+rules:
+  - apiGroups:
+      - ""
+    apiVersions:
+      - v1
+    resources:
+      - pods
