@@ -26,6 +26,7 @@ spec:
       containers:
       - name: cmsecret
         image: nginx:1.16.0
+        command: [ "/bin/sh", "-c", "env;sleep 120" ]
         volumeMounts:
         - name: secrets # 对应卷的名字
           mountPath: /etc/secrets
