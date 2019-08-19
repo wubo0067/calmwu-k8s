@@ -40,7 +40,7 @@ clean:
 ###############################################################################
 BUILDTIME   =   `date +%FT%T%z`
 LDFLAGS     =   -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}" 
-#LDFLAGS    +=   -linkmode "external" -extldflags "-static"
+LDFLAGS    +=   -ldflags '-linkmode "external" -extldflags "-static"'
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
 
@@ -59,7 +59,7 @@ srv-stringprocess:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-stringprocess ./cmd/srv/stringprocess	
 
 pci-gateway:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci-gateway ./cmd/gateway
+	CGO_ENABLED=1 GOOS=linux goarch=amd64 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/gateway/pci-gateway ./cmd/gateway
 
 pci-srv-k8soperator:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/k8s-operator ./cmd/srv/k8s-operator

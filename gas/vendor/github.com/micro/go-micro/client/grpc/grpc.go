@@ -2,7 +2,6 @@
 package grpc
 
 import (
-	"bytes"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -19,6 +18,7 @@ import (
 	"github.com/micro/go-micro/registry"
 	"github.com/micro/go-micro/transport"
 
+	"github.com/micro/go-micro/util/buf"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/encoding"
@@ -84,9 +84,6 @@ func (g *grpcClient) next(request client.Request, opts client.CallOptions) (sele
 
 func (g *grpcClient) call(ctx context.Context, node *registry.Node, req client.Request, rsp interface{}, opts client.CallOptions) error {
 	address := node.Address
-	if node.Port > 0 {
-		address = fmt.Sprintf("%s:%d", address, node.Port)
-	}
 
 	header := make(map[string]string)
 	if md, ok := metadata.FromContext(ctx); ok {
@@ -130,7 +127,7 @@ func (g *grpcClient) call(ctx context.Context, node *registry.Node, req client.R
 	ch := make(chan error, 1)
 
 	go func() {
-		err := cc.Invoke(ctx, methodToGRPC(req.Service(), req.Endpoint()), req.Body(), rsp, grpc.ForceCodec(cf))
+		err := cc.Invoke(ctx, methodToGRPC(req.Service(), req.Endpoint()), req.Body(), rsp, grpc.CallContentSubtype(cf.Name()))
 		ch <- microError(err)
 	}()
 
@@ -146,9 +143,6 @@ func (g *grpcClient) call(ctx context.Context, node *registry.Node, req client.R
 
 func (g *grpcClient) stream(ctx context.Context, node *registry.Node, req client.Request, opts client.CallOptions) (client.Stream, error) {
 	address := node.Address
-	if node.Port > 0 {
-		address = fmt.Sprintf("%s:%d", address, node.Port)
-	}
 
 	header := make(map[string]string)
 	if md, ok := metadata.FromContext(ctx); ok {
@@ -295,7 +289,7 @@ func (g *grpcClient) Options() client.Options {
 }
 
 func (g *grpcClient) NewMessage(topic string, msg interface{}, opts ...client.MessageOption) client.Message {
-	return newGRPCPublication(topic, msg, g.opts.ContentType, opts...)
+	return newGRPCEvent(topic, msg, g.opts.ContentType, opts...)
 }
 
 func (g *grpcClient) NewRequest(service, method string, req interface{}, reqOpts ...client.RequestOption) client.Request {
@@ -497,8 +491,9 @@ func (g *grpcClient) Publish(ctx context.Context, p client.Message, opts ...clie
 		return errors.InternalServerError("go.micro.client", err.Error())
 	}
 
-	b := &buffer{bytes.NewBuffer(nil)}
-	if err := cf(b).Write(&codec.Message{Type: codec.Publication}, p.Payload()); err != nil {
+	b := buf.New(nil)
+
+	if err := cf(b).Write(&codec.Message{Type: codec.Event}, p.Payload()); err != nil {
 		return errors.InternalServerError("go.micro.client", err.Error())
 	}
 

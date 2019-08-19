@@ -5,9 +5,9 @@
 
 ### 启动网关，web层使用的是api
 ```
-micro --registry=consul api --handler=api --namespace=eci.v1.api
+pci-gateway --registry=consul api --handler=api --namespace=eci.v1.api
 
-micro --registry=consul --transport=grpc api --handler=api --namespace=eci.v1.api
+pci-gateway --registry=consul --transport=grpc api --handler=api --namespace=eci.v1.api
 ```
 
 ### 启动web层
