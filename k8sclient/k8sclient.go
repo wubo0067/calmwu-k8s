@@ -14,13 +14,16 @@ import (
 	// "k8s.io/kubernetes/pkg/api/v1/service"
 	"log"
 	"os"
+	"reflect"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
+	batchv1 "k8s.io/api/batch/v1"
 	apiv1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	//"k8s.io/apimachinery/pkg/labels"
 )
 
 var (
@@ -50,7 +53,7 @@ func listDeployment(clientSet *kubernetes.Clientset) {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	
+
 	for i, deployment := range deployments.Items {
 		logger.Printf("\t{%d}: deployment:%s (%d replicas)\n", i, deployment.Name, *deployment.Spec.Replicas)
 	}
@@ -64,10 +67,93 @@ func listServices(clientSet *kubernetes.Clientset) {
 	if err != nil {
 		logger.Fatal(err)
 	}
-	
+
 	for i := range services.Items {
 		service := &services.Items[i]
 		logger.Printf("\t{%d}: service:%s labes:%#v\n", i, service.Name, service.Labels)
+	}
+}
+
+func createJob(clientSet *kubernetes.Clientset) {
+	var activeDeadlineSecs int64 = 50 // 活动超时时间
+	var parallelism int32 = 2         // 同时启动pod的数量
+	var jobTTL int32 = 60             // 完毕后存活时间
+
+	jobClient := clientSet.BatchV1().Jobs("default")
+	job := &batchv1.Job{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "sleep-job",
+			Labels: map[string]string{
+				"app": "pci-sleep-job",
+			},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism: &parallelism,
+			Template: apiv1.PodTemplateSpec{
+				Spec: apiv1.PodSpec{
+					Containers: []apiv1.Container{
+						{
+							Name:    "sleep-job",
+							Image:   "busybox",
+							Command: []string{"sleep", "30"},
+						},
+					},
+					RestartPolicy: apiv1.RestartPolicyNever,
+				},
+			},
+			ActiveDeadlineSeconds:   &activeDeadlineSecs, // 如果job运行完毕，这个是没有作用的
+			TTLSecondsAfterFinished: &jobTTL,             // 执行完毕后等待多久后删除，项目的目标不是自动删除job
+		},
+	}
+
+	// 创建job,
+	// job无法重复创建
+	// 删除了job，job下面的pod也被释放
+	jobRes, err := jobClient.Create(job)
+	if err != nil {
+		logger.Fatalf("create sleep-job failed, reason:%s\n", err.Error())
+	}
+
+	logger.Printf("sleep-job:%s\n", jobRes.GetObjectMeta().GetName())
+
+	// 开始watch
+	//labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app":"pci-sleep-job"}}
+	jobWatcher, _ := jobClient.Watch(metav1.ListOptions{
+		ResourceVersion: "0",
+		LabelSelector:   "app=pci-sleep-job",
+		// LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
+	})
+
+	for {
+		select {
+		case e, ok := <-jobWatcher.ResultChan():
+			if ok {
+				logger.Printf("event type[%s] object-type:[%s:%T]\n",
+					e.Type, reflect.TypeOf(e.Object).String(), e.Object)
+				job, ok := e.Object.(*batchv1.Job)
+				if ok {
+					logger.Printf("job:%s status:%s", job.Name, job.Status.String())
+					if len(job.Status.Conditions) > 0 {
+						jobCond := job.Status.Conditions[0]
+						if jobCond.Type == batchv1.JobFailed {
+							logger.Printf("---job:%s failed, so delete----\n", job.Name)
+							// 删除job，job下的pod会被删除
+							// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
+							// if err != nil {
+							// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
+							// }
+						} else if jobCond.Type == batchv1.JobComplete {
+							logger.Printf("---job:%s completed, so delete----\n", job.Name)
+							// 这里只会删除job，job下的pod不会被删除
+							// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
+							// if err != nil {
+							// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
+							// }
+						}
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -104,6 +190,7 @@ func main() {
 		listPod(clientSet)
 		listDeployment(clientSet)
 		listServices(clientSet)
+		createJob(clientSet)
 		return nil
 	}
 
