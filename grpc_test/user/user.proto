@@ -1,0 +1,61 @@
+syntax = "proto3";
+// user 包
+package user;
+
+// User 服务及服务接口的定义
+service User {
+rpc UserIndex(UserIndexRequest) returns (UserIndexResponse) {}
+rpc UserView(UserViewRequest) returns (UserViewResponse) {}
+rpc UserPost(UserPostRequest) returns (UserPostResponse) {}
+rpc UserDelete(UserDeleteRequest) returns (UserDeleteResponse) {}
+}
+
+// 用户实体模型
+message UserEntity {
+string name = 1;
+int32 age = 2;
+}
+
+// User 服务的各个接口的请求/响应结构
+message UserIndexRequest {
+int32 page = 1;
+int32 page_size = 2;
+}
+
+message UserIndexResponse {
+int32 err = 1;
+string msg = 2;
+// 返回一个 UserEntity 对象的列表数据
+repeated UserEntity data = 3;
+}
+
+message UserViewRequest {
+int32 uid = 1;
+}
+
+message UserViewResponse {
+int32 err = 1;
+string msg = 2;
+// 返回一个 UserEntity 对象
+UserEntity data = 3;
+}
+
+message UserPostRequest {
+string name = 1;
+string password = 2;
+int32 age = 3;
+}
+
+message UserPostResponse {
+int32 err = 1;
+string msg = 2;
+}
+
+message UserDeleteRequest {
+int32 uid = 1;
+}
+
+message UserDeleteResponse {
+int32 err = 1;
+string msg = 2;
+}
