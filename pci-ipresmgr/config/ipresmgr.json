@@ -1,0 +1,16 @@
+{
+    "nsp" : {
+        "addr" : "127.0.0.1"
+    },
+
+    "k8sclustser_list" : [
+        {
+            "k8sclusterid" : "clusterid-1",
+            "kubecfg" : "kubecfg-1"
+        },
+        {
+            "k8sclusterid" : "clusterid-2",
+            "kubecfg" : "kubecfg-2"
+        }
+    ]
+}
