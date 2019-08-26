@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-26 14:45:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-26 15:12:53
+ * @Last Modified time: 2019-08-26 19:51:06
  */
 
 package svr
@@ -10,8 +10,8 @@ package svr
 import "github.com/micro/cli"
 
 var (
-	// IPResMgrSvrFlags 命令参数
-	IPResMgrSvrFlags = []cli.Flag{
+	// SvrFlags 命令参数
+	SvrFlags = []cli.Flag{
 		cli.IntFlag{
 			Name:  "id",
 			Value: 1,
@@ -25,7 +25,7 @@ var (
 	}
 )
 
-// IPResMgrSvrMain 服务的入口
-func IPResMgrSvrMain(c *cli.Context) error {
+// SvrMain 服务的入口
+func SvrMain(c *cli.Context) error {
 	return nil
 }
