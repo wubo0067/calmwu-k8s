@@ -12,5 +12,11 @@
             "k8sclusterid" : "clusterid-2",
             "kubecfg" : "kubecfg-2"
         }
-    ]
+    ],
+
+    "store" : {
+        "mysqlAddr" : "127.0.0.1",
+        "user" : "root",
+        "passwd" : "root"
+    }
 }
