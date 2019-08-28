@@ -59,7 +59,7 @@ func initLog(logFilePath string, srvInstID int) {
 	}
 
 	calm_utils.InitDefaultZapLog(fmt.Sprintf("%s/ipresmgr-svr_%d.log", logFilePath, srvInstID),
-		zapcore.DebugLevel, 0)
+		zapcore.DebugLevel, 1)
 }
 
 func setupSignalHandler(cancel context.CancelFunc) {
@@ -112,7 +112,7 @@ func SvrMain(c *cli.Context) error {
 	// 等待退出信号
 	select {
 	case <-ctx.Done():
-		calm_utils.ZLog.Info("ipresmgr-svr will shutdown")
+		calm_utils.Info("ipresmgr-svr will shutdown")
 	}
 
 	// 退出清理

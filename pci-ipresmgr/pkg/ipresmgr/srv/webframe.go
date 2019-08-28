@@ -5,7 +5,7 @@
  * @Last Modified time: 2019-08-27 19:21:39
  */
 
-package svr
+package srv
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func ginRecovery() gin.HandlerFunc {
 			if err := recover(); err != nil {
 				stack := calm_utils.CallStack(3)
 				httprequest, _ := httputil.DumpRequest(c.Request, false)
-				calm_utils.ZLog.Errorf("[Recovery] panic recovered:\n%s\n%s\n%s", calm_utils.Bytes2String(httprequest), err, stack)
+				calm_utils.Errorf("[Recovery] panic recovered:\n%s\n%s\n%s", calm_utils.Bytes2String(httprequest), err, stack)
 				c.AbortWithStatus(500)
 			}
 		}()
@@ -41,7 +41,7 @@ func ginLogger() gin.HandlerFunc {
 		t := time.Now()
 		c.Next()
 		latency := time.Since(t)
-		calm_utils.ZLog.Debugf("%s latency:%s", c.Request.RequestURI, latency.String())
+		calm_utils.Debugf("%s latency:%s", c.Request.RequestURI, latency.String())
 	}
 }
 
@@ -58,22 +58,26 @@ func startWebSrv(listenAddr string, listenPort int) error {
 
 	// 启动监听
 	go func() {
+		calm_utils.Infof("ipresmgr-svr listen on %s:%d", listenAddr, listenPort)
 		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			calm_utils.ZLog.Fatalf("Listen %s:%d failed. err:%s", listenAddr, listenPort, err.Error())
+			calm_utils.Fatalf("Listen %s:%d failed. err:%s", listenAddr, listenPort, err.Error())
 		}
 	}()
 	return nil
 }
 
 func shutdownWebSrv() {
-	// 有个超时保证
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-	}
-	select {
-	case <-shutdownCtx.Done():
-		calm_utils.ZLog.Info("")
+	if httpSrv != nil {
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		// 给shutdown 5秒时间
+		if err := httpSrv.Shutdown(shutdownCtx); err != nil {
+		}
+		select {
+		case <-shutdownCtx.Done():
+			calm_utils.Info("time out 5 seconds")
+		}
+		calm_utils.Info("ipresmgr-srv http server exiting")
 	}
 	return
 }

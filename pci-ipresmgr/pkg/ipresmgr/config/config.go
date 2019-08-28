@@ -28,10 +28,18 @@ type K8SClusterData struct {
 	KubeCfg      string `json:"kubecfg" mapstructure:"kubecfg"`
 }
 
+// StoreCfgData 数据库配置
+type StoreCfgData struct {
+	MysqlAddr string `json:"mysqladdr" mapstructure:"mysqladdr"`
+	User      string `json:"user" mapstructure:"user"`
+	Passwd    string `json:"passwd" mapstructure:"passwd"`
+}
+
 // SrvIPResMgrConfigData 服务的配置数据
 type SrvIPResMgrConfigData struct {
 	NSPData           NSPData          `json:"nsp" mapstructure:"nsp"`
 	K8SClusterDataLst []K8SClusterData `json:"k8sclustser_list" mapstructure:"k8sclustser_list"`
+	StoreData         StoreCfgData     `json:"store" mapstructure:"store"`
 }
 
 var (

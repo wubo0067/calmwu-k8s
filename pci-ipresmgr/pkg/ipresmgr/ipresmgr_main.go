@@ -28,8 +28,8 @@ func Main(buildTime string, version string) {
 	app := cli.NewApp()
 	app.Name = appname
 	app.Usage = "Management of the fixed ip of the container"
-	app.Action = svr.SvrMain
-	app.Flags = svr.SvrFlags
+	app.Action = srv.SvrMain
+	app.Flags = srv.SvrFlags
 
 	app.Run(os.Args)
 	fmt.Println(appname, "exit!")
