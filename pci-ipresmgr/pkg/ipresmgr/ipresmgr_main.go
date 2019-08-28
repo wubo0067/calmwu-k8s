@@ -10,7 +10,7 @@ package ipresmgr
 import (
 	"fmt"
 	"os"
-	"pci-ipresmgr/pkg/ipresmgr/svr"
+	"pci-ipresmgr/pkg/ipresmgr/srv"
 
 	"github.com/micro/cli"
 )

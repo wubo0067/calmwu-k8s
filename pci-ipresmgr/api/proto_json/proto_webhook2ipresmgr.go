@@ -31,8 +31,9 @@ type WB2IPResMgrCreateIPPoolReq struct {
 	K8SApiResourceID       string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"`
-	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`
-	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`
+	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`         // 网络域ID
+	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                   // 子网ID
+	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"` // 子网网关地址
 }
 
 // webhook层通知ipresmgr释放ippool

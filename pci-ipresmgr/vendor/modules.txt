@@ -1,3 +1,5 @@
+# github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
+github.com/DeanThompson/ginpprof
 # github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3
 github.com/gin-contrib/sse
 # github.com/gin-gonic/gin v1.4.0
@@ -31,7 +33,7 @@ github.com/pkg/errors
 github.com/spaolacci/murmur3
 # github.com/ugorji/go v1.1.4
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20190828022718-e3d93f96e020
+# github.com/wubo0067/calmwu-go v0.0.0-20190828033304-e9e122db1bfe
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.4.0
 go.uber.org/atomic

@@ -24,8 +24,8 @@ type WB2IPResMgrCreateIPPoolReq struct {
 	K8SApiResourceID       string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"`
-	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`
-	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`
+	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`  // 网络域ID
+	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`            // 子网ID
 }
 ```
 
@@ -102,10 +102,13 @@ type IPAM2IPResMgrRequireIPReq struct {
 
 // ipresmgr给ipam返回ip地址
 type IPResMgr2IPAMRequireIPRes struct {
-	ReqID string            `json:"ReqID" mapstructure:"ReqID"`
-	IP    string            `json:"IP" mapstructure:"IP"`
-	Code  IPResMgrErrorCode `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
-	Msg   string            `json:"Msg" mapstructure:"Msg"`
+	ReqID             string            `json:"ReqID" mapstructure:"ReqID"`
+	IP                string            `json:"IP" mapstructure:"IP"`
+	MacAddr           string            `json:"MacAddr" mapstructure:"MacAddr"`
+	PortID            string            `json:"PortID" mapstructure:"PortID"`
+	SubnetGatewayAddr string            `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"`
+	Code              IPResMgrErrorCode `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
+	Msg               string            `json:"Msg" mapstructure:"Msg"`
 }
 ```
 

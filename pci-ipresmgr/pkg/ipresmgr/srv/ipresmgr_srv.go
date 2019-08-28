@@ -5,7 +5,7 @@
  * @Last Modified time: 2019-08-27 19:24:25
  */
 
-package svr
+package srv
 
 import (
 	"context"
@@ -72,7 +72,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 			case syscall.SIGINT:
 				fallthrough
 			case syscall.SIGTERM:
-				fmt.Println("catch shutdown signal")
+				calm_utils.Info("catch shutdown signal")
 				cancel()
 				return
 			case syscall.SIGUSR1:
@@ -88,7 +88,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 func SvrMain(c *cli.Context) error {
 	// 获取参数
 	configFile := c.String("conf")
-	logFilePath := c.String("log")
+	logFilePath := c.String("logpath")
 	srvInstID := c.Int("id")
 	listenAddr := c.String("ip")
 	listenPort := c.Int("port")

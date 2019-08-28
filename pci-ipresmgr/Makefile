@@ -45,8 +45,8 @@ LDFLAGS     =   -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILDTI
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
 
-build: $(BIN)/ipresmgr-svr
+build: $(BIN)/ipresmgr-srv
 
-$(BIN)/ipresmgr-svr : $(SRCFILES)
+$(BIN)/ipresmgr-srv : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/ipresmgr-svr ./cmd/ipresmgr/ipresmgr.go
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $@ ./cmd/ipresmgr/ipresmgr.go

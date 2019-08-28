@@ -43,9 +43,9 @@ type SrvIPResMgrConfigData struct {
 }
 
 var (
-	configData *SrvIPResMgrConfigData
-	configFile string
-	guard      sync.Mutex
+	configData     *SrvIPResMgrConfigData
+	configFileName string
+	guard          sync.Mutex
 )
 
 // LoadConfig 加载配置数据
@@ -54,19 +54,19 @@ func LoadConfig(configFile string) error {
 	if err != nil {
 		os.Exit(-1)
 	}
-	configFile = configFile
+	configFileName = configFile
 
 	configData = new(SrvIPResMgrConfigData)
 
-	cfgFile, err := os.Open(configFile)
+	cfgFile, err := os.Open(configFileName)
 	if err != nil {
-		return errors.Wrapf(err, "open %s failed", configFile)
+		return errors.Wrapf(err, "open:[%s] failed", configFileName)
 	}
 	defer cfgFile.Close()
 
 	cfgData, err := ioutil.ReadAll(cfgFile)
 	if err != nil {
-		return errors.Wrapf(err, "read %s failed", configFile)
+		return errors.Wrapf(err, "read:[%s] failed", configFileName)
 	}
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
@@ -81,16 +81,16 @@ func LoadConfig(configFile string) error {
 
 // ReloadConfig 重新加载配置
 func ReloadConfig() {
-	cfgFile, err := os.Open(configFile)
+	cfgFile, err := os.Open(configFileName)
 	if err != nil {
-		calm_utils.ZLog.Errorf("open config file %s failed.", configFile)
+		calm_utils.ZLog.Errorf("open:[%s] failed.", configFileName)
 		return
 	}
 	defer cfgFile.Close()
 
 	cfgData, err := ioutil.ReadAll(cfgFile)
 	if err != nil {
-		calm_utils.ZLog.Errorf("read config file %s failed.", configFile)
+		calm_utils.ZLog.Errorf("read:[%s] failed.", configFileName)
 		return
 	}
 
@@ -108,5 +108,13 @@ func ReloadConfig() {
 	configData = newConfigData
 	newConfigData = nil
 
-	calm_utils.ZLog.Infof("reload config %s successed", configFile)
+	calm_utils.ZLog.Infof("reload config:[%s] successed", configFileName)
+}
+
+// GetNspServerAddr 获取nsp服务的地址
+func GetNspServerAddr() string {
+	guard.Lock()
+	defer guard.Unlock()
+	nspSrvAddr := configData.NSPData.Addr
+	return nspSrvAddr
 }

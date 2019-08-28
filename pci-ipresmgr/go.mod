@@ -3,6 +3,7 @@ module pci-ipresmgr
 go 1.12
 
 require (
+	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 	github.com/gin-gonic/gin v1.4.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/json-iterator/go v1.1.6
@@ -12,7 +13,7 @@ require (
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190828022718-e3d93f96e020
+	github.com/wubo0067/calmwu-go v0.0.0-20190828033304-e9e122db1bfe
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0

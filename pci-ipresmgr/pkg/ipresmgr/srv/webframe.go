@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-27 17:32:13
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-27 19:21:39
+ * @Last Modified time: 2019-08-28 17:18:39
  */
 
 package srv
@@ -14,6 +14,7 @@ import (
 	"net/http/httputil"
 	"time"
 
+	"github.com/DeanThompson/ginpprof"
 	"github.com/gin-gonic/gin"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
@@ -45,11 +46,35 @@ func ginLogger() gin.HandlerFunc {
 	}
 }
 
+func registerHandler(router *gin.Engine) {
+	// webhook接口
+	wbV1Group := router.Group("/v1/ippool")
+	wbV1Group.POST("/create", wbCreateIPPool)
+	wbV1Group.POST("/release", wbReleaseIPPool)
+	wbV1Group.POST("/scale", wbScaleIPPool)
+
+	// cni接口
+	cniV1Group := router.Group("/v1/ip")
+	cniV1Group.POST("/require", cniRequireIP)
+	cniV1Group.POST("/release", cniReleaseIP)
+}
+
 func startWebSrv(listenAddr string, listenPort int) error {
 	gin.SetMode(gin.DebugMode)
 	ginRouter := gin.New()
 	ginRouter.Use(ginLogger())
 	ginRouter.Use(ginRecovery())
+
+	// 注册健康检查接口
+	ginRouter.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+
+	// 注册pprof接口
+	ginpprof.Wrap(ginRouter)
+
+	// 注册业务接口
+	registerHandler(ginRouter)
 
 	httpSrv = &http.Server{
 		Addr:    fmt.Sprintf("%s:%d", listenAddr, listenPort),
