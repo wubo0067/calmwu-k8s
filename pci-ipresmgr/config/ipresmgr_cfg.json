@@ -15,8 +15,9 @@
     ],
 
     "store" : {
-        "mysqladdr" : "127.0.0.1",
+        "mysqladdr" : "127.0.0.1:3306",
         "user" : "root",
-        "passwd" : "root"
+        "passwd" : "root",
+        "dbname" : "db_ipresmgr"
     }
 }

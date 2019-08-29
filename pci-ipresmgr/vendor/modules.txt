@@ -7,10 +7,17 @@ github.com/gin-gonic/gin
 github.com/gin-gonic/gin/binding
 github.com/gin-gonic/gin/internal/json
 github.com/gin-gonic/gin/render
+# github.com/go-sql-driver/mysql v1.4.1
+github.com/go-sql-driver/mysql
 # github.com/golang/protobuf v1.3.1
 github.com/golang/protobuf/proto
+# github.com/google/uuid v1.1.1
+github.com/google/uuid
 # github.com/gorilla/websocket v1.4.1
 github.com/gorilla/websocket
+# github.com/jmoiron/sqlx v1.2.0
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
 # github.com/json-iterator/go v1.1.6
 github.com/json-iterator/go
 # github.com/mattn/go-isatty v0.0.7
@@ -46,10 +53,12 @@ go.uber.org/zap/buffer
 go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
-# golang.org/x/sys v0.0.0-20190222072716-a9d3bda3a223
+# golang.org/x/sys v0.0.0-20190606165138-5da285871e9c
 golang.org/x/sys/unix
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate
+# google.golang.org/appengine v1.6.2
+google.golang.org/appengine/cloudsql
 # gopkg.in/go-playground/validator.v8 v8.18.2
 gopkg.in/go-playground/validator.v8
 # gopkg.in/natefinch/lumberjack.v2 v2.0.0
