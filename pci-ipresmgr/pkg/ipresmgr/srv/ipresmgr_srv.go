@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-26 14:45:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-27 19:24:25
+ * @Last Modified time: 2019-08-29 19:24:53
  */
 
 package srv
@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/store"
 	"syscall"
 
 	"github.com/micro/cli"
@@ -104,7 +105,10 @@ func SvrMain(c *cli.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	setupSignalHandler(cancel)
 
-	// 初始化数据库
+	// 初始化存储
+	backEndStore := store.NewStore()
+	err = backEndStore.Start(func(opts *store.StoreOptions) {
+	})
 
 	// 初始化web
 	startWebSrv(listenAddr, listenPort)
@@ -116,7 +120,10 @@ func SvrMain(c *cli.Context) error {
 	}
 
 	// 退出清理
+
 	// 停止web服务
 	shutdownWebSrv()
+	// 停止存储
+	backEndStore.Stop()
 	return nil
 }
