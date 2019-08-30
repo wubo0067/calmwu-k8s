@@ -2,52 +2,33 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 18:44:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-29 19:21:57
+ * @Last Modified time: 2019-08-30 17:21:23
  */
 
 package store
 
-import (
-	"github.com/jmoiron/sqlx"
-	calm_utils "github.com/wubo0067/calmwu-go/utils"
-)
+import "context"
 
-// Store 存储接口
-type Store interface {
-	Start(Option) error
+// StoreMgr 存储接口
+type StoreMgr interface {
+	// Start 启动存储管理
+	Start(context.Context, Option) error
+	// Stop 停止存储管理
 	Stop()
+	// 注册自己，保证实例id唯一
+	RegisterSelf(instID int, listenAddr string, listenPort int) error
 }
 
 // StoreOptions 存储的参数
 type StoreOptions struct {
-	Addr   string
-	User   string
-	Passwd string
-	DBName string
+	Addr                string
+	User                string
+	Passwd              string
+	DBName              string
+	IdelConnectCount    int
+	MaxOpenConnectCount int
+	ConnectMaxLifeTime  string
 }
 
 // Option 选项修改
 type Option func(*StoreOptions)
-
-type backendStore struct {
-	opts  StoreOptions
-	dbMgr *sqlx.DB
-}
-
-// Init 初始化
-func (bs *backendStore) Start(opt Option) error {
-	opt(&bs.opts)
-
-	calm_utils.Debugf("backendStore opts:%+v", bs.opts)
-
-	return nil
-}
-
-func (bs *backendStore) Stop() {
-	return
-}
-
-// NewStore 构造一个存储对象
-func NewStore() Store {
-	return new(backendStore)
-}

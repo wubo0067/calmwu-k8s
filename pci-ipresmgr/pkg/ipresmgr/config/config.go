@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-27 16:27:45
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-27 17:16:02
+ * @Last Modified time: 2019-08-30 11:20:01
  */
 
 package config
@@ -30,9 +30,13 @@ type K8SClusterData struct {
 
 // StoreCfgData 数据库配置
 type StoreCfgData struct {
-	MysqlAddr string `json:"mysqladdr" mapstructure:"mysqladdr"`
-	User      string `json:"user" mapstructure:"user"`
-	Passwd    string `json:"passwd" mapstructure:"passwd"`
+	MysqlAddr           string `json:"mysqladdr" mapstructure:"mysqladdr"`
+	User                string `json:"user" mapstructure:"user"`
+	Passwd              string `json:"passwd" mapstructure:"passwd"`
+	DBName              string `json:"dbname" mapstructure:"dbname"`
+	IdelConnectCount    int    `json:"idlconnects" mapstructure:"idlconnects"`
+	MaxOpenConnectCount int    `json:"maxopenconnects" mapstructure:"maxopenconnects"`
+	ConnectMaxLifeTime  string `json:"connectmaxlifetime" mapstructure:"connectmaxlifetime"`
 }
 
 // SrvIPResMgrConfigData 服务的配置数据
@@ -117,4 +121,11 @@ func GetNspServerAddr() string {
 	defer guard.Unlock()
 	nspSrvAddr := configData.NSPData.Addr
 	return nspSrvAddr
+}
+
+// GetStoreCfgData
+func GetStoreCfgData() StoreCfgData {
+	guard.Lock()
+	defer guard.Unlock()
+	return configData.StoreData
 }

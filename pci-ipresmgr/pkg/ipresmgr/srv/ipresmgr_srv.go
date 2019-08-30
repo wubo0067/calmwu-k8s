@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-26 14:45:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-29 19:24:53
+ * @Last Modified time: 2019-08-30 14:32:21
  */
 
 package srv
@@ -10,11 +10,11 @@ package srv
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"pci-ipresmgr/pkg/ipresmgr/store"
+	"pci-ipresmgr/pkg/ipresmgr/store/mysql"
 	"syscall"
 
 	"github.com/micro/cli"
@@ -98,7 +98,7 @@ func SvrMain(c *cli.Context) error {
 
 	err := config.LoadConfig(configFile)
 	if err != nil {
-		log.Fatalf("LoadConfig %s failed, err:%s", configFile, err.Error())
+		calm_utils.Fatalf("LoadConfig %s failed, err:%s", configFile, err.Error())
 	}
 
 	// 信号控制
@@ -106,9 +106,20 @@ func SvrMain(c *cli.Context) error {
 	setupSignalHandler(cancel)
 
 	// 初始化存储
-	backEndStore := store.NewStore()
-	err = backEndStore.Start(func(opts *store.StoreOptions) {
+	storeMgr := mysql.NewMysqlStoreMgr()
+	err = storeMgr.Start(ctx, func(opts *store.StoreOptions) {
+		storeCfgData := config.GetStoreCfgData()
+		opts.Addr = storeCfgData.MysqlAddr
+		opts.User = storeCfgData.User
+		opts.Passwd = storeCfgData.Passwd
+		opts.DBName = storeCfgData.DBName
+		opts.IdelConnectCount = storeCfgData.IdelConnectCount
+		opts.MaxOpenConnectCount = storeCfgData.MaxOpenConnectCount
+		opts.ConnectMaxLifeTime = storeCfgData.ConnectMaxLifeTime
 	})
+	if err != nil {
+		calm_utils.Fatalf("storeMgr start failed, err:%s", err.Error())
+	}
 
 	// 初始化web
 	startWebSrv(listenAddr, listenPort)
@@ -124,6 +135,6 @@ func SvrMain(c *cli.Context) error {
 	// 停止web服务
 	shutdownWebSrv()
 	// 停止存储
-	backEndStore.Stop()
+	storeMgr.Stop()
 	return nil
 }

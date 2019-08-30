@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 14:29:52
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-29 17:29:39
+ * @Last Modified time: 2019-08-30 15:28:43
  */
 
 // https://cloud.tencent.com/developer/article/1079583
@@ -30,7 +30,8 @@ type TblTestS struct {
 	CreateTime             time.Time      `db:"create_time"`
 	NSPResourceReleaseTime time.Time      `db:"nspresource_release_time"`
 	SubNetID               sql.NullString `db:"subnet_id"`
-	NspResources           []byte         `db:"nsp_resources"`
+	//SubNetID     string `db:"subnet_id"`
+	NspResources []byte `db:"nsp_resources"`
 }
 
 func initDB() *sqlx.DB {
@@ -54,6 +55,13 @@ func initDB() *sqlx.DB {
 }
 
 func insertTbltest(db *sqlx.DB) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			stackInfo := calm_utils.CallStack(3)
+			log.Printf("err:%s stack:%s", err, stackInfo)
+		}
+	}()
 
 	nspResource := struct {
 		IP  string
@@ -114,7 +122,7 @@ func selectTbltest(db *sqlx.DB) {
 	var testLst []*TblTestS
 	err := db.Select(&testLst, "SELECT * FROM tbl_Test")
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Fatalf("select failed. %s\n", err.Error())
 	}
 
 	for _, test := range testLst {
@@ -122,6 +130,7 @@ func selectTbltest(db *sqlx.DB) {
 			test.K8SResourceID,
 			test.NSPResourceReleaseTime.String(),
 			test.SubNetID.String,
+			//test.SubNetID,
 			test.CreateTime.String(),
 			calm_utils.Bytes2String(test.NspResources))
 

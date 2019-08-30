@@ -18,6 +18,9 @@
         "mysqladdr" : "127.0.0.1:3306",
         "user" : "root",
         "passwd" : "root",
-        "dbname" : "db_ipresmgr"
+        "dbname" : "db_ipresmgr",
+        "idlconnects" : 3,
+        "maxopenconnects" : 16,
+        "connectmaxlifetime" : "72h"
     }
 }
