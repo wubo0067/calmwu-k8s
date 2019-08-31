@@ -22,6 +22,7 @@ import (
 var _ store.StoreMgr = &mysqlStoreMgr{}
 
 type dbProcessHandler func(ctx context.Context) error
+type contextKey string
 
 type mysqlStoreMgr struct {
 	opts         store.StoreOptions
@@ -99,28 +100,68 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 func (msm *mysqlStoreMgr) Stop() {
 	if msm.dbMgr != nil {
 		msm.dbMgr.Close()
+		msm.dbMgr = nil
+		calm_utils.Info("mysqlStoreMgr stop")
 	}
 	return
 }
 
-func (msm *mysqlStoreMgr) dbSafeExec(ctx context.Context, dbHandler dbProcessHandler) error {
-	return nil
+func (msm *mysqlStoreMgr) dbSafeExec(ctx context.Context, dbHandler dbProcessHandler) (dbExecErr error) {
+	defer func() {
+		if err := recover(); err != nil {
+			stackInfo := calm_utils.CallStack(3)
+			dbExecErr = errors.Errorf("Panic! err:%v stack:%s", err, stackInfo)
+			calm_utils.Error(err)
+		}
+	}()
+
+	return dbHandler(ctx)
 }
 
-func (msm *mysqlStoreMgr) RegisterSelf(instID int, listenAddr string, listenPort int) error {
-	affectRows, err := msm.dbMgr.Exec(`INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)`,
-		fmt.Sprintf("ipresmgr-svr-%d", instID),
-		fmt.Sprintf("%s:%d", listenAddr, listenPort),
-		time.Now(),
-	)
-	if err != nil {
-		err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
-		calm_utils.Error(err)
-		return err
-	}
+func (msm *mysqlStoreMgr) RegisterSelf(instID string, listenAddr string, listenPort int) error {
+	vCtx := context.WithValue(context.Background(), contextKey("instID"), instID)
+	vCtx = context.WithValue(vCtx, contextKey("listenAddr"), listenAddr)
+	vCtx = context.WithValue(vCtx, contextKey("listenPort"), listenPort)
 
-	pci
-	return nil
+	return msm.dbSafeExec(vCtx,
+		func(ctx context.Context) error {
+			srvInstID := ctx.Value(contextKey("instID")).(string)
+			srvAddr := fmt.Sprintf("%s:%d", ctx.Value(contextKey("listenAddr")).(string),
+				ctx.Value(contextKey("listenPort")).(int))
+			registerTime := time.Now()
+
+			_, err := msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
+				srvInstID, srvAddr, registerTime)
+			if err != nil {
+				err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
+				calm_utils.Error(err)
+				return err
+			}
+			calm_utils.Infof("Register %s successed.", srvInstID)
+			return nil
+		},
+	)
+}
+
+func (msm *mysqlStoreMgr) UnRegisterSelf(instID string) {
+	vCtx := context.WithValue(context.Background(), contextKey("instID"), instID)
+
+	msm.dbSafeExec(vCtx,
+		func(ctx context.Context) error {
+			srvInstID := ctx.Value(contextKey("instID")).(string)
+
+			_, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
+				srvInstID)
+			if err != nil {
+				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' failed.", srvInstID)
+				calm_utils.Error(err)
+				return err
+			}
+			calm_utils.Infof("unRegister %s successed.", srvInstID)
+			return nil
+		},
+	)
+	return
 }
 
 // NewMysqlStoreMgr 构造一个存储对象

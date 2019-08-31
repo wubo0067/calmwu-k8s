@@ -16,7 +16,9 @@ type StoreMgr interface {
 	// Stop 停止存储管理
 	Stop()
 	// 注册自己，保证实例id唯一
-	RegisterSelf(instID int, listenAddr string, listenPort int) error
+	RegisterSelf(instID string, listenAddr string, listenPort int) error
+	// 注销自己
+	UnRegisterSelf(instID string)
 }
 
 // StoreOptions 存储的参数
