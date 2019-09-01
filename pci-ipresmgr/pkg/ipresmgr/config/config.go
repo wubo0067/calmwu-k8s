@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-27 16:27:45
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-30 11:20:01
+ * @Last Modified time: 2019-09-01 10:35:45
  */
 
 package config
@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"sync"
+	"sync/atomic"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -47,9 +48,9 @@ type SrvIPResMgrConfigData struct {
 }
 
 var (
-	configData     *SrvIPResMgrConfigData
 	configFileName string
 	guard          sync.Mutex
+	configVal      atomic.Value
 )
 
 // LoadConfig 加载配置数据
@@ -60,7 +61,7 @@ func LoadConfig(configFile string) error {
 	}
 	configFileName = configFile
 
-	configData = new(SrvIPResMgrConfigData)
+	configData := new(SrvIPResMgrConfigData)
 
 	cfgFile, err := os.Open(configFileName)
 	if err != nil {
@@ -79,6 +80,7 @@ func LoadConfig(configFile string) error {
 		return errors.Wrap(err, "json Unmarshal failed.")
 	}
 
+	configVal.Store(configData)
 	calm_utils.ZLog.Debugf("ipresmgr-svr config:%+v", configData)
 	return nil
 }
@@ -107,25 +109,20 @@ func ReloadConfig() {
 		return
 	}
 
-	guard.Lock()
-	defer guard.Unlock()
-	configData = newConfigData
-	newConfigData = nil
+	configVal.Store(newConfigData)
 
 	calm_utils.ZLog.Infof("reload config:[%s] successed", configFileName)
 }
 
 // GetNspServerAddr 获取nsp服务的地址
 func GetNspServerAddr() string {
-	guard.Lock()
-	defer guard.Unlock()
+	configData := configVal.Load().(*SrvIPResMgrConfigData)
 	nspSrvAddr := configData.NSPData.Addr
 	return nspSrvAddr
 }
 
 // GetStoreCfgData
 func GetStoreCfgData() StoreCfgData {
-	guard.Lock()
-	defer guard.Unlock()
+	configData := configVal.Load().(*SrvIPResMgrConfigData)
 	return configData.StoreData
 }
