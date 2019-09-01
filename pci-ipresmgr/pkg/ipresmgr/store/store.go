@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 18:44:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-01 09:52:21
+ * @Last Modified time: 2019-09-01 10:16:48
  */
 
 package store
@@ -25,6 +25,10 @@ type StoreMgr interface {
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sAddrInfos []*K8SAddrInfo) error
 	// GetAddrInfoByK8SResourceID 获取一个地址信息
 	GetAddrInfoByK8SResourceID(K8SReousrceID string) *K8SAddrInfo
+}
+
+// AddrResourceLeasePeriodMgr 回收接口
+type AddrResourceLeasePeriodMgr interface {
 }
 
 type K8SAddrInfo struct {
