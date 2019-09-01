@@ -30,6 +30,12 @@ func main() {
 	storeCfgData, str := GetStoreCfgData()
 	strP := (*reflect.StringHeader)(unsafe.Pointer(&str))
 	fmt.Printf("storeCfgData addr:%p str:%p strP:%+v\n", &storeCfgData, &str, strP)
+
+	str = "Hello world"
+	var v interface{} = str
+	fmt.Printf("v type is:%s,%s, kind:%s\n", reflect.TypeOf(v).String(),
+		reflect.ValueOf(v).Type().Name(), reflect.TypeOf(v).Kind().String())
+
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

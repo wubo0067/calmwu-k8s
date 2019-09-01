@@ -38,6 +38,7 @@ type TblK8SResourceIPBindS struct {
 // TblK8SResourceIPRecycleS 地址资源回收表
 type TblK8SResourceIPRecycleS struct {
 	SrvInstanceName        string    `db:"srv_instance_name"`
+	Replicas               int       `db:"replicas"`
 	K8SResourceID          string    `db:"k8sresource_id"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
@@ -52,6 +53,7 @@ type TblK8SResourceIPRecycleS struct {
 type TblK8SResourceIPRecycleHistoryS struct {
 	ID                     uint      `db:"id"`
 	K8SResourceID          string    `db:"k8sresource_id"`
+	Replicas               int       `db:"replicas"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
 	NetRegionalID          string    `db:"netregional_id"`

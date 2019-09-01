@@ -40,7 +40,7 @@ github.com/pkg/errors
 github.com/spaolacci/murmur3
 # github.com/ugorji/go v1.1.4
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20190828033304-e9e122db1bfe
+# github.com/wubo0067/calmwu-go v0.0.0-20190831070419-2dc9d2639f79
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.4.0
 go.uber.org/atomic

@@ -122,13 +122,13 @@ func SvrMain(c *cli.Context) error {
 	}
 	defer storeMgr.Stop()
 
-	err = storeMgr.RegisterSelf(fmt.Sprintf("ipresmgr-svr_%d", srvInstID), listenAddr, listenPort)
+	err = storeMgr.Register(fmt.Sprintf("ipresmgr-svr_%d", srvInstID), listenAddr, listenPort)
 	if err != nil {
 		calm_utils.Errorf("register self failed. err:%s", err.Error())
 		storeMgr.Stop()
 		return err
 	}
-	defer storeMgr.UnRegisterSelf(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
+	defer storeMgr.UnRegister(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
 
 	// 初始化web
 	err = startWebSrv(listenAddr, listenPort)
@@ -147,7 +147,7 @@ func SvrMain(c *cli.Context) error {
 	// 停止web服务
 	shutdownWebSrv()
 	// 停止存储
-	//storeMgr.UnRegisterSelf(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
+	//storeMgr.UnRegister(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
 	//storeMgr.Stop()
 	return nil
 }

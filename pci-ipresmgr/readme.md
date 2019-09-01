@@ -2,7 +2,7 @@
 
 #### 1. 预分配IP
 `
-WEBHOOK通知资源管理服务，deployment信息，副本数量，网络信息，服务收到请求后去nsp获取ip和网络相关资源。
+WEBHOOK通知资源管理服务，deployment-name，副本数量，网络信息，服务收到请求后去nsp获取ip和网络相关资源。
 获取资源后写入数据表中WB2IPResMgrCreateIPPoolReq，状态为未绑定。
 `
 

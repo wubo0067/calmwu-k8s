@@ -56,6 +56,8 @@ github.com/wubo0067/calmwu-go v0.0.0-20190828022718-e3d93f96e020 h1:qyV05imugdO5
 github.com/wubo0067/calmwu-go v0.0.0-20190828022718-e3d93f96e020/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
 github.com/wubo0067/calmwu-go v0.0.0-20190828033304-e9e122db1bfe h1:NBHSbc1qylBol9u7gUCMyvRPzrQ7FEQlB7kW5FdCNfE=
 github.com/wubo0067/calmwu-go v0.0.0-20190828033304-e9e122db1bfe/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
+github.com/wubo0067/calmwu-go v0.0.0-20190831070419-2dc9d2639f79 h1:aQceDmM22XK5YniJh3Uu1c7jrsT/ER6oWexgHnAPTtI=
+github.com/wubo0067/calmwu-go v0.0.0-20190831070419-2dc9d2639f79/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
 go.uber.org/atomic v1.4.0 h1:cxzIVoETapQEqDhQu3QfnvXAV4AlzcvUCxkVUFw3+EU=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
 go.uber.org/multierr v1.1.0 h1:HoEmRHQPVSqub6w2z2d2EOVs2fjyFRGyofhKuyDq0QI=

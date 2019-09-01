@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-30 10:41:36
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-30 17:21:32
+ * @Last Modified time: 2019-09-01 09:52:51
  */
 
 package mysql
@@ -22,7 +22,6 @@ import (
 var _ store.StoreMgr = &mysqlStoreMgr{}
 
 type dbProcessHandler func(ctx context.Context) error
-type contextKey string
 
 type mysqlStoreMgr struct {
 	opts         store.StoreOptions
@@ -118,16 +117,17 @@ func (msm *mysqlStoreMgr) dbSafeExec(ctx context.Context, dbHandler dbProcessHan
 	return dbHandler(ctx)
 }
 
-func (msm *mysqlStoreMgr) RegisterSelf(instID string, listenAddr string, listenPort int) error {
-	vCtx := context.WithValue(context.Background(), contextKey("instID"), instID)
-	vCtx = context.WithValue(vCtx, contextKey("listenAddr"), listenAddr)
-	vCtx = context.WithValue(vCtx, contextKey("listenPort"), listenPort)
+func (msm *mysqlStoreMgr) Register(instID string, listenAddr string, listenPort int) error {
+	vCtx := setCtxVal(context.Background(), "instID", instID)
+	vCtx = setCtxVal(vCtx, "listenAddr", listenAddr)
+	vCtx = setCtxVal(vCtx, "listenPort", listenPort)
 
 	return msm.dbSafeExec(vCtx,
 		func(ctx context.Context) error {
-			srvInstID := ctx.Value(contextKey("instID")).(string)
-			srvAddr := fmt.Sprintf("%s:%d", ctx.Value(contextKey("listenAddr")).(string),
-				ctx.Value(contextKey("listenPort")).(int))
+			srvInstID, _ := getCtxStrVal(ctx, "instID")
+			listenAddr, _ := getCtxStrVal(ctx, "listenAddr")
+			listenPort, _ := getCtxIntVal(ctx, "listenPort")
+			srvAddr := fmt.Sprintf("%s:%d", listenAddr, listenPort)
 			registerTime := time.Now()
 
 			_, err := msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
@@ -143,12 +143,12 @@ func (msm *mysqlStoreMgr) RegisterSelf(instID string, listenAddr string, listenP
 	)
 }
 
-func (msm *mysqlStoreMgr) UnRegisterSelf(instID string) {
+func (msm *mysqlStoreMgr) UnRegister(instID string) {
 	vCtx := context.WithValue(context.Background(), contextKey("instID"), instID)
 
 	msm.dbSafeExec(vCtx,
 		func(ctx context.Context) error {
-			srvInstID := ctx.Value(contextKey("instID")).(string)
+			srvInstID, _ := getCtxStrVal(ctx, "instID")
 
 			_, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
 				srvInstID)
