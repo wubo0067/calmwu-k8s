@@ -121,7 +121,7 @@ func GetNspServerAddr() string {
 	return nspSrvAddr
 }
 
-// GetStoreCfgData
+// GetStoreCfgData 获取配置
 func GetStoreCfgData() StoreCfgData {
 	configData := configVal.Load().(*SrvIPResMgrConfigData)
 	return configData.StoreData

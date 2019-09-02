@@ -53,13 +53,13 @@ var (
 	}
 )
 
-func initLog(logFilePath string, srvInstID int) {
+func initLog(logFilePath string, srvInstID string) {
 	err := calm_utils.CheckDir(logFilePath)
 	if err != nil {
 		os.Exit(-1)
 	}
 
-	calm_utils.InitDefaultZapLog(fmt.Sprintf("%s/ipresmgr-svr_%d.log", logFilePath, srvInstID),
+	calm_utils.InitDefaultZapLog(fmt.Sprintf("%s/%s.log", logFilePath, srvInstID),
 		zapcore.DebugLevel, 1)
 }
 
@@ -73,7 +73,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 			case syscall.SIGINT:
 				fallthrough
 			case syscall.SIGTERM:
-				calm_utils.Info("catch shutdown signal")
+				calm_utils.Info("-------------catch shutdown signal-------------")
 				cancel()
 				return
 			case syscall.SIGUSR1:
@@ -90,7 +90,7 @@ func SvrMain(c *cli.Context) error {
 	// 获取参数
 	configFile := c.String("conf")
 	logFilePath := c.String("logpath")
-	srvInstID := c.Int("id")
+	srvInstID := fmt.Sprintf("ipresmgr-svr_%d", c.Int("id"))
 	listenAddr := c.String("ip")
 	listenPort := c.Int("port")
 
@@ -109,6 +109,7 @@ func SvrMain(c *cli.Context) error {
 	storeMgr := mysql.NewMysqlStoreMgr()
 	err = storeMgr.Start(ctx, func(opts *store.StoreOptions) {
 		storeCfgData := config.GetStoreCfgData()
+		opts.SrvInstID = srvInstID
 		opts.Addr = storeCfgData.MysqlAddr
 		opts.User = storeCfgData.User
 		opts.Passwd = storeCfgData.Passwd
@@ -122,13 +123,13 @@ func SvrMain(c *cli.Context) error {
 	}
 	defer storeMgr.Stop()
 
-	err = storeMgr.Register(fmt.Sprintf("ipresmgr-svr_%d", srvInstID), listenAddr, listenPort)
+	err = storeMgr.Register(listenAddr, listenPort)
 	if err != nil {
 		calm_utils.Errorf("register self failed. err:%s", err.Error())
 		storeMgr.Stop()
 		return err
 	}
-	defer storeMgr.UnRegister(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
+	defer storeMgr.UnRegister()
 
 	// 初始化web
 	err = startWebSrv(listenAddr, listenPort)

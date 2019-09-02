@@ -11,6 +11,7 @@ import (
 	"context"
 	"fmt"
 	"pci-ipresmgr/pkg/ipresmgr/store"
+	"pci-ipresmgr/table"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -24,9 +25,10 @@ var _ store.StoreMgr = &mysqlStoreMgr{}
 type dbProcessHandler func(ctx context.Context) error
 
 type mysqlStoreMgr struct {
-	opts         store.StoreOptions
-	dbMgr        *sqlx.DB
-	mysqlConnStr string
+	opts                       store.StoreOptions
+	dbMgr                      *sqlx.DB
+	mysqlConnStr               string
+	addrResourceLeasePeriodMgr AddrResourceLeasePeriodMgrItf
 }
 
 func (msm *mysqlStoreMgr) doDBKeepAlive(ctx context.Context) {
@@ -92,6 +94,8 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 	}
 	msm.doDBKeepAlive(ctx)
 
+	msm.addrResourceLeasePeriodMgr = NewAddrResourceLeasePeriodMgr(ctx, msm.dbMgr)
+
 	calm_utils.Infof("%s connect successed", msm.mysqlConnStr)
 	return nil
 }
@@ -117,47 +121,67 @@ func (msm *mysqlStoreMgr) dbSafeExec(ctx context.Context, dbHandler dbProcessHan
 	return dbHandler(ctx)
 }
 
-func (msm *mysqlStoreMgr) Register(instID string, listenAddr string, listenPort int) error {
-	vCtx := setCtxVal(context.Background(), "instID", instID)
-	vCtx = setCtxVal(vCtx, "listenAddr", listenAddr)
+func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
+	vCtx := setCtxVal(context.Background(), "listenAddr", listenAddr)
 	vCtx = setCtxVal(vCtx, "listenPort", listenPort)
 
 	return msm.dbSafeExec(vCtx,
 		func(ctx context.Context) error {
-			srvInstID, _ := getCtxStrVal(ctx, "instID")
 			listenAddr, _ := getCtxStrVal(ctx, "listenAddr")
 			listenPort, _ := getCtxIntVal(ctx, "listenPort")
 			srvAddr := fmt.Sprintf("%s:%d", listenAddr, listenPort)
 			registerTime := time.Now()
 
 			_, err := msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
-				srvInstID, srvAddr, registerTime)
+				msm.opts.SrvInstID, srvAddr, registerTime)
 			if err != nil {
 				err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
 				calm_utils.Error(err)
 				return err
 			}
-			calm_utils.Infof("Register %s successed.", srvInstID)
+			calm_utils.Infof("Register %s successed.", msm.opts.SrvInstID)
+
+			// 开始加载tbl_K8SResourceIPRecycle
+			addrRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=?", msm.opts.SrvInstID)
+			if err != nil {
+				err = errors.Wrapf(err, "SELECT * FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=%s failed.", msm.opts.SrvInstID)
+				calm_utils.Error(err)
+				return err
+			}
+
+			loadCount := 0
+			for addrRows.Next() {
+				addrRecyclingRecord := new(table.TblK8SResourceIPRecycleS)
+				err = addrRows.StructScan(addrRecyclingRecord)
+				if err != nil {
+					calm_utils.Fatalf("Scan TblK8SResourceIPRecycleS failed. err:%s", err.Error())
+				}
+				loadCount++
+				msm.addrResourceLeasePeriodMgr.AddLeaseRecyclingRecord(addrRecyclingRecord)
+			}
+			calm_utils.Infof("load from tbl_K8SResourceIPRecycle %d records", loadCount)
+			// 加载完毕，启动
+			err = msm.addrResourceLeasePeriodMgr.Start()
+			if err != nil {
+				calm_utils.Fatalf("mysqlAddrResourceLeasePeriodMgr start failed. err:%s", err.Error())
+			}
+			calm_utils.Info("mysqlAddrResourceLeasePeriodMgr start successed.")
 			return nil
 		},
 	)
 }
 
-func (msm *mysqlStoreMgr) UnRegister(instID string) {
-	vCtx := context.WithValue(context.Background(), contextKey("instID"), instID)
-
-	msm.dbSafeExec(vCtx,
+func (msm *mysqlStoreMgr) UnRegister() {
+	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
-			srvInstID, _ := getCtxStrVal(ctx, "instID")
-
 			_, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
-				srvInstID)
+				msm.opts.SrvInstID)
 			if err != nil {
-				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' failed.", srvInstID)
+				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' failed.", msm.opts.SrvInstID)
 				calm_utils.Error(err)
 				return err
 			}
-			calm_utils.Infof("unRegister %s successed.", srvInstID)
+			calm_utils.Infof("unRegister %s successed.", msm.opts.SrvInstID)
 			return nil
 		},
 	)

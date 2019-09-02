@@ -171,7 +171,7 @@ func insertMultilRecored(db *sqlx.DB) {
 }
 
 func testScanRows(db *sqlx.DB) {
-	rows, err := db.Queryx("SELECT * FROM tbl_Test")
+	rows, err := db.Queryx("SELECT * FROM tbl_Test WHERE k8sresource_id=?", "test-0")
 	for rows.Next() {
 		var test TblTestS
 		err = rows.StructScan(&test)
