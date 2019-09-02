@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-09-02 17:35:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-02 19:45:13
+ * @Last Modified time: 2019-09-02 19:46:39
  */
 
 package mysql
@@ -55,6 +55,8 @@ func TestAddrTimerHeap(t *testing.T) {
 	}
 
 	fmt.Printf("------------------\n")
+
+	fmt.Printf("timeHeap len:%d\n", timerHeap.Len())
 
 	for timerHeap.Len() > 0 {
 		addrLeasePeriodTimerNode := heap.Pop(&timerHeap).(*addrLeasePeriodTimerNodeS)
