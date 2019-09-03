@@ -200,7 +200,7 @@ func (msm *mysqlStoreMgr) UnRegister() {
 	return
 }
 
-func (msm *mysqlStoreMgr) expirationDeletion(record *table.TblK8SResourceIPRecycleS) {
+func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycleS) {
 	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
 			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=? and k8sresource_id=?",
@@ -226,6 +226,8 @@ func (msm *mysqlStoreMgr) expirationDeletion(record *table.TblK8SResourceIPRecyc
 				calm_utils.Infof("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
 					record.SrvInstanceName, record.K8SResourceID)
 			}
+
+			// TODO: 调用nsp接口，传入portid
 
 			// TODO: 存放历史表
 			return nil

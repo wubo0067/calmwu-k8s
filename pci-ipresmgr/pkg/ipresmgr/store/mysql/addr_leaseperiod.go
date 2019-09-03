@@ -188,7 +188,7 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) timeCheckExpiration(now time.Time) 
 			calm_utils.Debugf("Timeout srv_instance_name[%s], k8sresource_id[%s] nspresource_release_time[%s]",
 				timerNode.record.SrvInstanceName, timerNode.record.K8SResourceID, timerNode.record.NSPResourceReleaseTime.String())
 			// 调用db的删除数据
-			malm.msm.expirationDeletion(timerNode.record)
+			malm.msm.expiredRecycling(timerNode.record)
 			popCount++
 		}
 	}
