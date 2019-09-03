@@ -15,6 +15,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"pci-ipresmgr/table"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -35,7 +36,7 @@ type TblTestS struct {
 }
 
 func initDB() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "root:root@tcp(192.168.6.134:3306)/db_ipresmgr?parseTime=true")
+	db, err := sqlx.Open("mysql", "root:root@tcp(192.168.6.134:3306)/db_ipresmgr?parseTime=true&loc=Local")
 	if err != nil {
 		log.Fatalf("root:root@tcp(192.168.6.134:3306)/db_ipresmgr failed. err:\n", err.Error())
 	}
@@ -182,6 +183,51 @@ func testScanRows(db *sqlx.DB) {
 	}
 }
 
+func deleteInvalidRow(db *sqlx.DB) {
+	sqlResult, err := db.Exec("DELETE FROM tbl_Test WHERE k8sresource_id=?", "test-0111")
+	if err != nil {
+		log.Fatalf("exec delete invalid test-0111 record failed. err:%s", err.Error())
+	}
+	affectRows, err := sqlResult.RowsAffected()
+	if err != nil {
+		log.Fatalf("delete invalid test-0111 RowsAffected failed. err:%s", err.Error())
+	}
+	// 不存在的记录只能通过affectRows来判断。这不是error
+	log.Printf("exec delete invalid test-0111 affectRows:%d", affectRows)
+}
+
+func insertMultiK8SResourceIPRecycles(db *sqlx.DB) {
+	log.Println(time.Now().String())
+
+	var recycleRecord table.TblK8SResourceIPRecycleS
+	recycleRecord.SrvInstanceName = "ipresmgr-svr_1"
+	recycleRecord.CreateTime = time.Now()
+	recycleRecord.NetRegionalID = "1-1"
+	recycleRecord.SubNetID = "2-2"
+	recycleRecord.PortID = "3-3"
+	recycleRecord.SubNetGatewayAddr = "4.4.4.4"
+	recycleRecord.NspResources = nil
+
+	for i := 0; i < 100; i++ {
+		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
+		(srv_instance_name, k8sresource_id, create_time, nspresource_release_time, netregional_id, subnet_id, port_id, subnetgatewayaddr, nsp_resources) VALUES 
+		(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			recycleRecord.SrvInstanceName,
+			fmt.Sprintf("k8sresource-%d", i),
+			recycleRecord.CreateTime,
+			recycleRecord.CreateTime.Add(time.Duration(60+i*5)*time.Second),
+			recycleRecord.NetRegionalID,
+			recycleRecord.SubNetID,
+			recycleRecord.PortID,
+			recycleRecord.SubNetGatewayAddr,
+			recycleRecord.NspResources,
+		)
+		if err != nil {
+			log.Fatalf("insert tbl_K8SResourceIPRecycle %d failed. err:%s\n", i, err.Error())
+		}
+	}
+}
+
 func main() {
 	calm_utils.NewSimpleLog(nil)
 
@@ -191,5 +237,7 @@ func main() {
 	//insertTbltest(db)
 	//selectTbltest(db)
 	//insertMultilRecored(db)
-	testScanRows(db)
+	//testScanRows(db)
+	//deleteInvalidRow(db)
+	insertMultiK8SResourceIPRecycles(db)
 }

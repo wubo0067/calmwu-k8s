@@ -96,6 +96,8 @@ func SvrMain(c *cli.Context) error {
 
 	initLog(logFilePath, srvInstID)
 
+	calm_utils.Infof("-------------%s start running-------------", srvInstID)
+
 	err := config.LoadConfig(configFile)
 	if err != nil {
 		calm_utils.Fatalf("LoadConfig %s failed, err:%s", configFile, err.Error())
@@ -147,8 +149,5 @@ func SvrMain(c *cli.Context) error {
 
 	// 停止web服务
 	shutdownWebSrv()
-	// 停止存储
-	//storeMgr.UnRegister(fmt.Sprintf("ipresmgr-svr_%d", srvInstID))
-	//storeMgr.Stop()
 	return nil
 }

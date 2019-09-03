@@ -61,7 +61,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 	opt(&msm.opts)
 
 	// 创建mysql连接参数
-	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true", msm.opts.User, msm.opts.Passwd, msm.opts.Addr, msm.opts.DBName)
+	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&loc=Local", msm.opts.User, msm.opts.Passwd, msm.opts.Addr, msm.opts.DBName)
 
 	calm_utils.Debugf("mysqlStoreMgr opts:%+v, mysqlConnStr:%s", msm.opts, msm.mysqlConnStr)
 
@@ -95,7 +95,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 	msm.doDBKeepAlive(ctx)
 
 	// 构造地址资源租期管理对象
-	msm.addrResourceLeasePeriodMgr = NewAddrResourceLeasePeriodMgr(ctx, msm.dbMgr)
+	msm.addrResourceLeasePeriodMgr = NewAddrResourceLeasePeriodMgr(ctx, msm)
 
 	calm_utils.Infof("%s connect successed", msm.mysqlConnStr)
 	return nil
@@ -105,6 +105,7 @@ func (msm *mysqlStoreMgr) Stop() {
 	if msm.dbMgr != nil {
 		msm.dbMgr.Close()
 		msm.dbMgr = nil
+		msm.addrResourceLeasePeriodMgr.Stop()
 		calm_utils.Info("mysqlStoreMgr stop")
 	}
 	return
@@ -175,14 +176,58 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 func (msm *mysqlStoreMgr) UnRegister() {
 	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
-			_, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
 				msm.opts.SrvInstID)
 			if err != nil {
 				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' failed.", msm.opts.SrvInstID)
 				calm_utils.Error(err)
 				return err
 			}
-			calm_utils.Infof("unRegister %s successed.", msm.opts.SrvInstID)
+			delRows, err := delRes.RowsAffected()
+			if err != nil {
+				err = errors.Wrap(err, "DELETE FROM tbl_IPResMgrSrvRegister delRows Incorrect.")
+				calm_utils.Error(err)
+				return err
+			}
+			if delRows != 1 {
+				calm_utils.Warnf("unRegister %s delRows:%d is error.", msm.opts.SrvInstID, delRows)
+			} else {
+				calm_utils.Infof("unRegister %s successed. ", msm.opts.SrvInstID)
+			}
+			return nil
+		},
+	)
+	return
+}
+
+func (msm *mysqlStoreMgr) expirationDeletion(record *table.TblK8SResourceIPRecycleS) {
+	msm.dbSafeExec(context.Background(),
+		func(ctx context.Context) error {
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=? and k8sresource_id=?",
+				record.SrvInstanceName, record.K8SResourceID)
+			if err != nil {
+				err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' failed.",
+					record.SrvInstanceName, record.K8SResourceID)
+				calm_utils.Error(err)
+				return err
+			}
+
+			delRows, err := delRes.RowsAffected()
+			if err != nil {
+				err = errors.Wrap(err, "DELETE FROM tbl_K8SResourceIPRecycle delRows failed.")
+				calm_utils.Error(err)
+				return err
+			}
+
+			if delRows != 1 {
+				calm_utils.Warnf("DELETE tbl_K8SResourceIPRecycle Condition srv_instance_name='%s' and k8sresource_id='%s' delRow:%d Incorrect.",
+					record.SrvInstanceName, record.K8SResourceID, delRows)
+			} else {
+				calm_utils.Infof("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
+					record.SrvInstanceName, record.K8SResourceID)
+			}
+
+			// TODO: 存放历史表
 			return nil
 		},
 	)
