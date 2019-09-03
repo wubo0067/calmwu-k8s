@@ -10,11 +10,14 @@
 package mysql
 
 import (
+	"container/heap"
 	"context"
 	"pci-ipresmgr/table"
 	"sync"
+	"time"
 
 	"github.com/jmoiron/sqlx"
+	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
 var _ AddrResourceLeasePeriodMgrItf = &mysqlAddrResourceLeasePeriodMgr{}
@@ -70,6 +73,12 @@ func (ath *addrLeasePeriodTimerHeap) Pop() interface{} {
 	return addrLeasePeriodTimerNode
 }
 
+// 该方法没有使用，不会修改节点的时间
+func (ath *addrLeasePeriodTimerHeap) update(node *addrLeasePeriodTimerNodeS, record *table.TblK8SResourceIPRecycleS) {
+	node.record = record
+	heap.Fix(ath, node.index)
+}
+
 //-----------------------------------------------------------------------------------
 
 // implement mysqlAddrResourceLeasePeriodMgr
@@ -77,23 +86,93 @@ type mysqlAddrResourceLeasePeriodMgr struct {
 	ctx       context.Context
 	dbMgr     *sqlx.DB
 	guard     sync.Mutex
-	timerHeap *addrLeasePeriodTimerHeap
+	timerHeap addrLeasePeriodTimerHeap
 }
 
 func (malm *mysqlAddrResourceLeasePeriodMgr) Start() error {
+	// heap初始化
+	heap.Init(&malm.timerHeap)
+
+	go func() {
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+	L:
+		for {
+			select {
+			case <-ticker.C:
+				// 定时检测租期是否到期
+				mostRecentTimeout, k8sResourceID := malm.getMostRecentTimeout()
+				if mostRecentTimeout.IsZero() {
+					continue
+				}
+				now := time.Now()
+				if now.After(mostRecentTimeout) {
+					// 到期
+				}
+			case <-malm.ctx.Done():
+				calm_utils.Info("mysqlAddrResourceLeasePeriodMgr Ticker exit")
+				break L
+			}
+		}
+		return
+	}()
 	return nil
 }
 
 func (malm *mysqlAddrResourceLeasePeriodMgr) Stop() {
+	calm_utils.Debug("mysqlAddrResourceLeasePeriodMgr stop.")
 	return
 }
 
 func (malm *mysqlAddrResourceLeasePeriodMgr) AddLeaseRecyclingRecord(record *table.TblK8SResourceIPRecycleS) {
+	malm.guard.Lock()
+	defer malm.guard.Unlock()
+	// 插入的队列
+	heap.Push(&malm.timerHeap, &addrLeasePeriodTimerNodeS{
+		record: record,
+	})
+	calm_utils.Debugf("push into timerHeap srv_instance_name[%s], k8sresource_id[%s] nspresource_release_time[%s] TotalCount[%d]",
+		record.SrvInstanceName, record.K8SResourceID, record.NSPResourceReleaseTime.String(), len(malm.timerHeap))
 	return
 }
 
+// 有两个入口，恢复、彻底删除
 func (malm *mysqlAddrResourceLeasePeriodMgr) DelLeaseRecyclingRecord(k8sResourceID string) *table.TblK8SResourceIPRecycleS {
+	malm.guard.Lock()
+	defer malm.guard.Unlock()
+
+	index := -1
+	for _, timerNode := range malm.timerHeap {
+		if timerNode.record.K8SResourceID == k8sResourceID {
+			index = timerNode.index
+			break
+		}
+	}
+
+	if index != -1 {
+		// 从最小堆中删除
+		timerNode := malm.timerHeap[index]
+		calm_utils.Debugf("remove from timerHeap srv_instance_name[%s], k8sresource_id[%s] nspresource_release_time[%s]",
+			timerNode.record.SrvInstanceName, timerNode.record.K8SResourceID, timerNode.record.NSPResourceReleaseTime.String())
+
+		heap.Remove(&malm.timerHeap, index)
+		calm_utils.Debugf("timerHeap TotalCount[%d]", len(malm.timerHeap))
+		return timerNode.record
+	} else {
+		calm_utils.Errorf("k8sResourceID[%s] not in timerHeap", k8sResourceID)
+	}
 	return nil
+}
+
+func (malm *mysqlAddrResourceLeasePeriodMgr) getMostRecentTimeout() (time.Time, string) {
+	malm.guard.Lock()
+	defer malm.guard.Unlock()
+
+	if len(malm.timerHeap) > 0 {
+		return malm.timerHeap[0].record.NSPResourceReleaseTime, malm.timerHeap[0].record.K8SResourceID
+	}
+	// Time.IsZero() == true
+	return time.Time{}, ""
 }
 
 // NewAddrResourceLeasePeriodMgr 构造地址租期管理对象
@@ -101,5 +180,6 @@ func NewAddrResourceLeasePeriodMgr(ctx context.Context, dbMgr *sqlx.DB) AddrReso
 	addrResourceLeasePeriodMgr := new(mysqlAddrResourceLeasePeriodMgr)
 	addrResourceLeasePeriodMgr.ctx = ctx
 	addrResourceLeasePeriodMgr.dbMgr = dbMgr
+	addrResourceLeasePeriodMgr.timerHeap = make(addrLeasePeriodTimerHeap, 0)
 	return addrResourceLeasePeriodMgr
 }

@@ -94,6 +94,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 	}
 	msm.doDBKeepAlive(ctx)
 
+	// 构造地址资源租期管理对象
 	msm.addrResourceLeasePeriodMgr = NewAddrResourceLeasePeriodMgr(ctx, msm.dbMgr)
 
 	calm_utils.Infof("%s connect successed", msm.mysqlConnStr)
@@ -141,7 +142,7 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 			}
 			calm_utils.Infof("Register %s successed.", msm.opts.SrvInstID)
 
-			// 开始加载tbl_K8SResourceIPRecycle
+			// 加载租期管理数据
 			addrRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=?", msm.opts.SrvInstID)
 			if err != nil {
 				err = errors.Wrapf(err, "SELECT * FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=%s failed.", msm.opts.SrvInstID)
@@ -160,7 +161,7 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 				msm.addrResourceLeasePeriodMgr.AddLeaseRecyclingRecord(addrRecyclingRecord)
 			}
 			calm_utils.Infof("load from tbl_K8SResourceIPRecycle %d records", loadCount)
-			// 加载完毕，启动
+			// 启动租期管理
 			err = msm.addrResourceLeasePeriodMgr.Start()
 			if err != nil {
 				calm_utils.Fatalf("mysqlAddrResourceLeasePeriodMgr start failed. err:%s", err.Error())
