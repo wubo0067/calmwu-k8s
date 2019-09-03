@@ -160,9 +160,8 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) DelLeaseRecyclingRecord(k8sResource
 		heap.Remove(&malm.timerHeap, index)
 		calm_utils.Debugf("timerHeap TotalCount[%d]", len(malm.timerHeap))
 		return timerNode.record
-	} else {
-		calm_utils.Errorf("k8sResourceID[%s] not in timerHeap", k8sResourceID)
 	}
+	calm_utils.Errorf("k8sResourceID[%s] not in timerHeap", k8sResourceID)
 	return nil
 }
 
