@@ -39,6 +39,7 @@ type TblK8SResourceIPBindS struct {
 type TblK8SResourceIPRecycleS struct {
 	SrvInstanceName        string    `db:"srv_instance_name"`
 	Replicas               int       `db:"replicas"`
+	UnbindCount            int       `db:"unbind_count"`
 	K8SResourceID          string    `db:"k8sresource_id"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`

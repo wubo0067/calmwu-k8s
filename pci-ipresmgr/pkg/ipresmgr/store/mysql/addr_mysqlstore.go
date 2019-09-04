@@ -220,16 +220,18 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 			}
 
 			if delRows != 1 {
-				calm_utils.Warnf("DELETE tbl_K8SResourceIPRecycle Condition srv_instance_name='%s' and k8sresource_id='%s' delRow:%d Incorrect.",
+				// 该数据被恢复了
+				calm_utils.Warnf("****Recycled addrResource are recovered**** DELETE tbl_K8SResourceIPRecycle Condition srv_instance_name='%s' and k8sresource_id='%s' delRow:%d.",
 					record.SrvInstanceName, record.K8SResourceID, delRows)
 			} else {
-				calm_utils.Infof("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
+				// 该数据可以被真正释放
+				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
 					record.SrvInstanceName, record.K8SResourceID)
+
+				// TODO: 调用nsp接口，传入portid
+
+				// TODO: 存放历史表
 			}
-
-			// TODO: 调用nsp接口，传入portid
-
-			// TODO: 存放历史表
 			return nil
 		},
 	)

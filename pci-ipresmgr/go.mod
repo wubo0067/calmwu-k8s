@@ -18,7 +18,7 @@ require (
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190831070419-2dc9d2639f79
+	github.com/wubo0067/calmwu-go v0.0.0-20190904034658-80be511c3d14
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0

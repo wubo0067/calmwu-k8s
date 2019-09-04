@@ -102,11 +102,11 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) Start() error {
 				// 定时检测租期是否到期
 				mostRecentTimeout, timeHeapSize := malm.getMostRecentTimeout()
 				if mostRecentTimeout.IsZero() {
-					calm_utils.Debug("mostRecentTimeout is zero, timerHeap is empty")
+					calm_utils.Debug("mostRecentTimeout is zero, AddrResource Lease Period timerHeap is empty")
 					continue
 				}
 				now := time.Now()
-				calm_utils.Debugf("mostRecentTimeout:%s timeHeapSize:%d", mostRecentTimeout.String(), timeHeapSize)
+				calm_utils.Debugf("mostRecentTimeout:%s AddrResource Lease Period timeHeapSize:%d", mostRecentTimeout.String(), timeHeapSize)
 				if now.After(mostRecentTimeout) {
 					// 到期
 					malm.timeCheckExpiration(now)

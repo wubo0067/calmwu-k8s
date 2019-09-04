@@ -31,13 +31,14 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
     srv_instance_name VARCHAR(32) NOT NULL,        -- 服务实例名字，这个资源由该服务实例负责回收
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
     replicas INT NOT NULL,                         -- pod数量
+    unbind_count INT NOT NULL DEFAULT 0,           -- 取消绑定的数量
     create_time TIMESTAMP NOT NULL,                -- 释放资源插入时间
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip资源归还给nsp的时间，租期到期时间
     netregional_id VARCHAR(128) NOT NULL,          -- 释放用到的网络域id
     subnet_id VARCHAR(36) NOT NULL,                -- 释放用到的子网id
     port_id VARCHAR(48) NOT NULL,                  -- PortID，释放只需要这个参数  
-    subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址      
-    nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}
+    subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址    
+    nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}  
     PRIMARY KEY(k8sresource_id),
     INDEX(port_id),
     INDEX(srv_instance_name)

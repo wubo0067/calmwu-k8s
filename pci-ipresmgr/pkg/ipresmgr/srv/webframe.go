@@ -100,7 +100,7 @@ func shutdownWebSrv() {
 		}
 		select {
 		case <-shutdownCtx.Done():
-			calm_utils.Info("time out 5 seconds")
+			calm_utils.Info("delay 5 seconds for graceful shutdown")
 		}
 		calm_utils.Info("ipresmgr-srv http server exiting")
 	}
