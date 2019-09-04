@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-09-01 09:52:15
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 17:28:35
+ * @Last Modified time: 2019-09-04 18:48:24
  */
 
 package mysql
@@ -10,7 +10,6 @@ package mysql
 import (
 	"context"
 	proto "pci-ipresmgr/api/proto_json"
-	"pci-ipresmgr/pkg/ipresmgr/store"
 	"strings"
 	"time"
 
@@ -25,7 +24,7 @@ func (msm *mysqlStoreMgr) GetAddrCountByK8SResourceID(k8sReousrceID string) (int
 
 // SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sReousrceID string, k8sResourceType proto.K8SApiResourceKindType,
-	k8sAddrInfos []*store.K8SAddrInfo) error {
+	k8sAddrInfos []*proto.K8SAddrInfo) error {
 	// 插入tbl_K8SResourceIPBind表
 	return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 		tx := msm.dbMgr.MustBegin()
@@ -75,8 +74,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sReousrceID string, k8sR
 }
 
 // GetAddrInfoByK8SResourceID 获取一个地址信息
-func (msm *mysqlStoreMgr) GetAddrInfoByK8SResourceID(k8sReousrceID string) *store.K8SAddrInfo {
-	k8sAddrInfo := new(store.K8SAddrInfo)
+func (msm *mysqlStoreMgr) GetAddrInfoByK8SResourceID(k8sReousrceID string) *proto.K8SAddrInfo {
+	k8sAddrInfo := new(proto.K8SAddrInfo)
 	return k8sAddrInfo
 }
 

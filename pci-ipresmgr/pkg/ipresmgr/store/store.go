@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 18:44:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 17:27:43
+ * @Last Modified time: 2019-09-04 18:47:52
  */
 
 package store
@@ -33,19 +33,10 @@ type StoreMgr interface {
 	GetAddrCountByK8SResourceID(k8sReousrceID string) (int, error)
 
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
-	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*K8SAddrInfo) error
+	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
 	// GetAddrInfoByK8SResourceID 获取一个地址信息
-	GetAddrInfoByK8SResourceID(k8sReousrceID string) *K8SAddrInfo
-}
-
-type K8SAddrInfo struct {
-	IP                string
-	MacAddr           string
-	NetRegionalID     string
-	SubNetID          string
-	PortID            string
-	SubNetGatewayAddr string
+	GetAddrInfoByK8SResourceID(k8sReousrceID string) *proto.K8SAddrInfo
 }
 
 // StoreOptions 存储的参数
