@@ -17,16 +17,15 @@
 `BodyType: Json`
 ```
 type WB2IPResMgrCreateIPPoolReq struct {
-	ReqID                  string                 `json:"ReqID" mapstructure:"ReqID"`
-	K8SApiResourceKind     K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
-	K8SClusterID           string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
-	K8SNamespace           string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID       string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
-	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
-	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"`
-	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`         // 网络域ID
-	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                   // 子网ID
-	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"` // 子网网关地址
+	ReqID                  string                 `json:"ReqID" mapstructure:"ReqID"`                                   // 请求id，消息对应
+	K8SApiResourceKind     K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`         // workload的类型
+	K8SClusterID           string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`                     // 集群标识
+	K8SNamespace           string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`                     // 名字空间
+	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`         // deployment或statefulset的名字
+	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"` // 副本数量
+	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`                   // 网络域ID
+	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                             // 子网ID
+	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"`           // 子网网关地址
 }
 ```
 
@@ -43,7 +42,6 @@ type WB2IPResMgrReleaseIPPoolReq struct {
 	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
 	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
 	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 }
 ```

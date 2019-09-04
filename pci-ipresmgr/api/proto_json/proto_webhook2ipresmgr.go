@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-07-10 15:00:31
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-07-11 14:51:39
+ * @Last Modified time: 2019-09-04 14:51:15
  */
 
 package protojson
@@ -22,31 +22,29 @@ const (
 	WB2IPResMgrRequestScaleIPPool
 )
 
-// webhook层通知ipresmgr创建ippool
+// WB2IPResMgrCreateIPPoolReq webhook层通知ipresmgr创建ippool
 type WB2IPResMgrCreateIPPoolReq struct {
-	ReqID                  string                 `json:"ReqID" mapstructure:"ReqID"`
-	K8SApiResourceKind     K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
-	K8SClusterID           string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
-	K8SNamespace           string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID       string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
-	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
-	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"`
-	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`         // 网络域ID
-	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                   // 子网ID
-	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"` // 子网网关地址
+	ReqID                  string                 `json:"ReqID" mapstructure:"ReqID"`                                   // 请求id，消息对应
+	K8SApiResourceKind     K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`         // workload的类型
+	K8SClusterID           string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`                     // 集群标识
+	K8SNamespace           string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`                     // 名字空间
+	K8SApiResourceName     string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`         // deployment或statefulset的名字
+	K8SApiResourceReplicas int                    `json:"K8SApiResourceReplicas" mapstructure:"K8SApiResourceReplicas"` // 副本数量
+	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`                   // 网络域ID
+	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                             // 子网ID
+	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"`           // 子网网关地址
 }
 
-// webhook层通知ipresmgr释放ippool
+// WB2IPResMgrReleaseIPPoolReq webhook层通知ipresmgr释放ippool
 type WB2IPResMgrReleaseIPPoolReq struct {
 	ReqID              string                 `json:"ReqID" mapstructure:"ReqID"`
 	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
 	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
 	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 }
 
-// webhook层通知ipresmgr扩缩容ippool
+// WB2IPResMgrScaleIPPoolReq webhook层通知ipresmgr扩缩容ippool
 type WB2IPResMgrScaleIPPoolReq struct {
 	ReqID                     string                 `json:"ReqID" mapstructure:"ReqID"`
 	K8SApiResourceKind        K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`

@@ -1,8 +1,8 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-07-11 14:22:14
- * @Last Modified by:   calm.wu
- * @Last Modified time: 2019-07-11 14:22:14
+ * @Last Modified by: calm.wu
+ * @Last Modified time: 2019-09-04 14:50:31
  */
 
 package protojson
@@ -15,4 +15,5 @@ const (
 	IPResMgrErrnoCreateIPPoolFailed
 	IPResMgrErrnoReleaseIPPoolFailed
 	IPResMgrErrnoScaleIPPoolFailed
+	IPResMgrErrnoGetIPFailed
 )
