@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 14:29:52
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-31 22:22:07
+ * @Last Modified time: 2019-09-04 17:09:39
  */
 
 // https://cloud.tencent.com/developer/article/1079583
@@ -155,7 +155,7 @@ func insertMultilRecored(db *sqlx.DB) {
 	test.K8SResourceID = "k8sclusterid-namespace-resource_name"
 	test.NspResources, err = json.Marshal(nspResource)
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 10; i++ {
 		_, err = db.Exec(`INSERT INTO tbl_Test 
 		(k8sresource_id, nspresource_release_time, subnet_id, create_time, nsp_resources) VALUES 
 		(?, ?, ?, ?, ?)`,
@@ -208,7 +208,7 @@ func insertMultiK8SResourceIPRecycles(db *sqlx.DB) {
 	recycleRecord.SubNetGatewayAddr = "4.4.4.4"
 	recycleRecord.NspResources = nil
 
-	for i := 0; i < 100; i++ {
+	for i := 0; i < 10; i++ {
 		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
 		(srv_instance_name, k8sresource_id, create_time, nspresource_release_time, netregional_id, subnet_id, port_id, subnetgatewayaddr, nsp_resources) VALUES 
 		(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -228,6 +228,15 @@ func insertMultiK8SResourceIPRecycles(db *sqlx.DB) {
 	}
 }
 
+func testQueryColumn(db *sqlx.DB) {
+	var subnet_id string
+	err := db.Get(&subnet_id, "SELECT subnet_id FROM tbl_Test WHERE k8sresource_id=?", "test-0")
+	if err != nil {
+		log.Fatalf("err: %s", err.Error())
+	}
+	log.Printf("tbl_Test.subnet_id:%s\n", subnet_id)
+}
+
 func main() {
 	calm_utils.NewSimpleLog(nil)
 
@@ -236,8 +245,9 @@ func main() {
 
 	//insertTbltest(db)
 	//selectTbltest(db)
-	//insertMultilRecored(db)
+	insertMultilRecored(db)
 	//testScanRows(db)
 	//deleteInvalidRow(db)
-	insertMultiK8SResourceIPRecycles(db)
+	//insertMultiK8SResourceIPRecycles(db)
+	testQueryColumn(db)
 }

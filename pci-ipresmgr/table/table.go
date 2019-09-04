@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 11:48:43
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-29 17:44:15
+ * @Last Modified time: 2019-09-04 16:53:40
  */
 
 package table
@@ -22,7 +22,7 @@ type TblIPResMgrSrvRegisgerS struct {
 // TblK8SResourceIPBindS 地址资源绑定表
 type TblK8SResourceIPBindS struct {
 	K8SResourceID     string         `db:"k8sresource_id"`
-	K8SResourceType   string         `db:"k8sresource_type"`
+	K8SResourceType   int            `db:"k8sresource_type"` // proto.K8SApiResourceKindType
 	IP                string         `db:"ip"`
 	MacAddr           string         `db:"mac"`
 	NetRegionalID     string         `db:"netregional_id"`
@@ -38,9 +38,10 @@ type TblK8SResourceIPBindS struct {
 // TblK8SResourceIPRecycleS 地址资源回收表
 type TblK8SResourceIPRecycleS struct {
 	SrvInstanceName        string    `db:"srv_instance_name"`
+	K8SResourceID          string    `db:"k8sresource_id"`
+	K8SResourceType        int       `db:"k8sresource_type"` // proto.K8SApiResourceKindType
 	Replicas               int       `db:"replicas"`
 	UnbindCount            int       `db:"unbind_count"`
-	K8SResourceID          string    `db:"k8sresource_id"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
 	NetRegionalID          string    `db:"netregional_id"`
@@ -54,6 +55,7 @@ type TblK8SResourceIPRecycleS struct {
 type TblK8SResourceIPRecycleHistoryS struct {
 	ID                     uint      `db:"id"`
 	K8SResourceID          string    `db:"k8sresource_id"`
+	K8SResourceType        int       `db:"k8sresource_type"` // proto.K8SApiResourceKindType
 	Replicas               int       `db:"replicas"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS tbl_IPResMgrSrvRegister (
 
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
-    k8sresource_type VARCHAR(32) NOT NULL,         -- 资源类型名，Deployment和StatefulSet
+    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
     ip VARCHAR(16) NOT NULL,                       -- 分配的ip
     mac VARCHAR(16) NOT NULL,                      -- mac地址
     netregional_id VARCHAR(128) NOT NULL,          -- 用到的网络域id  
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
     srv_instance_name VARCHAR(32) NOT NULL,        -- 服务实例名字，这个资源由该服务实例负责回收
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
     replicas INT NOT NULL,                         -- pod数量
     unbind_count INT NOT NULL DEFAULT 0,           -- 取消绑定的数量
     create_time TIMESTAMP NOT NULL,                -- 释放资源插入时间
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
     id INT UNSIGNED AUTO_INCREMENT, 
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
     replicas INT NOT NULL,                         -- pod数量    
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     netregional_id VARCHAR(128) NOT NULL,          -- 释放用到的网络域id
