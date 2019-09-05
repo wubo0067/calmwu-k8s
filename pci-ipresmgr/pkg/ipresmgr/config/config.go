@@ -81,7 +81,7 @@ func LoadConfig(configFile string) error {
 	}
 
 	configVal.Store(configData)
-	calm_utils.ZLog.Debugf("ipresmgr-svr config:%+v", configData)
+	calm_utils.Debugf("ipresmgr-svr config:%+v", configData)
 	return nil
 }
 
@@ -89,14 +89,14 @@ func LoadConfig(configFile string) error {
 func ReloadConfig() {
 	cfgFile, err := os.Open(configFileName)
 	if err != nil {
-		calm_utils.ZLog.Errorf("open:[%s] failed.", configFileName)
+		calm_utils.Errorf("open:[%s] failed.", configFileName)
 		return
 	}
 	defer cfgFile.Close()
 
 	cfgData, err := ioutil.ReadAll(cfgFile)
 	if err != nil {
-		calm_utils.ZLog.Errorf("read:[%s] failed.", configFileName)
+		calm_utils.Errorf("read:[%s] failed.", configFileName)
 		return
 	}
 
@@ -105,13 +105,13 @@ func ReloadConfig() {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	err = json.Unmarshal(cfgData, newConfigData)
 	if err != nil {
-		calm_utils.ZLog.Error("json umarshal config data failed.")
+		calm_utils.Error("json umarshal config data failed.")
 		return
 	}
 
 	configVal.Store(newConfigData)
 
-	calm_utils.ZLog.Infof("reload config:[%s] successed", configFileName)
+	calm_utils.Infof("reload config:[%s] successed", configFileName)
 }
 
 // GetNspServerAddr 获取nsp服务的地址

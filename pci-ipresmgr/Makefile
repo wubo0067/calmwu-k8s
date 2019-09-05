@@ -25,7 +25,7 @@ ifeq ($(ARCH),x86_64)
         override ARCH=amd64
 endif
 
-SRCFILES=$(shell find pkg cmd api -name '*.go')
+SRCFILES=$(shell find pkg cmd api table -name '*.go')
 
 #编译的目录
 BIN=bin/$(ARCH)

@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-30 10:41:36
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 17:26:34
+ * @Last Modified time: 2019-09-05 14:56:36
  */
 
 package mysql
@@ -10,6 +10,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/store"
 	"pci-ipresmgr/table"
 	"time"
@@ -229,6 +230,7 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 					record.SrvInstanceName, record.K8SResourceID)
 
 				// TODO: 调用nsp接口，传入portid
+				nsp.NSPMgr.ReleaseAddrResources(record.PortID)
 
 				// TODO: 存放历史表
 			}

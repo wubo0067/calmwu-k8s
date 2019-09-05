@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/store"
 	"pci-ipresmgr/pkg/ipresmgr/store/mysql"
 	"syscall"
@@ -132,6 +133,9 @@ func SvrMain(c *cli.Context) error {
 		return err
 	}
 	defer storeMgr.UnRegister()
+
+	// 初始化nsp
+	nsp.NSPInit(config.GetNspServerAddr())
 
 	// 初始化web
 	err = startWebSrv(listenAddr, listenPort)

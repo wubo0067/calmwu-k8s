@@ -1,6 +1,6 @@
 {
     "nsp" : {
-        "addr" : "127.0.0.1"
+        "addr" : "http://127.0.0.1/v2.0/ports"
     },
 
     "k8sclustser_list" : [
