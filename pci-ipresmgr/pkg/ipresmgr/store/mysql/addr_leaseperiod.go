@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-09-01 09:59:46
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-02 19:34:36
+ * @Last Modified time: 2019-09-05 18:53:59
  */
 
 // 地址租期管理
@@ -193,6 +193,7 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) timeCheckExpiration(now time.Time) 
 	}
 
 	// 不要在slice range里面修改slice，range会赋值变量
+	// 释放超时的对象
 	for popCount > 0 {
 		heap.Pop(&malm.timerHeap)
 		popCount--

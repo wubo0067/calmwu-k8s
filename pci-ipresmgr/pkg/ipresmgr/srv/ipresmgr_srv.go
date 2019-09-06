@@ -54,6 +54,10 @@ var (
 	}
 )
 
+var (
+	storeMgr store.StoreMgr
+)
+
 func initLog(logFilePath string, srvInstID string) {
 	err := calm_utils.CheckDir(logFilePath)
 	if err != nil {
@@ -109,7 +113,7 @@ func SvrMain(c *cli.Context) error {
 	setupSignalHandler(cancel)
 
 	// 初始化存储
-	storeMgr := mysql.NewMysqlStoreMgr()
+	storeMgr = mysql.NewMysqlStoreMgr()
 	err = storeMgr.Start(ctx, func(opts *store.StoreOptions) {
 		storeCfgData := config.GetStoreCfgData()
 		opts.SrvInstID = srvInstID

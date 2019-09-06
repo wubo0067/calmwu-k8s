@@ -41,14 +41,14 @@ type TblK8SResourceIPRecycleS struct {
 	K8SResourceID          string    `db:"k8sresource_id"`
 	K8SResourceType        int       `db:"k8sresource_type"` // proto.K8SApiResourceKindType
 	Replicas               int       `db:"replicas"`
-	UnbindCount            int       `db:"unbind_count"`
+	//UnbindCount            int       `db:"unbind_count"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
-	NetRegionalID          string    `db:"netregional_id"`
-	SubNetID               string    `db:"subnet_id"`
-	PortID                 string    `db:"port_id"`
-	SubNetGatewayAddr      string    `db:"subnetgatewayaddr"`
-	NspResources           []byte    `db:"nsp_resources"`
+	//NetRegionalID          string    `db:"netregional_id"`
+	//SubNetID               string    `db:"subnet_id"`
+	//PortID                 string    `db:"port_id"`
+	//SubNetGatewayAddr      string    `db:"subnetgatewayaddr"`
+	//NspResources           []byte    `db:"nsp_resources"`
 }
 
 // TblK8SResourceIPRecycleHistoryS 地址回收历史表，TblK8SResourceIPRecycleS删除的记录存放到该表

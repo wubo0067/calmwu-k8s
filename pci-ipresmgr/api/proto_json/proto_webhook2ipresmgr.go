@@ -7,13 +7,21 @@
 
 package protojson
 
+// K8SApiResourceKindType 资源类型
 type K8SApiResourceKindType int16
 
 const (
+	// K8SApiResourceKindDeployment Deployment类型
 	K8SApiResourceKindDeployment K8SApiResourceKindType = iota
+	// K8SApiResourceKindStatefulSet Statefulset类型
 	K8SApiResourceKindStatefulSet
+	// K8SApiResourceKindJob Job类型
+	K8SApiResourceKindJob
+	// K8SApiResourceKindCronJob CronJob类型
+	K8SApiResourceKindCronJob
 )
 
+// WB2IPResMgrRequestType 请求类型
 type WB2IPResMgrRequestType int
 
 const (

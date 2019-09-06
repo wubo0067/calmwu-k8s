@@ -27,16 +27,19 @@ type StoreMgr interface {
 	UnRegister()
 
 	// CheckRecycledResources 检查对应资源是否存在，bool = true存在，int=副本数量，
-	CheckRecycledResources(k8sReousrceID string) (bool, int, error)
+	CheckRecycledResources(k8sResourceID string) (bool, int, error)
 
 	// GetAddrCountByK8SResourceID 根据资源id名，获取k8s资源对应的地址数量
-	GetAddrCountByK8SResourceID(k8sReousrceID string) (int, error)
+	GetAddrCountByK8SResourceID(k8sResourceID string) (int, error)
 
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
 	// GetAddrInfoByK8SResourceID 获取一个地址信息
-	GetAddrInfoByK8SResourceID(k8sReousrceID string) *proto.K8SAddrInfo
+	GetAddrInfoByK8SResourceID(k8sResourceID string) *proto.K8SAddrInfo
+
+	// AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
+	AddK8SResourceAddressToRecycle(k8sResourceID string) error
 }
 
 // StoreOptions 存储的参数

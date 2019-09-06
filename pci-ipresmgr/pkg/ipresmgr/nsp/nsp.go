@@ -22,7 +22,7 @@ import (
 // NSPMgrItf nsp交互接口
 type NSPMgrItf interface {
 	// AllocAddrResources 从nsp获取资源
-	AllocAddrResources(ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error)
+	AllocAddrResources(k8sResourceID string, ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error)
 
 	// ReleaseAddrResources 释放资源
 	ReleaseAddrResources(portID string) error
@@ -46,13 +46,10 @@ const (
 )
 
 // AllocAddrResources 从nsp获取资源
-func (ni *nspMgrImpl) AllocAddrResources(ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error) {
+func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error) {
 	k8sAddrLst := make([]*proto.K8SAddrInfo, 0)
 
 	replicas := ipPoolCreateReq.K8SApiResourceReplicas
-	k8sResourceID := fmt.Sprintf("%s-%s-%s", ipPoolCreateReq.K8SClusterID,
-		ipPoolCreateReq.K8SNamespace, ipPoolCreateReq.K8SApiResourceName)
-
 	for replicas > 0 {
 		batchCount := func() int {
 			if replicas > nspAllocBatchMaxCount {
@@ -120,7 +117,6 @@ func (ni *nspMgrImpl) AllocAddrResources(ipPoolCreateReq *proto.WB2IPResMgrCreat
 
 		replicas -= batchCount
 	}
-
 	return k8sAddrLst, nil
 }
 

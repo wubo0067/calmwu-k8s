@@ -204,6 +204,7 @@ func (msm *mysqlStoreMgr) UnRegister() {
 func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycleS) {
 	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
+			// 删除回收记录表
 			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=? and k8sresource_id=?",
 				record.SrvInstanceName, record.K8SResourceID)
 			if err != nil {
@@ -229,8 +230,38 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
 					record.SrvInstanceName, record.K8SResourceID)
 
-				// TODO: 调用nsp接口，传入portid
-				nsp.NSPMgr.ReleaseAddrResources(record.PortID)
+				// 读取要回收的数据
+				ipBindRows, err := msm.dbMgr.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
+					record.K8SResourceID, record.K8SResourceType)
+				if err != nil {
+					err = errors.Wrapf(err, "SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%d",
+						record.K8SResourceID, record.K8SResourceType)
+					calm_utils.Errorf(err.Error())
+					return err
+				}
+
+				// 清除tbl_K8SResourceIPBind表
+				delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
+					record.K8SResourceID, record.K8SResourceType)
+				if err != nil {
+					err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%d failed.",
+						record.K8SResourceID, record.K8SResourceType)
+					calm_utils.Error(err)
+					return err
+				}
+
+				delRows, _ := delRes.RowsAffected()
+				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPBind rows:%d", delRows)
+
+				// 调用nsp接口，传入portid
+				var ip, portID string
+				for ipBindRows.Next() {
+					err = ipBindRows.Scan(&ip, &portID)
+					if err == nil {
+						calm_utils.Debugf("Return k8s addr{%s---%s} to NSP", ip, portID)
+						nsp.NSPMgr.ReleaseAddrResources(portID)
+					}
+				}
 
 				// TODO: 存放历史表
 			}

@@ -8,6 +8,7 @@
 package srv
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -47,4 +48,8 @@ func sendResponse(c *gin.Context, res interface{}) {
 	calm_utils.Debugf("send response to %s successed", c.Request.RemoteAddr)
 	c.Data(http.StatusOK, "text/plain; charset=utf-8", resData)
 	return
+}
+
+func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {
+	return fmt.Sprintf("%s-%s-%s", clusterID, k8sNamespace, k8sResourceName)
 }
