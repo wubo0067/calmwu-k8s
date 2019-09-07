@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"unsafe"
+
+	"github.com/sanity-io/litter"
 )
 
 var time string
@@ -36,6 +38,8 @@ func main() {
 	fmt.Printf("v type is:%s,%s, kind:%s\n", reflect.TypeOf(v).String(),
 		reflect.ValueOf(v).Type().Name(), reflect.TypeOf(v).Kind().String())
 
+	dumpStr := litter.Sdump(&storeCfgData)
+	fmt.Println(dumpStr)
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-26 14:45:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-30 14:32:21
+ * @Last Modified time: 2019-09-07 16:30:53
  */
 
 package srv
@@ -117,7 +117,7 @@ func SvrMain(c *cli.Context) error {
 	err = storeMgr.Start(ctx, func(opts *store.StoreOptions) {
 		storeCfgData := config.GetStoreCfgData()
 		opts.SrvInstID = srvInstID
-		opts.Addr = storeCfgData.MysqlAddr
+		opts.StoreSvrAddr = storeCfgData.MysqlAddr
 		opts.User = storeCfgData.User
 		opts.Passwd = storeCfgData.Passwd
 		opts.DBName = storeCfgData.DBName

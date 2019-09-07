@@ -36,6 +36,8 @@ github.com/monnand/dhkx
 github.com/mozhata/merr
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
+# github.com/sanity-io/litter v1.1.0
+github.com/sanity-io/litter
 # github.com/spaolacci/murmur3 v1.1.0
 github.com/spaolacci/murmur3
 # github.com/ugorji/go/codec v1.1.7

@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 14:29:52
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 17:09:39
+ * @Last Modified time: 2019-09-07 16:38:38
  */
 
 // https://cloud.tencent.com/developer/article/1079583
@@ -202,25 +202,17 @@ func insertMultiK8SResourceIPRecycles(db *sqlx.DB) {
 	var recycleRecord table.TblK8SResourceIPRecycleS
 	recycleRecord.SrvInstanceName = "ipresmgr-svr_1"
 	recycleRecord.CreateTime = time.Now()
-	recycleRecord.NetRegionalID = "1-1"
-	recycleRecord.SubNetID = "2-2"
-	recycleRecord.PortID = "3-3"
-	recycleRecord.SubNetGatewayAddr = "4.4.4.4"
-	recycleRecord.NspResources = nil
 
 	for i := 0; i < 10; i++ {
 		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
-		(srv_instance_name, k8sresource_id, create_time, nspresource_release_time, netregional_id, subnet_id, port_id, subnetgatewayaddr, nsp_resources) VALUES 
-		(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES 
+		(?, ?, ?, ?, ?, ?)`,
 			recycleRecord.SrvInstanceName,
 			fmt.Sprintf("k8sresource-%d", i),
+			i,
+			i,
 			recycleRecord.CreateTime,
 			recycleRecord.CreateTime.Add(time.Duration(60+i*5)*time.Second),
-			recycleRecord.NetRegionalID,
-			recycleRecord.SubNetID,
-			recycleRecord.PortID,
-			recycleRecord.SubNetGatewayAddr,
-			recycleRecord.NspResources,
 		)
 		if err != nil {
 			log.Fatalf("insert tbl_K8SResourceIPRecycle %d failed. err:%s\n", i, err.Error())
@@ -249,5 +241,5 @@ func main() {
 	//testScanRows(db)
 	//deleteInvalidRow(db)
 	//insertMultiK8SResourceIPRecycles(db)
-	testQueryColumn(db)
+	//testQueryColumn(db)
 }

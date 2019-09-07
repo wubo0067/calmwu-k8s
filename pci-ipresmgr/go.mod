@@ -20,6 +20,7 @@ require (
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/sanity-io/litter v1.1.0
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/wubo0067/calmwu-go v0.0.0-20190905023444-258346b57139

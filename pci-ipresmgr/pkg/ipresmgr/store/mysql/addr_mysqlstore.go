@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-30 10:41:36
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-05 14:56:36
+ * @Last Modified time: 2019-09-07 16:31:09
  */
 
 package mysql
@@ -62,7 +62,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
 	opt(&msm.opts)
 
 	// 创建mysql连接参数
-	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&loc=Local", msm.opts.User, msm.opts.Passwd, msm.opts.Addr, msm.opts.DBName)
+	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&loc=Local", msm.opts.User, msm.opts.Passwd, msm.opts.StoreSvrAddr, msm.opts.DBName)
 
 	calm_utils.Debugf("mysqlStoreMgr opts:%+v, mysqlConnStr:%s", msm.opts, msm.mysqlConnStr)
 

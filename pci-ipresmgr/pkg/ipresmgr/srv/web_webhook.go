@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-28 16:03:02
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 15:24:37
+ * @Last Modified time: 2019-09-07 16:59:16
  */
 
 package srv
@@ -15,6 +15,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -28,7 +29,7 @@ func wbCreateIPPool(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/plain; charset=utf-8", calm_utils.String2Bytes(err.Error()))
 		return
 	}
-	calm_utils.Debugf("Req:%+v", req)
+	calm_utils.Debugf("Req:%s", litter.Sdump(req))
 
 	// 设置返回
 	res.ReqID = req.ReqID
@@ -100,7 +101,7 @@ func wbReleaseIPPool(c *gin.Context) {
 		c.Data(http.StatusBadRequest, "text/plain; charset=utf-8", calm_utils.String2Bytes(err.Error()))
 		return
 	}
-	calm_utils.Debugf("Req:%+v", req)
+	calm_utils.Debugf("Req:%s", litter.Sdump(req))
 
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestReleaseIPPool
@@ -108,7 +109,7 @@ func wbReleaseIPPool(c *gin.Context) {
 	defer sendResponse(c, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
-	storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID)
+	storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
 	return
 }
 

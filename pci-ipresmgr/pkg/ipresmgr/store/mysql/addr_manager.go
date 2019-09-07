@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-09-01 09:52:15
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 18:48:24
+ * @Last Modified time: 2019-09-07 16:53:59
  */
 
 package mysql
@@ -81,7 +81,7 @@ func (msm *mysqlStoreMgr) GetAddrInfoByK8SResourceID(k8sResourceID string) *prot
 func (msm *mysqlStoreMgr) CheckRecycledResources(k8sResourceID string) (bool, int, error) {
 	// 在tbl_K8SResourceIPRecycle查询
 	var replicas int
-	err := msm.dbMgr.Get(&replicas, "SELECT replicas, unbind_count FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?", k8sResourceID)
+	err := msm.dbMgr.Get(&replicas, "SELECT replicas FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?", k8sResourceID)
 	if err != nil {
 		if strings.Contains(err.Error(), "no rows in result set") {
 			// 地址资源不在待回收表中，
@@ -112,6 +112,41 @@ func (msm *mysqlStoreMgr) CheckRecycledResources(k8sResourceID string) (bool, in
 }
 
 // AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
-func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string) error {
+func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error {
+	// 查询已经分配的地址数量
+	var k8sResourceReplicas int
+	err := msm.dbMgr.Get(&k8sResourceReplicas, "SELECT COUNT(*) FROM tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			// 地址资源不在绑定对应关系表中
+			err = errors.Wrapf(err, "%s no leated records in tbl_K8SResourceIPBind.", k8sResourceID)
+			calm_utils.Error(err.Error())
+			return err
+		}
+		err = errors.Wrapf(err, "SELECT COUNT(*) FROM tbl_K8SResourceIPBind by k8sresource_id:%s failed.", k8sResourceID)
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	calm_utils.Debugf("%s have %d leated records in tbl_K8SResourceIPBind", k8sResourceID, k8sResourceReplicas)
+
+	// 插入租期回收表中
+	_, err = msm.dbMgr.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
+	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES 
+	(?, ?, ?, ?, ?, ?)`,
+		msm.opts.SrvInstID,
+		k8sResourceID,
+		int(k8sResourceType),
+		k8sResourceReplicas,
+		time.Now(),
+		time.Now().Add(5*time.Minute),
+	)
+	if err != nil {
+		err = errors.Wrapf(err, "INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s failed.", k8sResourceID)
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	calm_utils.Debugf("INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s successed.", k8sResourceID)
 	return nil
 }

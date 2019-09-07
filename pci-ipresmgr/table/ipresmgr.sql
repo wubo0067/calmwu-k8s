@@ -63,12 +63,12 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
 
 CREATE TABLE IF NOT EXISTS tbl_Test (
     id INT UNSIGNED AUTO_INCREMENT, 
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_id VARCHAR(128) NOT NULL,   -- k8sclusterid-namespace-resource_name
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     subnet_id VARCHAR(36),                         -- 释放用到的子网id  
     create_time TIMESTAMP NULL DEFAULT '1970-01-02 00:00:00',                -- 插入时间
     nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}   
     PRIMARY KEY(id),
-    INDEX(k8sresource_id),
+    UNIQUE KEY k8sresid (k8sresource_id),
     INDEX(subnet_id)    
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

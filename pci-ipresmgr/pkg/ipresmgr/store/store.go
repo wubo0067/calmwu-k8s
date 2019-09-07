@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 18:44:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 18:47:52
+ * @Last Modified time: 2019-09-07 16:30:35
  */
 
 package store
@@ -39,13 +39,13 @@ type StoreMgr interface {
 	GetAddrInfoByK8SResourceID(k8sResourceID string) *proto.K8SAddrInfo
 
 	// AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
-	AddK8SResourceAddressToRecycle(k8sResourceID string) error
+	AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
 }
 
 // StoreOptions 存储的参数
 type StoreOptions struct {
 	SrvInstID           string
-	Addr                string
+	StoreSvrAddr        string
 	User                string
 	Passwd              string
 	DBName              string
