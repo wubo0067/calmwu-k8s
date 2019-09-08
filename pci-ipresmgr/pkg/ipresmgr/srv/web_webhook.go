@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-28 16:03:02
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-07 16:59:16
+ * @Last Modified time: 2019-09-07 23:45:06
  */
 
 package srv
@@ -114,6 +114,21 @@ func wbReleaseIPPool(c *gin.Context) {
 }
 
 func wbScaleIPPool(c *gin.Context) {
-	calm_utils.Debug("wbScaleIPPool")
-	c.Status(http.StatusOK)
+	var req proto.WB2IPResMgrScaleIPPoolReq
+	var res proto.IPResMgr2WBRes
+
+	err := unpackRequest(c, &req)
+	if err != nil {
+		c.Data(http.StatusBadRequest, "text/plain; charset=utf-8", calm_utils.String2Bytes(err.Error()))
+		return
+	}
+	calm_utils.Debugf("Req:%s", litter.Sdump(req))
+
+	res.ReqID = req.ReqID
+	res.ReqType = proto.WB2IPResMgrRequestScaleIPPool
+	res.Code = proto.IPResMgrErrnoSuccessed
+	defer sendResponse(c, &res)
+
+	// TODO:
+	return
 }
