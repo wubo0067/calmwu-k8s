@@ -22,7 +22,7 @@ import (
 // NSPMgrItf nsp交互接口
 type NSPMgrItf interface {
 	// AllocAddrResources 从nsp获取资源
-	AllocAddrResources(k8sResourceID string, ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error)
+	AllocAddrResources(k8sResourceID string, replicas int, netRegionID string, subNetID string, subNetGatewayAddr string) ([]*proto.K8SAddrInfo, error)
 
 	// ReleaseAddrResources 释放资源
 	ReleaseAddrResources(portID string) error
@@ -46,10 +46,10 @@ const (
 )
 
 // AllocAddrResources 从nsp获取资源
-func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, ipPoolCreateReq *proto.WB2IPResMgrCreateIPPoolReq) ([]*proto.K8SAddrInfo, error) {
+func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, netRegionID string,
+	subNetID string, subNetGatewayAddr string) ([]*proto.K8SAddrInfo, error) {
 	k8sAddrLst := make([]*proto.K8SAddrInfo, 0)
 
-	replicas := ipPoolCreateReq.K8SApiResourceReplicas
 	for replicas > 0 {
 		batchCount := func() int {
 			if replicas > nspAllocBatchMaxCount {
@@ -61,14 +61,14 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, ipPoolCreateReq *
 		allocPortsReq := &NSPAllocPortsReq{}
 		for index := 0; index < batchCount; index++ {
 			allocPortsReq.PortLst = append(allocPortsReq.PortLst, &NSPAllocPort{
-				NetRegionalID: ipPoolCreateReq.NetRegionalID,
+				NetRegionalID: netRegionID,
 				DeviceID:      k8sResourceID,
 				DeviceOwner:   "compute:kata",
 				Name:          k8sResourceID,
 				AdminStateUp:  true,
 				FixedIPs: []*NSPFixedIP{
 					&NSPFixedIP{
-						SubnetID: ipPoolCreateReq.SubnetID,
+						SubnetID: subNetID,
 					},
 				},
 			})
@@ -108,10 +108,10 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, ipPoolCreateReq *
 			k8sAddrLst = append(k8sAddrLst, &proto.K8SAddrInfo{
 				IP:                portResult.FixedIPs[0].IP,
 				MacAddr:           portResult.MacAddress,
-				NetRegionalID:     ipPoolCreateReq.NetRegionalID,
-				SubNetID:          ipPoolCreateReq.SubnetID,
+				NetRegionalID:     netRegionID,
+				SubNetID:          subNetID,
 				PortID:            portResult.PortID,
-				SubNetGatewayAddr: ipPoolCreateReq.SubnetGatewayAddr,
+				SubNetGatewayAddr: subNetGatewayAddr,
 			})
 		}
 

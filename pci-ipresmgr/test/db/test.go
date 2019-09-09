@@ -16,12 +16,14 @@ import (
 	"fmt"
 	"log"
 	"pci-ipresmgr/table"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
+	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -173,6 +175,10 @@ func insertMultilRecored(db *sqlx.DB) {
 
 func testScanRows(db *sqlx.DB) {
 	rows, err := db.Queryx("SELECT * FROM tbl_Test WHERE k8sresource_id=?", "test-0")
+	if err != nil {
+		log.Fatalf("SELECT * FROM tbl_Test WHERE k8sresource_id=test-0 failed. err:%s", err.Error())
+	}
+
 	for rows.Next() {
 		var test TblTestS
 		err = rows.StructScan(&test)
@@ -229,6 +235,19 @@ func testQueryColumn(db *sqlx.DB) {
 	log.Printf("tbl_Test.subnet_id:%s\n", subnet_id)
 }
 
+func testFetchOneRow(db *sqlx.DB) {
+	var test TblTestS
+	err := db.Get(&test, "SELECT * FROM tbl_Test WHERE k8sresource_id=?", "test-0")
+	if err != nil {
+		if strings.Contains(err.Error(), "no rows in result set") {
+			log.Fatal("SELECT * FROM tbl_Test WHERE k8sresource_id=test-0 failed. record is not exist!")
+			return
+		}
+		log.Fatalf("SELECT * FROM tbl_Test WHERE k8sresource_id=test-0 failed. err:%s", err.Error())
+	}
+	log.Printf("%s", litter.Sdump(&test))
+}
+
 func main() {
 	calm_utils.NewSimpleLog(nil)
 
@@ -237,9 +256,10 @@ func main() {
 
 	//insertTbltest(db)
 	//selectTbltest(db)
-	insertMultilRecored(db)
+	//insertMultilRecored(db)
 	//testScanRows(db)
 	//deleteInvalidRow(db)
 	//insertMultiK8SResourceIPRecycles(db)
 	//testQueryColumn(db)
+	testFetchOneRow(db)
 }

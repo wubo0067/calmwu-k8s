@@ -37,10 +37,10 @@ type TblK8SResourceIPBindS struct {
 
 // TblK8SResourceIPRecycleS 地址资源回收表
 type TblK8SResourceIPRecycleS struct {
-	SrvInstanceName        string    `db:"srv_instance_name"`
-	K8SResourceID          string    `db:"k8sresource_id"`
-	K8SResourceType        int       `db:"k8sresource_type"` // proto.K8SApiResourceKindType
-	Replicas               int       `db:"replicas"`
+	SrvInstanceName string `db:"srv_instance_name"`
+	K8SResourceID   string `db:"k8sresource_id"`
+	K8SResourceType int    `db:"k8sresource_type"` // proto.K8SApiResourceKindType
+	Replicas        int    `db:"replicas"`
 	//UnbindCount            int       `db:"unbind_count"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
@@ -63,4 +63,21 @@ type TblK8SResourceIPRecycleHistoryS struct {
 	SubNetID               string    `db:"subnet_id"`
 	PortID                 string    `db:"port_id"`
 	NspResources           []byte    `db:"nsp_resources"`
+}
+
+// TblK8SJobNetInfoS Job和CronJob的网络信息
+type TblK8SJobNetInfoS struct {
+	K8SResourceID     string `db:"k8sresource_id"`
+	K8SResourceType   int    `db:"k8sresource_type"` // proto.K8SApiResourceKindType
+	NetRegionalID     string `db:"netregional_id"`
+	SubNetID          string `db:"subnet_id"`
+	SubNetGatewayAddr string `db:"subnetgatewayaddr"`
+}
+
+// TblK8SJobIPBindS job 和 cronjob 的pod的ip地址绑定信息
+type TblK8SJobIPBindS struct {
+	K8SResourceID string `db:"k8sresource_id"`
+	IP            string `db:"ip"`
+	BindPodID     string `db:"bind_podid"`
+	PortID        string `db:"port_id"`
 }

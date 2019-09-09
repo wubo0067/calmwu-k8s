@@ -1,10 +1,16 @@
 ### 1. 公共类型描述
 
 #### 1.1 K8SApiResourceKindType
-	const (
-		K8SApiResourceKindDeployment K8SApiResourceKindType = iota // 0 = Deployment
-		K8SApiResourceKindStatefulSet // 1 = StatefulSet
-	)
+const (
+	// K8SApiResourceKindDeployment Deployment类型
+	K8SApiResourceKindDeployment K8SApiResourceKindType = iota
+	// K8SApiResourceKindStatefulSet Statefulset类型
+	K8SApiResourceKindStatefulSet
+	// K8SApiResourceKindJob Job类型
+	K8SApiResourceKindJob
+	// K8SApiResourceKindCronJob CronJob类型
+	K8SApiResourceKindCronJob
+)
 
 ### 2. WEBHOOK到IPResMgr接口描述
 

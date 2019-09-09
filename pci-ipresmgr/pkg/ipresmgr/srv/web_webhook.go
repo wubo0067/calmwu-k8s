@@ -46,49 +46,58 @@ func wbCreateIPPool(c *gin.Context) {
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
-	// 判断是否在租期内，以及当前副本数量
-	exists, replicas, err := storeMgr.CheckRecycledResources(k8sResourceID)
-	if err != nil {
-		res.Msg = err.Error()
-		return
-	}
-
-	calm_utils.Debugf("ReqID:%s k8sResourceID:%s exists:%v replicas:%d", req.ReqID, k8sResourceID, exists, replicas)
-
-	if !exists {
-		// 从nsp获取地址
-		k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, &req)
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+		// 判断是否在租期内，以及当前副本数量
+		exists, replicas, err := storeMgr.CheckRecycledResources(k8sResourceID)
 		if err != nil {
 			res.Msg = err.Error()
 			return
 		}
 
-		// 设置地址
-		err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
-		if err != nil {
-			// 设置对应关系失败，见IP归还给NSP
-			for _, k8sAddr := range k8sAddrs {
-				nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
+		calm_utils.Debugf("ReqID:%s k8sResourceID:%s exists:%v replicas:%d", req.ReqID, k8sResourceID, exists, replicas)
+
+		if !exists {
+			// 从nsp获取地址
+			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, req.K8SApiResourceReplicas, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+			if err != nil {
+				res.Msg = err.Error()
+				return
 			}
-			res.Msg = err.Error()
-			return
-		}
 
-		res.Code = proto.IPResMgrErrnoSuccessed
-		calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
-		return
-	} else {
-		// 恢复的数据
-		// 判断副本数量是否一致
-		if req.K8SApiResourceReplicas > replicas {
+			// 设置地址
+			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+			if err != nil {
+				// 设置对应关系失败，见IP归还给NSP
+				for _, k8sAddr := range k8sAddrs {
+					nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
+				}
+				res.Msg = err.Error()
+				return
+			}
 
-		} else if req.K8SApiResourceReplicas < replicas {
-
-		} else {
-			// 副本数相同，直接返回
 			res.Code = proto.IPResMgrErrnoSuccessed
+			calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
+			return
+		} else {
+			// 恢复的数据
+			// 判断副本数量是否一致
+			if req.K8SApiResourceReplicas > replicas {
+
+			} else if req.K8SApiResourceReplicas < replicas {
+
+			} else {
+				// 副本数相同，直接返回
+				res.Code = proto.IPResMgrErrnoSuccessed
+			}
 		}
+	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
+		//
+		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
+	} else {
+		// 处理job、cronjob，直接插入网络信息
+
 	}
+
 	return
 }
 
