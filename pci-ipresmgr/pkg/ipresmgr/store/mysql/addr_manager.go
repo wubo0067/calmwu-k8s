@@ -73,8 +73,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 	})
 }
 
-// BindAddrInfoWithK8SResourceID 获取一个地址信息，和k8s资源绑定
-func (msm *mysqlStoreMgr) BindAddrInfoWithK8SResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
+// BindAddrInfoWithK8SPodID 获取一个地址信息，和k8s资源绑定
+func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
 	bindPodID string) *proto.K8SAddrInfo {
 
 	var k8sAddrInfo *proto.K8SAddrInfo
@@ -155,8 +155,8 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SResourceID(k8sResourceID string, k8
 	return k8sAddrInfo
 }
 
-// UnBindAddrInfoWithK8SResourceID 地址和k8s资源解绑
-func (msm *mysqlStoreMgr) UnBindAddrInfoWithK8SResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
+// UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
+func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
 	unBindPodID string) error {
 
 	return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {

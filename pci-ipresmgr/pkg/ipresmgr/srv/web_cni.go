@@ -36,7 +36,7 @@ func cniRequireIP(c *gin.Context) {
 
 		k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
-		k8sAddrInfo := storeMgr.BindAddrInfoWithK8SResourceID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
+		k8sAddrInfo := storeMgr.BindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
 		if k8sAddrInfo == nil {
 			calm_utils.Errorf("ReqID:%s get k8sAddrInfo by %s failed", req.ReqID, k8sResourceID)
 		} else {
@@ -78,7 +78,7 @@ func cniReleaseIP(c *gin.Context) {
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
-		err = storeMgr.UnBindAddrInfoWithK8SResourceID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
+		err = storeMgr.UnbindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
 		if err != nil {
 			calm_utils.Errorf("ReqID:%s k8sResourceID:%d podID:%s unBind failed.", req.ReqID, k8sResourceID, req.K8SPodID)
 		} else {

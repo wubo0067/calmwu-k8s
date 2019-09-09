@@ -35,14 +35,26 @@ type StoreMgr interface {
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
-	// BindAddrInfoWithK8SResourceID 获取一个地址信息，和k8s资源绑定
-	BindAddrInfoWithK8SResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodID string) *proto.K8SAddrInfo
+	// BindAddrInfoWithK8SPodID 获取一个地址信息，和k8s资源绑定
+	BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodID string) *proto.K8SAddrInfo
 
-	// UnBindAddrInfoWithK8SResourceID 地址和k8s资源解绑
-	UnBindAddrInfoWithK8SResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, unBindPodID string) error
+	// UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
+	UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, unBindPodID string) error
 
 	// AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
 	AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
+
+	// SetJobNetInfo 设置job、cronjob的网络信息
+	SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, netRegionalID, subNetID, subNetGatewayAddr string) error
+
+	// GetJobNetInfo 查询Job、Cronjob的网络信息
+	GetJobNetInfo(k8sResourceID string) (string, string, string, error)
+
+	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
+	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error
+
+	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
+	UnbindJobPodWithPortID(k8sResourceID string, podIP string) error
 }
 
 // StoreOptions 存储的参数
