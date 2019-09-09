@@ -11,7 +11,7 @@ import (
 	"context"
 	"fmt"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
-	"pci-ipresmgr/pkg/ipresmgr/store"
+	storage "pci-ipresmgr/pkg/ipresmgr/storeage"
 	"pci-ipresmgr/table"
 	"time"
 
@@ -21,12 +21,12 @@ import (
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
-var _ store.StoreMgr = &mysqlStoreMgr{}
+var _ storage.StoreMgr = &mysqlStoreMgr{}
 
 type dbProcessHandler func(ctx context.Context) error
 
 type mysqlStoreMgr struct {
-	opts                       store.StoreOptions
+	opts                       storage.StoreOptions
 	dbMgr                      *sqlx.DB
 	mysqlConnStr               string
 	addrResourceLeasePeriodMgr AddrResourceLeasePeriodMgrItf
@@ -57,7 +57,7 @@ func (msm *mysqlStoreMgr) doDBKeepAlive(ctx context.Context) {
 }
 
 // Init 初始化
-func (msm *mysqlStoreMgr) Start(ctx context.Context, opt store.Option) error {
+func (msm *mysqlStoreMgr) Start(ctx context.Context, opt storage.Option) error {
 	// 初始化参数
 	opt(&msm.opts)
 
@@ -272,7 +272,7 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 }
 
 // NewMysqlStoreMgr 构造一个存储对象
-func NewMysqlStoreMgr() store.StoreMgr {
+func NewMysqlStoreMgr() storage.StoreMgr {
 	mysqlStoreMgr := new(mysqlStoreMgr)
 	return mysqlStoreMgr
 }

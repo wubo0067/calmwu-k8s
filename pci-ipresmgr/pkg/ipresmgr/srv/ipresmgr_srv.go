@@ -14,7 +14,7 @@ import (
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
-	"pci-ipresmgr/pkg/ipresmgr/store"
+	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/pkg/ipresmgr/storage/mysql"
 	"syscall"
 
@@ -55,7 +55,7 @@ var (
 )
 
 var (
-	storeMgr store.StoreMgr
+	storeMgr storage.StoreMgr
 )
 
 func initLog(logFilePath string, srvInstID string) {
@@ -114,7 +114,7 @@ func SvrMain(c *cli.Context) error {
 
 	// 初始化存储
 	storeMgr = mysql.NewMysqlStoreMgr()
-	err = storeMgr.Start(ctx, func(opts *store.StoreOptions) {
+	err = storeMgr.Start(ctx, func(opts *storage.StoreOptions) {
 		storeCfgData := config.GetStoreCfgData()
 		opts.SrvInstID = srvInstID
 		opts.StoreSvrAddr = storeCfgData.MysqlAddr
