@@ -95,7 +95,6 @@ func wbCreateIPPool(c *gin.Context) {
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job、cronjob，直接插入网络信息
-
 	}
 
 	return
@@ -118,7 +117,14 @@ func wbReleaseIPPool(c *gin.Context) {
 	defer sendResponse(c, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
-	storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
+
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
+		storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
+	} else {
+		// job, cronjob
+	}
+
 	return
 }
 
