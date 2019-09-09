@@ -11,7 +11,7 @@ import (
 	"context"
 	"fmt"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
-	storage "pci-ipresmgr/pkg/ipresmgr/storage"
+	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/table"
 	"time"
 

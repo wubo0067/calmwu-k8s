@@ -19,7 +19,7 @@ func (msm *mysqlStoreMgr) SetJobNetInfo(k8sResourceID string, k8sResourceType pr
 
 // GetJobNetInfo 查询Job、Cronjob的网络信息
 func (msm *mysqlStoreMgr) GetJobNetInfo(k8sResourceID string) (string, string, string, error) {
-
+	return "", "", "", nil
 }
 
 // BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
