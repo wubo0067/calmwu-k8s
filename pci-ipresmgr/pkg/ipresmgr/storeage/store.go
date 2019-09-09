@@ -5,7 +5,7 @@
  * @Last Modified time: 2019-09-07 16:30:35
  */
 
-package store
+package storage
 
 import (
 	"context"

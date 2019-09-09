@@ -15,7 +15,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/store"
-	"pci-ipresmgr/pkg/ipresmgr/store/mysql"
+	"pci-ipresmgr/pkg/ipresmgr/storage/mysql"
 	"syscall"
 
 	"github.com/micro/cli"
