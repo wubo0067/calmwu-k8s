@@ -76,7 +76,8 @@ CREATE TABLE IF NOT EXISTS tbl_k8SJobIPBind (
     ip VARCHAR(16) NOT NULL,                       -- 分配的ip
     bind_podid VARCHAR(36) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除  
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
-    PRIMARY KEY(k8sresource_id, port_id)    
+    PRIMARY KEY(k8sresource_id, port_id),
+    INDEX(bind_podid), 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_Test (

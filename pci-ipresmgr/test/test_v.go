@@ -26,6 +26,12 @@ func GetStoreCfgData() (StoreCfgData, string) {
 	return storeCfgData, str
 }
 
+func testdef() {
+	var i = 1
+	defer fmt.Println("result: ", func() int { return i * 2 }())
+	i++
+}
+
 func main() {
 	fmt.Println(time)
 	fmt.Println(version)
@@ -40,6 +46,8 @@ func main() {
 
 	dumpStr := litter.Sdump(&storeCfgData)
 	fmt.Println(dumpStr)
+
+	testdef()
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

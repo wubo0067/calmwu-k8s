@@ -57,7 +57,7 @@ type StoreMgr interface {
 	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error
 
 	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
-	UnbindJobPodWithPortID(k8sResourceID string, podIP string) error
+	UnbindJobPodWithPortID(k8sResourceID string, podID string) error
 }
 
 // StoreOptions 存储的参数

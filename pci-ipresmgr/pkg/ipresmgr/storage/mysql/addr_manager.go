@@ -82,7 +82,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 	msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
 
-			// 放弃使用悲观锁，使用乐观锁CAS方法。获取，设置，如果不等要重试
+			// 放弃使用悲观锁，使用乐观锁CAS方法。获取，设置，失败要重试
 			// step 1，获取重试次数
 			var replicas int
 			err := msm.dbMgr.Get(&replicas, "SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)

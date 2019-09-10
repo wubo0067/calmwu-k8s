@@ -95,6 +95,14 @@ func wbCreateIPPool(c *gin.Context) {
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job、cronjob，直接插入网络信息
+		err = storeMgr.SetJobNetInfo(k8sResourceID, req.K8SApiResourceKind, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+		if err != nil {
+			res.Msg = err.Error()
+			calm_utils.Errorf("ReqID:%s SetJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
+		} else {
+			res.Code = proto.IPResMgrErrnoSuccessed
+			calm_utils.Debugf("ReqID:%s SetJobNetInfo %s successed", req.ReqID, k8sResourceID)
+		}
 	}
 
 	return
@@ -123,6 +131,12 @@ func wbReleaseIPPool(c *gin.Context) {
 		storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
 	} else {
 		// job, cronjob
+		err = storeMgr.DelJobNetInfo(k8sResourceID)
+		if err != nil {
+			calm_utils.Errorf("Req:%s DelJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
+		} else {
+			calm_utils.Errorf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
+		}
 	}
 
 	return
