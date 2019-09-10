@@ -95,7 +95,6 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 			return nil, err
 		}
 		// 发送请求
-
 		allocPortsURL := fmt.Sprintf("%s", ni.nspURL)
 		resData, err := calm_utils.PostRequest(allocPortsURL, serialData)
 		if err != nil {

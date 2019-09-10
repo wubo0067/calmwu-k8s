@@ -17,6 +17,7 @@ import (
 	"log"
 	"pci-ipresmgr/table"
 	"strings"
+	"sync"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -34,6 +35,7 @@ type TblTestS struct {
 	NSPResourceReleaseTime time.Time      `db:"nspresource_release_time"`
 	SubNetID               sql.NullString `db:"subnet_id"`
 	//SubNetID     string `db:"subnet_id"`
+	UseFlag      int    `db:"use_flag"`
 	NspResources []byte `db:"nsp_resources"`
 }
 
@@ -156,21 +158,23 @@ func insertMultilRecored(db *sqlx.DB) {
 	var test TblTestS
 	test.K8SResourceID = "k8sclusterid-namespace-resource_name"
 	test.NspResources, err = json.Marshal(nspResource)
+	test.UseFlag = 0
 
 	for i := 0; i < 10; i++ {
 		_, err = db.Exec(`INSERT INTO tbl_Test 
-		(k8sresource_id, nspresource_release_time, subnet_id, create_time, nsp_resources) VALUES 
-		(?, ?, ?, ?, ?)`,
+		(k8sresource_id, nspresource_release_time, subnet_id, create_time, use_flag, nsp_resources) VALUES 
+		(?, ?, ?, ?, ?, ?)`,
 			fmt.Sprintf("test-%d", i),
 			time.Now().Add(time.Hour),
 			uuid.New().String(),
 			time.Now(),
+			test.UseFlag,
 			test.NspResources)
 		if err != nil {
 			log.Fatalf("insert tbl_Test %d failed. err:%s\n", i, err.Error())
 		}
 	}
-	log.Printf("insert 1000 recored successed!\n")
+	log.Printf("insert 10 recored successed!\n")
 }
 
 func testScanRows(db *sqlx.DB) {
@@ -248,6 +252,57 @@ func testFetchOneRow(db *sqlx.DB) {
 	log.Printf("%s", litter.Sdump(&test))
 }
 
+func testPessimisticLock(db *sqlx.DB) {
+	var wg sync.WaitGroup
+
+	wg.Add(12)
+	for i := 0; i < 12; i++ {
+		go func(index int) {
+			defer wg.Done()
+			tx, err := db.Begin()
+			if err != nil {
+				log.Printf("index:%d db Begin failed. err:%s\n", index, err.Error())
+				return
+			}
+
+			row := tx.QueryRow("SELECT * FROM tbl_Test WHERE use_flag=0 LIMIT 1 FOR UPDATE")
+			if row == nil {
+				log.Printf("index:%d QueryRow failed.\n", index)
+				tx.Rollback()
+				return
+			}
+
+			tblTest := new(TblTestS)
+			err = row.Scan(&tblTest.ID, &tblTest.K8SResourceID, &tblTest.NSPResourceReleaseTime,
+				&tblTest.SubNetID, &tblTest.CreateTime, &tblTest.UseFlag, &tblTest.NspResources)
+
+			if err != nil {
+				log.Printf("index:%d rows.Scan failed, err:%s\n", index, err.Error())
+				tx.Rollback()
+				return
+			}
+
+			//log.Printf("index:%d tblTest:%#v", index, tblTest)
+			log.Printf("index:%d, NSPResourceReleaseTime:%s\n", index, tblTest.NSPResourceReleaseTime.String())
+
+			updateRes, err := tx.Exec("UPDATE tbl_Test SET use_flag=1 WHERE k8sresource_id=? AND subnet_id=?",
+				tblTest.K8SResourceID, tblTest.SubNetID)
+			if err != nil {
+				log.Printf("index:%d UDATE failed, err:%s\n", index, err.Error())
+				tx.Rollback()
+				return
+			}
+
+			rowCount, _ := updateRes.RowsAffected()
+			log.Printf("index:%d update row count:%d\n", index, rowCount)
+
+			tx.Commit()
+		}(i)
+	}
+
+	wg.Wait()
+}
+
 func main() {
 	calm_utils.NewSimpleLog(nil)
 
@@ -261,5 +316,6 @@ func main() {
 	//deleteInvalidRow(db)
 	//insertMultiK8SResourceIPRecycles(db)
 	//testQueryColumn(db)
-	testFetchOneRow(db)
+	//testFetchOneRow(db)
+	testPessimisticLock(db)
 }

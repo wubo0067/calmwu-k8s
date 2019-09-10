@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS tbl_Test (
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     subnet_id VARCHAR(36),                         -- 释放用到的子网id  
     create_time TIMESTAMP NULL DEFAULT '1970-01-02 00:00:00',                -- 插入时间
+    use_flag INT NOT NULL, -- 测试悲观锁 0: 没有使用，1：使用
     nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}   
     PRIMARY KEY(id),
     UNIQUE KEY k8sresid (k8sresource_id),
