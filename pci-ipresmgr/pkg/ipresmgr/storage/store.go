@@ -47,8 +47,11 @@ type StoreMgr interface {
 	// SetJobNetInfo 设置job、cronjob的网络信息
 	SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, netRegionalID, subNetID, subNetGatewayAddr string) error
 
-	// GetJobNetInfo 查询Job、Cronjob的网络信息
+	// GetJobNetInfo 查询Job、Cronjob的网络信息, 网络域id， 子网id，子网网关地址
 	GetJobNetInfo(k8sResourceID string) (string, string, string, error)
+
+	// DelJobNetInfo 删除Job、Cronjob的网络信息
+	DelJobNetInfo(k8sResourceID string) error
 
 	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
 	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error
