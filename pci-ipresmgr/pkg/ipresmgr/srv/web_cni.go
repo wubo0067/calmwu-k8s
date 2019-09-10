@@ -107,7 +107,7 @@ func cniReleaseIP(c *gin.Context) {
 	calm_utils.Debugf("Req:%s", litter.Sdump(&req))
 
 	res.ReqID = req.ReqID
-	res.Code = proto.IPResMgrErrnoGetIPFailed
+	res.Code = proto.IPResMgrErrnoSuccessed
 	defer sendResponse(c, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
@@ -115,6 +115,7 @@ func cniReleaseIP(c *gin.Context) {
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
 		if err != nil {
+			// TODO 告警
 			calm_utils.Errorf("ReqID:%s k8sResourceID:%d podID:%s unBind failed.", req.ReqID, k8sResourceID, req.K8SPodID)
 		} else {
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s unBind successed.", req.ReqID, k8sResourceID, req.K8SPodID)
@@ -124,6 +125,8 @@ func cniReleaseIP(c *gin.Context) {
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job，cronjob
+		storeMgr.UnbindJobPodWithPortID(k8sResourceID, req.K8SPodID)
+		// TODO 告警
 	}
 
 	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))

@@ -27,9 +27,17 @@ func GetStoreCfgData() (StoreCfgData, string) {
 }
 
 func testdef() {
-	var i = 1
-	defer fmt.Println("result: ", func() int { return i * 2 }())
+	var i = 0
+	nums := make([]int, 0)
+	defer func(v *int) {
+		fmt.Println("result: ", *v)
+		fmt.Printf("nums: %v\n", nums)
+	}(&i)
+
 	i++
+	nums = append(nums, 1)
+	nums = append(nums, 2)
+	nums = append(nums, 3)
 }
 
 func main() {

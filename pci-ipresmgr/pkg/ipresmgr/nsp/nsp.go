@@ -48,7 +48,18 @@ const (
 // AllocAddrResources 从nsp获取资源
 func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, netRegionID string,
 	subNetID string, subNetGatewayAddr string) ([]*proto.K8SAddrInfo, error) {
-	k8sAddrLst := make([]*proto.K8SAddrInfo, 0)
+	k8sAddrInfoLst := make([]*proto.K8SAddrInfo, 0)
+
+	// TODO: 失败了要回滚
+	var rollBackFlag int
+	defer func(flag *int) {
+		if *flag == 1 {
+			for _, k8sAddrInfo := range k8sAddrInfoLst {
+				calm_utils.Infof("Rollback PortID:%s", k8sAddrInfo.PortID)
+				ni.ReleaseAddrResources(k8sAddrInfo.PortID)
+			}
+		}
+	}(&rollBackFlag)
 
 	for replicas > 0 {
 		batchCount := func() int {
@@ -80,6 +91,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 		if err != nil {
 			err = errors.Wrapf(err, "Marshal k8sResourceID:[%s] allocPortsReq failed.", k8sResourceID)
 			calm_utils.Error(err)
+			rollBackFlag = 1
 			return nil, err
 		}
 		// 发送请求
@@ -89,6 +101,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 		if err != nil {
 			err = errors.Wrapf(err, "Post k8sResourceID:[%s] allocPortsURL:[%s] failed.", k8sResourceID, allocPortsURL)
 			calm_utils.Error(err)
+			rollBackFlag = 1
 			return nil, err
 		}
 
@@ -98,6 +111,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 		if err != nil {
 			err = errors.Wrapf(err, "Unmarshal k8sResourceID:[%s] allocPortsRes failed.", k8sResourceID)
 			calm_utils.Error(err)
+			rollBackFlag = 1
 			return nil, err
 		}
 
@@ -105,7 +119,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 			portResult := &allocPortsRes.PortLst[index]
 
 			calm_utils.Debugf("%d portResult:%+v", index, portResult)
-			k8sAddrLst = append(k8sAddrLst, &proto.K8SAddrInfo{
+			k8sAddrInfoLst = append(k8sAddrInfoLst, &proto.K8SAddrInfo{
 				IP:                portResult.FixedIPs[0].IP,
 				MacAddr:           portResult.MacAddress,
 				NetRegionalID:     netRegionID,
@@ -117,7 +131,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 
 		replicas -= batchCount
 	}
-	return k8sAddrLst, nil
+	return k8sAddrInfoLst, nil
 }
 
 // ReleaseAddrResources 释放ip资源
