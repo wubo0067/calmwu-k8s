@@ -136,7 +136,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 			}
 
 			updateRowCount, _ := updateRes.RowsAffected()
-			calm_utils.Debug("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, bindPodID, updateRowCount)
+			calm_utils.Debugf("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, bindPodID, updateRowCount)
 
 			k8sAddrInfo = new(proto.K8SAddrInfo)
 			k8sAddrInfo.IP = k8sAddrBindInfo.IP
@@ -144,6 +144,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 			k8sAddrInfo.NetRegionalID = k8sAddrBindInfo.NetRegionalID
 			k8sAddrInfo.SubNetID = k8sAddrBindInfo.SubNetID
 			k8sAddrInfo.SubNetGatewayAddr = k8sAddrBindInfo.SubNetGatewayAddr
+			k8sAddrInfo.PortID = k8sAddrBindInfo.PortID
 
 			// 放弃使用悲观锁，使用乐观锁CAS方法。获取，设置，失败要重试
 			// step 1，获取重试次数

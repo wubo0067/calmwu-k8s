@@ -16,6 +16,7 @@ import (
 	proto "pci-ipresmgr/api/proto_json"
 
 	"github.com/dghubble/sling"
+	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/sanity-io/litter"
 	"github.com/segmentio/ksuid"
@@ -69,7 +70,7 @@ func testReleaseIPPool() {
 	releaseIPPoolReq.ReqID = ksuid.New().String()
 	releaseIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
 	releaseIPPoolReq.K8SClusterID = "cluster-1"
-	releaseIPPoolReq.K8SApiResourceName = "default"
+	releaseIPPoolReq.K8SNamespace = "default"
 	releaseIPPoolReq.K8SApiResourceName = "kata-nginx-deployment"
 
 	var releaseIPPooRes proto.IPResMgr2WBRes
@@ -91,6 +92,34 @@ func testReleaseIPPool() {
 	logger.Printf("releaseIPPooRes:%s\n", litter.Sdump(&releaseIPPooRes))
 }
 
+func testRequireIP() {
+	var requireIPReq proto.IPAM2IPResMgrRequireIPReq
+	requireIPReq.ReqID = ksuid.New().String()
+	requireIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	requireIPReq.K8SClusterID = "cluster-1"
+	requireIPReq.K8SNamespace = "default"
+	requireIPReq.K8SApiResourceName = "kata-nginx-deployment"
+	requireIPReq.K8SPodID = fmt.Sprintf("pod-%s", uuid.New().String())
+
+	var requireIPRes proto.IPResMgr2IPAMRequireIPRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&requireIPReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/ip/").Post("require").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&requireIPRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/ip/require failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode != 200 {
+		logger.Fatalf("post %sv1/ip/require failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("requireIPRes:%s\n", litter.Sdump(&requireIPRes))
+}
+
 func main() {
 	flag.Parse()
 
@@ -101,6 +130,8 @@ func main() {
 		testCreateIPPool()
 	case 2:
 		testReleaseIPPool()
+	case 4:
+		testRequireIP()
 	default:
 		logger.Fatalf("Not support type:%d\n", *testType)
 	}

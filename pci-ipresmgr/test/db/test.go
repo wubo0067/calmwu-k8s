@@ -325,7 +325,7 @@ func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
 		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind 
 		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			"k8sresource-1",
+			"cluster-1-default-kata-nginx-deployment",
 			int(proto.K8SApiResourceKindDeployment),
 			randomdata.IpV4Address(),
 			mac,

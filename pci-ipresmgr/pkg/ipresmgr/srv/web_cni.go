@@ -39,7 +39,7 @@ func cniRequireIP(c *gin.Context) {
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 
 		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
-		if err == nil {
+		if err != nil {
 			err := errors.Wrapf(err, "ReqID:%s get k8sPodAddrInfo by %s failed", req.ReqID, k8sResourceID)
 			calm_utils.Error(err.Error())
 			res.Msg = err.Error()
