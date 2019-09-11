@@ -12,9 +12,11 @@ import (
 	"os"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
+	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -42,9 +44,10 @@ type StoreCfgData struct {
 
 // SrvIPResMgrConfigData 服务的配置数据
 type SrvIPResMgrConfigData struct {
-	NSPData           NSPData          `json:"nsp" mapstructure:"nsp"`
-	K8SClusterDataLst []K8SClusterData `json:"k8sclustser_list" mapstructure:"k8sclustser_list"`
-	StoreData         StoreCfgData     `json:"store" mapstructure:"store"`
+	NSPData                        NSPData          `json:"nsp" mapstructure:"nsp"`
+	K8SClusterDataLst              []K8SClusterData `json:"k8sclustser_list" mapstructure:"k8sclustser_list"`
+	StoreData                      StoreCfgData     `json:"store" mapstructure:"store"`
+	K8SResourceAddrLeasePeriodSecs int              `json:"k8sResourceAddrLeasePeriodSecs" mapstructure:"k8sResourceAddrLeasePeriodSecs"`
 }
 
 var (
@@ -81,7 +84,7 @@ func LoadConfig(configFile string) error {
 	}
 
 	configVal.Store(configData)
-	calm_utils.Debugf("ipresmgr-svr config:%+v", configData)
+	calm_utils.Debugf("ipresmgr-svr config:%s", litter.Sdump(configData))
 	return nil
 }
 
@@ -111,7 +114,7 @@ func ReloadConfig() {
 
 	configVal.Store(newConfigData)
 
-	calm_utils.Infof("reload config:[%s] successed", configFileName)
+	calm_utils.Infof("reload config:[%s] successed. newConfigData:%s", configFileName, litter.Sdump(newConfigData))
 }
 
 // GetNspServerAddr 获取nsp服务的地址
@@ -125,4 +128,10 @@ func GetNspServerAddr() string {
 func GetStoreCfgData() StoreCfgData {
 	configData := configVal.Load().(*SrvIPResMgrConfigData)
 	return configData.StoreData
+}
+
+// GetK8SResourceAddrLeasePeriodSecs 获得地址租期时间，单位秒
+func GetK8SResourceAddrLeasePeriodSecs() time.Duration {
+	configData := configVal.Load().(*SrvIPResMgrConfigData)
+	return time.Duration(configData.K8SResourceAddrLeasePeriodSecs)
 }

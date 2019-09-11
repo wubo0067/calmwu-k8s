@@ -8,7 +8,6 @@
 package srv
 
 import (
-	"fmt"
 	"net/http"
 
 	proto "pci-ipresmgr/api/proto_json"
@@ -39,11 +38,11 @@ func cniRequireIP(c *gin.Context) {
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 
-		k8sPodAddrInfo := storeMgr.BindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
-		if k8sPodAddrInfo == nil {
-			errStr := fmt.Sprintf("ReqID:%s get k8sPodAddrInfo by %s failed", req.ReqID, k8sResourceID)
-			calm_utils.Error(errStr)
-			res.Msg = errStr
+		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
+		if err == nil {
+			err := errors.Wrapf(err, "ReqID:%s get k8sPodAddrInfo by %s failed", req.ReqID, k8sResourceID)
+			calm_utils.Error(err.Error())
+			res.Msg = err.Error()
 		} else {
 			res.IP = k8sPodAddrInfo.IP
 			res.MacAddr = k8sPodAddrInfo.MacAddr

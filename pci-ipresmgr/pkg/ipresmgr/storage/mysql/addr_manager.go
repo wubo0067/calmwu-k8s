@@ -10,6 +10,7 @@ package mysql
 import (
 	"context"
 	proto "pci-ipresmgr/api/proto_json"
+	"pci-ipresmgr/pkg/ipresmgr/config"
 	"pci-ipresmgr/table"
 	"strings"
 	"time"
@@ -75,71 +76,131 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 
 // BindAddrInfoWithK8SPodID 获取一个地址信息，和k8s资源绑定
 func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
-	bindPodID string) *proto.K8SAddrInfo {
+	bindPodID string) (*proto.K8SAddrInfo, error) {
 
 	var k8sAddrInfo *proto.K8SAddrInfo
 
-	msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
+	err := msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
+
+			tx, err := msm.dbMgr.Begin()
+			if err != nil {
+				err := errors.Wrapf(err, "k8sResourceID:%s bindPod:%s begin transaction failed.", k8sResourceID, bindPodID)
+				calm_utils.Error(err.Error())
+				return err
+			}
+
+			var transactionFlag int
+			defer func(flag *int) {
+				if *flag == 0 {
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s SELECT FOR UPDATE Commit", k8sResourceID, bindPodID)
+					tx.Commit()
+				} else {
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s SELECT FOR UPDATE Rollback", k8sResourceID, bindPodID)
+					tx.Rollback()
+				}
+			}(&transactionFlag)
+
+			selRow := tx.QueryRow("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1",
+				k8sResourceID, k8sResourceType)
+			if selRow == nil {
+				err = errors.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s AND is_bind=0 LIMIT 1, QueryRow return Nil",
+					k8sResourceID, k8sResourceType)
+				transactionFlag = -1
+				return err
+			}
+
+			var k8sAddrBindInfo table.TblK8SResourceIPBindS
+			err = selRow.Scan(&k8sAddrBindInfo.K8SResourceID, &k8sAddrBindInfo.K8SResourceType, &k8sAddrBindInfo.IP,
+				&k8sAddrBindInfo.MacAddr, &k8sAddrBindInfo.NetRegionalID, &k8sAddrBindInfo.SubNetID, &k8sAddrBindInfo.PortID,
+				&k8sAddrBindInfo.SubNetGatewayAddr, &k8sAddrBindInfo.AllocTime, &k8sAddrBindInfo.IsBind, &k8sAddrBindInfo.BindPodID,
+				&k8sAddrBindInfo.BindTime)
+
+			if err != nil {
+				err = errors.Wrapf(err, "k8sResourceID:%s bindPod:%s Scan failed.", k8sResourceID, bindPodID)
+				calm_utils.Error(err.Error())
+				transactionFlag = -1
+				return err
+			}
+
+			calm_utils.Debugf("k8sResourceID:%s bindPod:%s k8sAddrBindInfo:%s", k8sResourceID, bindPodID, litter.Sdump(&k8sAddrBindInfo))
+
+			currTime := time.Now()
+			updateRes, err := tx.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND port_id=?",
+				bindPodID, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+			if err != nil {
+				err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s, bind_time=%s WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=0 AND port_id=%s. tx Exec UPDATE failed.",
+					bindPodID, currTime.String(), k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+				transactionFlag = -1
+				return err
+			}
+
+			updateRowCount, _ := updateRes.RowsAffected()
+			calm_utils.Debug("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, bindPodID, updateRowCount)
+
+			k8sAddrInfo = new(proto.K8SAddrInfo)
+			k8sAddrInfo.IP = k8sAddrBindInfo.IP
+			k8sAddrInfo.MacAddr = k8sAddrBindInfo.MacAddr
+			k8sAddrInfo.NetRegionalID = k8sAddrBindInfo.NetRegionalID
+			k8sAddrInfo.SubNetID = k8sAddrBindInfo.SubNetID
+			k8sAddrInfo.SubNetGatewayAddr = k8sAddrBindInfo.SubNetGatewayAddr
 
 			// 放弃使用悲观锁，使用乐观锁CAS方法。获取，设置，失败要重试
 			// step 1，获取重试次数
-			var replicas int
-			err := msm.dbMgr.Get(&replicas, "SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)
-			if err != nil {
-				calm_utils.Errorf("SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=%s failed. err:%s",
-					k8sResourceID, err.Error())
-				return nil
-			}
+			// var replicas int
+			// err := msm.dbMgr.Get(&replicas, "SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)
+			// if err != nil {
+			// 	calm_utils.Errorf("SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=%s failed. err:%s",
+			// 		k8sResourceID, err.Error())
+			// 	return nil
+			// }
 
-			if replicas == 0 {
-				calm_utils.Errorf("SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=%s failed. replicas is Zero",
-					k8sResourceID)
-				return nil
-			}
+			// if replicas == 0 {
+			// 	calm_utils.Errorf("SELECT count(*) from tbl_K8SResourceIPBind WHERE k8sresource_id=%s failed. replicas is Zero",
+			// 		k8sResourceID)
+			// 	return nil
+			// }
 
-			for replicas > 0 {
-				// 查表，获取地址
-				var k8sAddrBindInfo table.TblK8SResourceIPBindS
-				err := msm.dbMgr.Get(&k8sAddrBindInfo, "SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1",
-					k8sResourceID, int(k8sResourceType))
-				if err != nil {
-					calm_utils.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 failed. err:%s, do try:%d",
-						k8sResourceID, err.Error(), replicas)
-				} else {
-					// 修改表
-					currTime := time.Now()
-					updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND ip=?",
-						bindPodID, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.IP)
-					if err != nil {
-						calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s failed. err:%s. do try:%d",
-							bindPodID, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
-					} else {
-						updateRows, _ := updateRes.RowsAffected()
-						// if err != nil {
-						// 	calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s RowsAffected failed. err:%s. do try:%d",
-						// 		bindPodID, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
-						// 	continue
-						// }
+			// for replicas > 0 {
+			// 	// 查表，获取地址
+			// 	var k8sAddrBindInfo table.TblK8SResourceIPBindS
+			// 	err := msm.dbMgr.Get(&k8sAddrBindInfo, "SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1",
+			// 		k8sResourceID, int(k8sResourceType))
+			// 	if err != nil {
+			// 		calm_utils.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 failed. err:%s, do try:%d",
+			// 			k8sResourceID, err.Error(), replicas)
+			// 	} else {
+			// 		// 修改表
+			// 		currTime := time.Now()
+			// 		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND ip=?",
+			// 			bindPodID, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.IP)
+			// 		if err != nil {
+			// 			calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s failed. err:%s. do try:%d",
+			// 				bindPodID, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
+			// 		} else {
+			// 			updateRows, _ := updateRes.RowsAffected()
+			// 			// if err != nil {
+			// 			// 	calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s RowsAffected failed. err:%s. do try:%d",
+			// 			// 		bindPodID, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
+			// 			// 	continue
+			// 			// }
 
-						calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s successed. updateRows:[%d]",
-							bindPodID, k8sResourceID, k8sAddrBindInfo.IP, updateRows)
+			// 			calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_podid=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s successed. updateRows:[%d]",
+			// 				bindPodID, k8sResourceID, k8sAddrBindInfo.IP, updateRows)
 
-						k8sAddrInfo = new(proto.K8SAddrInfo)
-						k8sAddrInfo.IP = k8sAddrBindInfo.IP
-						k8sAddrInfo.MacAddr = k8sAddrBindInfo.MacAddr
-						k8sAddrInfo.NetRegionalID = k8sAddrBindInfo.NetRegionalID
-						k8sAddrInfo.SubNetID = k8sAddrBindInfo.SubNetID
-						k8sAddrInfo.SubNetGatewayAddr = k8sAddrBindInfo.SubNetGatewayAddr
-						break
-					}
-				}
-				time.Sleep(time.Second)
-				replicas--
-			}
-
+			// 			k8sAddrInfo = new(proto.K8SAddrInfo)
+			// 			k8sAddrInfo.IP = k8sAddrBindInfo.IP
+			// 			k8sAddrInfo.MacAddr = k8sAddrBindInfo.MacAddr
+			// 			k8sAddrInfo.NetRegionalID = k8sAddrBindInfo.NetRegionalID
+			// 			k8sAddrInfo.SubNetID = k8sAddrBindInfo.SubNetID
+			// 			k8sAddrInfo.SubNetGatewayAddr = k8sAddrBindInfo.SubNetGatewayAddr
+			// 			break
+			// 		}
+			// 	}
+			// 	time.Sleep(time.Second)
+			// 	replicas--
+			// }
 		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
-			return nil
 		}
 		return nil
 	})
@@ -152,7 +213,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 			k8sResourceType.String(), bindPodID)
 	}
 
-	return k8sAddrInfo
+	return k8sAddrInfo, err
 }
 
 // UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
@@ -228,21 +289,32 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 	calm_utils.Debugf("%s have %d leated records in tbl_K8SResourceIPBind", k8sResourceID, k8sResourceReplicas)
 
 	// 插入租期回收表中
+	k8sResourceIPRecycleRecord := new(table.TblK8SResourceIPRecycleS)
+	k8sResourceIPRecycleRecord.SrvInstanceName = msm.opts.SrvInstID
+	k8sResourceIPRecycleRecord.K8SResourceID = k8sResourceID
+	k8sResourceIPRecycleRecord.K8SResourceType = int(k8sResourceType)
+	k8sResourceIPRecycleRecord.Replicas = k8sResourceReplicas
+	k8sResourceIPRecycleRecord.CreateTime = time.Now()
+	k8sResourceIPRecycleRecord.NSPResourceReleaseTime = k8sResourceIPRecycleRecord.CreateTime.Add(config.GetK8SResourceAddrLeasePeriodSecs() * time.Second)
+
 	_, err = msm.dbMgr.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
 	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES 
 	(?, ?, ?, ?, ?, ?)`,
-		msm.opts.SrvInstID,
-		k8sResourceID,
-		int(k8sResourceType),
-		k8sResourceReplicas,
-		time.Now(),
-		time.Now().Add(5*time.Minute),
+		k8sResourceIPRecycleRecord.SrvInstanceName,
+		k8sResourceIPRecycleRecord.K8SResourceID,
+		k8sResourceIPRecycleRecord.K8SResourceType,
+		k8sResourceIPRecycleRecord.Replicas,
+		k8sResourceIPRecycleRecord.CreateTime,
+		k8sResourceIPRecycleRecord.NSPResourceReleaseTime,
 	)
 	if err != nil {
 		err = errors.Wrapf(err, "INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s failed.", k8sResourceID)
 		calm_utils.Error(err.Error())
 		return err
 	}
+
+	// 加入定时堆管理
+	msm.addrResourceLeasePeriodMgr.AddLeaseRecyclingRecord(k8sResourceIPRecycleRecord)
 
 	calm_utils.Debugf("INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s successed.", k8sResourceID)
 	return nil

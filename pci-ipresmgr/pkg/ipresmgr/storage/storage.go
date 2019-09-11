@@ -36,7 +36,7 @@ type StoreMgr interface {
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
 	// BindAddrInfoWithK8SPodID 获取一个地址信息，和k8s资源绑定
-	BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodID string) *proto.K8SAddrInfo
+	BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodID string) (*proto.K8SAddrInfo, error)
 
 	// UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
 	UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, unBindPodID string) error

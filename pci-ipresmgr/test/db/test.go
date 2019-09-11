@@ -255,8 +255,8 @@ func testFetchOneRow(db *sqlx.DB) {
 func testPessimisticLock(db *sqlx.DB) {
 	var wg sync.WaitGroup
 
-	wg.Add(12)
-	for i := 0; i < 12; i++ {
+	wg.Add(100)
+	for i := 0; i < 100; i++ {
 		go func(index int) {
 			defer wg.Done()
 			tx, err := db.Begin()
@@ -265,10 +265,22 @@ func testPessimisticLock(db *sqlx.DB) {
 				return
 			}
 
+			var transactionFlag int
+			defer func(flag *int) {
+				if *flag == 0 {
+					log.Printf("index:%d commit\n", index)
+					tx.Commit()
+				} else {
+					log.Printf("index:%d rollback\n", index)
+					tx.Rollback()
+				}
+			}(&transactionFlag)
+
 			row := tx.QueryRow("SELECT * FROM tbl_Test WHERE use_flag=0 LIMIT 1 FOR UPDATE")
 			if row == nil {
 				log.Printf("index:%d QueryRow failed.\n", index)
-				tx.Rollback()
+				//tx.Rollback()
+				transactionFlag = -1
 				return
 			}
 
@@ -278,7 +290,8 @@ func testPessimisticLock(db *sqlx.DB) {
 
 			if err != nil {
 				log.Printf("index:%d rows.Scan failed, err:%s\n", index, err.Error())
-				tx.Rollback()
+				//tx.Rollback()
+				transactionFlag = -1
 				return
 			}
 
@@ -289,14 +302,14 @@ func testPessimisticLock(db *sqlx.DB) {
 				tblTest.K8SResourceID, tblTest.SubNetID)
 			if err != nil {
 				log.Printf("index:%d UDATE failed, err:%s\n", index, err.Error())
-				tx.Rollback()
+				//tx.Rollback()
+				transactionFlag = -1
 				return
 			}
 
 			rowCount, _ := updateRes.RowsAffected()
 			log.Printf("index:%d update row count:%d\n", index, rowCount)
 
-			tx.Commit()
 		}(i)
 	}
 

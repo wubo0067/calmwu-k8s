@@ -18,6 +18,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -64,7 +65,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt storage.Option) error {
 	// 创建mysql连接参数
 	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&loc=Local", msm.opts.User, msm.opts.Passwd, msm.opts.StoreSvrAddr, msm.opts.DBName)
 
-	calm_utils.Debugf("mysqlStoreMgr opts:%+v, mysqlConnStr:%s", msm.opts, msm.mysqlConnStr)
+	calm_utils.Debugf("mysqlStoreMgr opts:%s, mysqlConnStr:%s", litter.Sdump(&msm.opts), msm.mysqlConnStr)
 
 	// 创建db对象
 	var err error

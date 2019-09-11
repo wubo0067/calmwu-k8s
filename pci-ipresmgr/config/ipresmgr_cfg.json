@@ -22,5 +22,7 @@
         "idlconnects" : 3,
         "maxopenconnects" : 16,
         "connectmaxlifetime" : "72h"
-    }
+    },
+    
+    "k8sResourceAddrLeasePeriodSecs" : 600 
 }
