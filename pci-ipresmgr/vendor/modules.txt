@@ -1,5 +1,7 @@
 # github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 github.com/DeanThompson/ginpprof
+# github.com/dghubble/sling v1.3.0
+github.com/dghubble/sling
 # github.com/gin-contrib/sse v0.1.0
 github.com/gin-contrib/sse
 # github.com/gin-gonic/gin v1.4.0
@@ -11,6 +13,8 @@ github.com/gin-gonic/gin/render
 github.com/go-sql-driver/mysql
 # github.com/golang/protobuf v1.3.2
 github.com/golang/protobuf/proto
+# github.com/google/go-querystring v1.0.0
+github.com/google/go-querystring/query
 # github.com/google/uuid v1.1.1
 github.com/google/uuid
 # github.com/gorilla/websocket v1.4.1
@@ -38,6 +42,8 @@ github.com/mozhata/merr
 github.com/pkg/errors
 # github.com/sanity-io/litter v1.1.0
 github.com/sanity-io/litter
+# github.com/segmentio/ksuid v1.0.2
+github.com/segmentio/ksuid
 # github.com/spaolacci/murmur3 v1.1.0
 github.com/spaolacci/murmur3
 # github.com/ugorji/go/codec v1.1.7

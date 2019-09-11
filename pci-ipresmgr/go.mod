@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
+	github.com/dghubble/sling v1.3.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-sql-driver/mysql v1.4.1
@@ -21,6 +22,7 @@ require (
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sanity-io/litter v1.1.0
+	github.com/segmentio/ksuid v1.0.2
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/wubo0067/calmwu-go v0.0.0-20190905023444-258346b57139

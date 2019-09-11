@@ -15,6 +15,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
@@ -50,7 +51,9 @@ func wbCreateIPPool(c *gin.Context) {
 		// 判断是否在租期内，以及当前副本数量
 		exists, replicas, err := storeMgr.CheckRecycledResources(k8sResourceID)
 		if err != nil {
+			err = errors.Wrapf(err, "ReqID:%s CheckRecycledResources failed.", req.ReqID)
 			res.Msg = err.Error()
+			calm_utils.Error(err.Error())
 			return
 		}
 
@@ -60,7 +63,9 @@ func wbCreateIPPool(c *gin.Context) {
 			// 从nsp获取地址
 			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, req.K8SApiResourceReplicas, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
 			if err != nil {
+				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
 				res.Msg = err.Error()
+				calm_utils.Error(err.Error())
 				return
 			}
 
@@ -71,7 +76,9 @@ func wbCreateIPPool(c *gin.Context) {
 				for _, k8sAddr := range k8sAddrs {
 					nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
 				}
+				err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
 				res.Msg = err.Error()
+				calm_utils.Error(err.Error())
 				return
 			}
 

@@ -26,7 +26,7 @@ func unpackRequest(c *gin.Context, req interface{}) error {
 		return err
 	}
 
-	calm_utils.Debugf("request:%s", calm_utils.Bytes2String(bodyData))
+	//calm_utils.Debugf("request:%s", calm_utils.Bytes2String(bodyData))
 
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	err = json.Unmarshal(bodyData, req)
