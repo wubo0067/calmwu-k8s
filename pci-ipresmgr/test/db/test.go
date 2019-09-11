@@ -20,11 +20,15 @@ import (
 	"sync"
 	"time"
 
+	proto "pci-ipresmgr/api/proto_json"
+
+	"github.com/Pallinder/go-randomdata"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/sanity-io/litter"
+	"github.com/segmentio/ksuid"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -312,8 +316,32 @@ func testPessimisticLock(db *sqlx.DB) {
 
 		}(i)
 	}
-
 	wg.Wait()
+}
+
+func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
+	for i := 0; i < 10; i++ {
+		mac, _ := calm_utils.GenerateRandomPrivateMacAddr()
+		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind 
+		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
+		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			"k8sresource-1",
+			int(proto.K8SApiResourceKindDeployment),
+			randomdata.IpV4Address(),
+			mac,
+			fmt.Sprintf("netregional-%s", ksuid.New().String()),
+			fmt.Sprintf("subnet-%s", ksuid.New().String()),
+			fmt.Sprintf("port-%s", ksuid.New().String()),
+			randomdata.IpV4Address(),
+			time.Now(),
+			0,
+		)
+		if err != nil {
+			log.Fatalf("insert tbl_K8SResourceIPBind %d failed. err:%s\n", i, err.Error())
+		}
+	}
+
+	log.Printf("insert 10 recoreds into tbl_K8SResourceIPBind successed!\n")
 }
 
 func main() {
@@ -330,5 +358,6 @@ func main() {
 	//insertMultiK8SResourceIPRecycles(db)
 	//testQueryColumn(db)
 	//testFetchOneRow(db)
-	testPessimisticLock(db)
+	//testPessimisticLock(db)
+	insertMultiK8SResourceIPBindRecord(db)
 }

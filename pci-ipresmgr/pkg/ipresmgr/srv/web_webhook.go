@@ -135,7 +135,11 @@ func wbReleaseIPPool(c *gin.Context) {
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
 		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
-		storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
+		err = storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
+		if err != nil {
+			err = errors.Wrapf(err, "ReqID:%s AddK8SResourceAddressToRecycle failed.", req.ReqID)
+			calm_utils.Error(err.Error())
+		}
 	} else {
 		// job, cronjob
 		err = storeMgr.DelJobNetInfo(k8sResourceID)

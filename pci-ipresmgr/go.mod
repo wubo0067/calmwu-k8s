@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
+	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/dghubble/sling v1.3.0
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
@@ -25,11 +26,11 @@ require (
 	github.com/segmentio/ksuid v1.0.2
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190905023444-258346b57139
+	github.com/wubo0067/calmwu-go v0.0.0-20190911083930-4d85ac10bc70
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
-	golang.org/x/sys v0.0.0-20190904154756-749cb33beabd // indirect
+	golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/appengine v1.6.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect

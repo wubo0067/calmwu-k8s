@@ -286,7 +286,13 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 		return err
 	}
 
-	calm_utils.Debugf("%s have %d leated records in tbl_K8SResourceIPBind", k8sResourceID, k8sResourceReplicas)
+	calm_utils.Debugf("%s have %d count records in tbl_K8SResourceIPBind", k8sResourceID, k8sResourceReplicas)
+
+	if k8sResourceReplicas == 0 {
+		err = errors.Errorf("Empty Addr record for k8sresource_id:[%s]", k8sResourceID)
+		calm_utils.Error(err.Error())
+		return err
+	}
 
 	// 插入租期回收表中
 	k8sResourceIPRecycleRecord := new(table.TblK8SResourceIPRecycleS)

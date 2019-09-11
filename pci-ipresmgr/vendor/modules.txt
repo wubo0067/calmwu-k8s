@@ -1,5 +1,7 @@
 # github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 github.com/DeanThompson/ginpprof
+# github.com/Pallinder/go-randomdata v1.2.0
+github.com/Pallinder/go-randomdata
 # github.com/dghubble/sling v1.3.0
 github.com/dghubble/sling
 # github.com/gin-contrib/sse v0.1.0
@@ -48,7 +50,7 @@ github.com/segmentio/ksuid
 github.com/spaolacci/murmur3
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20190905023444-258346b57139
+# github.com/wubo0067/calmwu-go v0.0.0-20190911083930-4d85ac10bc70
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.4.0
 go.uber.org/atomic
@@ -61,7 +63,7 @@ go.uber.org/zap/internal/bufferpool
 go.uber.org/zap/internal/color
 go.uber.org/zap/internal/exit
 go.uber.org/zap/zapcore
-# golang.org/x/sys v0.0.0-20190904154756-749cb33beabd
+# golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b
 golang.org/x/sys/unix
 # golang.org/x/time v0.0.0-20190308202827-9d24e82272b4
 golang.org/x/time/rate

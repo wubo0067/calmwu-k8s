@@ -64,6 +64,33 @@ func testCreateIPPool() {
 	logger.Printf("createIPPooRes:%s\n", litter.Sdump(&createIPPooRes))
 }
 
+func testReleaseIPPool() {
+	var releaseIPPoolReq proto.WB2IPResMgrReleaseIPPoolReq
+	releaseIPPoolReq.ReqID = ksuid.New().String()
+	releaseIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	releaseIPPoolReq.K8SClusterID = "cluster-1"
+	releaseIPPoolReq.K8SApiResourceName = "default"
+	releaseIPPoolReq.K8SApiResourceName = "kata-nginx-deployment"
+
+	var releaseIPPooRes proto.IPResMgr2WBRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&releaseIPPoolReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/ippool/").Post("release").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&releaseIPPooRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/ippool/release failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode != 200 {
+		logger.Fatalf("post %sv1/ippool/release failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("releaseIPPooRes:%s\n", litter.Sdump(&releaseIPPooRes))
+}
+
 func main() {
 	flag.Parse()
 
@@ -72,6 +99,8 @@ func main() {
 	switch *testType {
 	case 1:
 		testCreateIPPool()
+	case 2:
+		testReleaseIPPool()
 	default:
 		logger.Fatalf("Not support type:%d\n", *testType)
 	}
