@@ -93,10 +93,10 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 			var transactionFlag int
 			defer func(flag *int) {
 				if *flag == 0 {
-					calm_utils.Debugf("k8sResourceID:%s bindPod:%s SELECT FOR UPDATE Commit", k8sResourceID, bindPodID)
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Commit", k8sResourceID, bindPodID)
 					tx.Commit()
 				} else {
-					calm_utils.Debugf("k8sResourceID:%s bindPod:%s SELECT FOR UPDATE Rollback", k8sResourceID, bindPodID)
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Rollback", k8sResourceID, bindPodID)
 					tx.Rollback()
 				}
 			}(&transactionFlag)
@@ -223,15 +223,15 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sRe
 
 	return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0, bind_podid=? WHERE k8sresource_id=? AND bind_podid=?",
-			k8sResourceID, unBindPodID)
+			"", k8sResourceID, unBindPodID)
 		if err != nil {
-			calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=%s WHERE k8sresource_id=%s AND bind_podid=%s failed. err:%s.",
-				"", k8sResourceID, unBindPodID, err.Error())
+			calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s failed. err:%s.",
+				k8sResourceID, unBindPodID, err.Error())
 			return err
 		}
 		updateRows, _ := updateRes.RowsAffected()
-		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=%s WHERE k8sresource_id=%s AND bind_podid=%s successed. updateRows:%d.",
-			"", k8sResourceID, unBindPodID, updateRows)
+		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s successed. updateRows:%d.",
+			k8sResourceID, unBindPodID, updateRows)
 		return nil
 	})
 }
@@ -325,4 +325,9 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 
 	calm_utils.Debugf("INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s successed.", k8sResourceID)
 	return nil
+}
+
+func (msm *mysqlStoreMgr) ScaleDownK8SResourceAddrs(k8sResourceID string, scaleDownSize int) error {
+
+	return errors.Errorf("k8sResourceID:%s scaleDownSize is Zero", k8sResourceID)
 }

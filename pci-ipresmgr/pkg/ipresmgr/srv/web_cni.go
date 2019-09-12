@@ -115,9 +115,9 @@ func cniReleaseIP(c *gin.Context) {
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
 		if err != nil {
 			// TODO 告警
-			calm_utils.Errorf("ReqID:%s k8sResourceID:%d podID:%s unBind failed.", req.ReqID, k8sResourceID, req.K8SPodID)
+			calm_utils.Errorf("ReqID:%s k8sResourceID:%s podID:%s unBind failed.", req.ReqID, k8sResourceID, req.K8SPodID)
 		} else {
-			calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s unBind successed.", req.ReqID, k8sResourceID, req.K8SPodID)
+			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podID:%s unBind successed.", req.ReqID, k8sResourceID, req.K8SPodID)
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		//

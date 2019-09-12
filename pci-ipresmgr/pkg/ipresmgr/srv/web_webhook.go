@@ -87,11 +87,42 @@ func wbCreateIPPool(c *gin.Context) {
 			return
 		} else {
 			// 恢复的数据
-			// 判断副本数量是否一致
+
 			if req.K8SApiResourceReplicas > replicas {
+				// 新建副本数大于现有数量
+				scaleUpSize := req.K8SApiResourceReplicas - replicas
+				k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, scaleUpSize, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+				if err != nil {
+					err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources scaleUpSize:%d failed.", req.ReqID, scaleUpSize)
+					res.Msg = err.Error()
+					calm_utils.Error(err.Error())
+					return
+				}
 
+				// 设置地址
+				err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+				if err != nil {
+					// 设置对应关系失败，见IP归还给NSP
+					for _, k8sAddr := range k8sAddrs {
+						nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
+					}
+					err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
+					res.Msg = err.Error()
+					calm_utils.Error(err.Error())
+					return
+				}
+
+				res.Code = proto.IPResMgrErrnoSuccessed
+				calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 			} else if req.K8SApiResourceReplicas < replicas {
-
+				// 新建副本数小于现有数量，减少IP
+				err = storeMgr.ScaleDownK8SResourceAddrs(k8sResourceID, replicas-req.K8SApiResourceReplicas)
+				if err != nil {
+					err = errors.Wrapf(err, "ReqID:%s ScaleDownK8SResourceAddrs failed.", req.ReqID)
+					res.Msg = err.Error()
+					calm_utils.Error(err.Error())
+					return
+				}
 			} else {
 				// 副本数相同，直接返回
 				res.Code = proto.IPResMgrErrnoSuccessed

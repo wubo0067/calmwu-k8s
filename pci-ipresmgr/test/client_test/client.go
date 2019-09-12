@@ -26,6 +26,7 @@ import (
 var (
 	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
 	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP")
+	unBindPodID     = flag.String("unbindpodid", "", "Unbind podID")
 	logger          *log.Logger
 )
 
@@ -120,6 +121,34 @@ func testRequireIP() {
 	logger.Printf("requireIPRes:%s\n", litter.Sdump(&requireIPRes))
 }
 
+func testReleaseIP() {
+	var releaseIPReq proto.IPAM2IPResMgrReleaseIPReq
+	releaseIPReq.ReqID = ksuid.New().String()
+	releaseIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	releaseIPReq.K8SClusterID = "cluster-1"
+	releaseIPReq.K8SNamespace = "default"
+	releaseIPReq.K8SApiResourceName = "kata-nginx-deployment"
+	releaseIPReq.K8SPodID = *unBindPodID
+
+	var releaseIPRes proto.IPResMgr2IPAMReleaseIPRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&releaseIPReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/ip/").Post("release").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&releaseIPRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/ip/release failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode != 200 {
+		logger.Fatalf("post %sv1/ip/release failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("releaseIPRes:%s\n", litter.Sdump(&releaseIPRes))
+}
+
 func main() {
 	flag.Parse()
 
@@ -132,6 +161,8 @@ func main() {
 		testReleaseIPPool()
 	case 4:
 		testRequireIP()
+	case 5:
+		testReleaseIP()
 	default:
 		logger.Fatalf("Not support type:%d\n", *testType)
 	}
