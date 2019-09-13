@@ -2,21 +2,62 @@
  * @Author: calm.wu
  * @Date: 2019-09-13 11:41:15
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-13 15:13:11
+ * @Last Modified time: 2019-09-13 16:17:03
  */
 
 package k8sclient
 
 import (
+	"encoding/base64"
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"sync"
+
+	calm_utils "github.com/wubo0067/calmwu-go/utils"
+	"k8s.io/client-go/kubernetes"
 )
 
-var (
+// K8SClient 集群访问接口
+type K8SClient interface {
+	//  LoadMultiClusterClient 通过配置数据加载多集群的clientset
+	LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool
+
+	// GetClientSetByClusterID 获取clientset根据clusterid
+	GetClientSetByClusterID(clusterID string) *kubernetes.Clientset
+}
+
+type K8sClientImpl struct {
 	multiClusterClient sync.Map
+}
+
+var (
+	// DefaultK8SClient 默认对象
+	DefaultK8SClient K8SClient = &K8sClientImpl{}
 )
 
 // LoadMultiClusterClient 通过配置数据加载多集群的clientset
-func LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) error {
+func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
+	var loadOk bool = true
+	for index := range k8sClusterCfgDataLst {
+		k8sClusterCfgData := &k8sClusterCfgDataLst[index]
+		// 创建clientset
+		kubeCfg := base64.StdEncoding.EncodeToString(calm_utils.String2Bytes(k8sClusterCfgData.KubeCfg))
+		clientSet, err := NewClientSetByKubeCfgContent(calm_utils.String2Bytes(kubeCfg))
+		if err != nil {
+			calm_utils.Errorf("Load cluster:%s kube config failed. err:%s", k8sClusterCfgData.K8SClusterID, err.Error())
+			kci.multiClusterClient.Store(k8sClusterCfgData.K8SClusterID, clientSet)
+			loadOk = false
+		} else {
+			calm_utils.Errorf("Load cluster:%s kube config successed", k8sClusterCfgData.K8SClusterID)
+		}
+	}
+	return loadOk
+}
+
+// GetClientSetByClusterID 获取clientset根据clusterid
+func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.Clientset {
+	value, exist := kci.multiClusterClient.Load(clusterID)
+	if exist {
+		return value.(*kubernetes.Clientset)
+	}
 	return nil
 }
