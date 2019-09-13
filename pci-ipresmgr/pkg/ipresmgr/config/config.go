@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-27 16:27:45
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-01 10:35:45
+ * @Last Modified time: 2019-09-13 15:09:33
  */
 
 package config
@@ -25,8 +25,8 @@ type NSPData struct {
 	Addr string `json:"addr" mapstructure:"addr"`
 }
 
-// K8SClusterData 多集群配置数据
-type K8SClusterData struct {
+// K8SClusterCfgData 多集群配置数据
+type K8SClusterCfgData struct {
 	K8SClusterID string `json:"k8sclusterid" mapstructure:"k8sclusterid"`
 	KubeCfg      string `json:"kubecfg" mapstructure:"kubecfg"`
 }
@@ -44,10 +44,10 @@ type StoreCfgData struct {
 
 // SrvIPResMgrConfigData 服务的配置数据
 type SrvIPResMgrConfigData struct {
-	NSPData                        NSPData          `json:"nsp" mapstructure:"nsp"`
-	K8SClusterDataLst              []K8SClusterData `json:"k8sclustser_list" mapstructure:"k8sclustser_list"`
-	StoreData                      StoreCfgData     `json:"store" mapstructure:"store"`
-	K8SResourceAddrLeasePeriodSecs int              `json:"k8sResourceAddrLeasePeriodSecs" mapstructure:"k8sResourceAddrLeasePeriodSecs"`
+	NSPData                        NSPData             `json:"nsp" mapstructure:"nsp"`
+	K8SClusterCfgDataLst           []K8SClusterCfgData `json:"k8sclustser_list" mapstructure:"k8sclustser_list"`
+	StoreData                      StoreCfgData        `json:"store" mapstructure:"store"`
+	K8SResourceAddrLeasePeriodSecs int                 `json:"k8sResourceAddrLeasePeriodSecs" mapstructure:"k8sResourceAddrLeasePeriodSecs"`
 }
 
 var (
@@ -134,4 +134,10 @@ func GetStoreCfgData() StoreCfgData {
 func GetK8SResourceAddrLeasePeriodSecs() time.Duration {
 	configData := configVal.Load().(*SrvIPResMgrConfigData)
 	return time.Duration(configData.K8SResourceAddrLeasePeriodSecs)
+}
+
+// GetK8SClusterCfgDataLst 得到多集群的kubecfg配置信息
+func GetK8SClusterCfgDataLst() []K8SClusterCfgData {
+	configData := configVal.Load().(*SrvIPResMgrConfigData)
+	return configData.K8SClusterCfgDataLst
 }

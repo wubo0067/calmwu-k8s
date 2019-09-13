@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-26 14:45:38
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-07 16:30:53
+ * @Last Modified time: 2019-09-13 15:18:52
  */
 
 package srv
@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/k8sclient"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/pkg/ipresmgr/storage/mysql"
@@ -83,6 +84,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 				return
 			case syscall.SIGUSR1:
 				config.ReloadConfig()
+				k8sclient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
 			case syscall.SIGUSR2:
 				calm_utils.DumpStacks()
 			}
@@ -111,6 +113,11 @@ func SvrMain(c *cli.Context) error {
 	// 信号控制
 	ctx, cancel := context.WithCancel(context.Background())
 	setupSignalHandler(cancel)
+
+	err = k8sclient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
+	if err != nil {
+		calm_utils.Fatalf("LoadMultiClusterClient failed, err:%s", err.Error())
+	}
 
 	// 初始化存储
 	storeMgr = mysql.NewMysqlStoreMgr()

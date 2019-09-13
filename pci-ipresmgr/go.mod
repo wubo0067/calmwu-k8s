@@ -3,7 +3,6 @@ module pci-ipresmgr
 go 1.13
 
 require (
-	github.com/BurntSushi/toml v0.3.1 // indirect
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/dghubble/sling v1.3.0
@@ -33,12 +32,10 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/appengine v1.6.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
-	k8s.io/api v0.0.0-20190905160310-fb749d2f1064 // indirect
-	k8s.io/client-go v11.0.0+incompatible
+	k8s.io/client-go v0.0.0-20190906195228-67a413f31aea
 	k8s.io/utils v0.0.0-20190907131718-3d4f5b7dea0b // indirect
 )
