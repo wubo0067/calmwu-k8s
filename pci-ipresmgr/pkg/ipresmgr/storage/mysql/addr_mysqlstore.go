@@ -136,15 +136,6 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 			srvAddr := fmt.Sprintf("%s:%d", listenAddr, listenPort)
 			registerTime := time.Now()
 
-			_, err := msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
-				msm.opts.SrvInstID, srvAddr, registerTime)
-			if err != nil {
-				err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
-				calm_utils.Error(err)
-				return err
-			}
-			calm_utils.Infof("Register %s successed.", msm.opts.SrvInstID)
-
 			// 加载租期管理数据
 			addrRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=?", msm.opts.SrvInstID)
 			if err != nil {
@@ -168,8 +159,18 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 			err = msm.addrResourceLeasePeriodMgr.Start()
 			if err != nil {
 				calm_utils.Fatalf("mysqlAddrResourceLeasePeriodMgr start failed. err:%s", err.Error())
+			} else {
+				calm_utils.Info("mysqlAddrResourceLeasePeriodMgr start successed.")
 			}
-			calm_utils.Info("mysqlAddrResourceLeasePeriodMgr start successed.")
+
+			_, err = msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
+				msm.opts.SrvInstID, srvAddr, registerTime)
+			if err != nil {
+				err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
+				calm_utils.Error(err)
+				return err
+			}
+			calm_utils.Infof("Register %s successed.", msm.opts.SrvInstID)
 			return nil
 		},
 	)
@@ -206,11 +207,11 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
 			// 删除回收记录表
-			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=? and k8sresource_id=?",
-				record.SrvInstanceName, record.K8SResourceID)
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name=? and k8sresource_id=? and recycle_object_id=?",
+				record.SrvInstanceName, record.K8SResourceID, record.RecycleObjectID)
 			if err != nil {
-				err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' failed.",
-					record.SrvInstanceName, record.K8SResourceID)
+				err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' and recycle_object_id='%s' failed.",
+					record.SrvInstanceName, record.K8SResourceID, record.RecycleObjectID)
 				calm_utils.Error(err)
 				return err
 			}
@@ -224,12 +225,12 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 
 			if delRows != 1 {
 				// 该数据被恢复了
-				calm_utils.Warnf("****Recycled addrResource are recovered**** DELETE tbl_K8SResourceIPRecycle Condition srv_instance_name='%s' and k8sresource_id='%s' delRow:%d.",
-					record.SrvInstanceName, record.K8SResourceID, delRows)
+				calm_utils.Warnf("****Recycled addrResource are recovered**** DELETE tbl_K8SResourceIPRecycle Condition srv_instance_name='%s' and k8sresource_id='%s' and recycle_object_id='%s' delRow:%d.",
+					record.SrvInstanceName, record.K8SResourceID, record.RecycleObjectID, delRows)
 			} else {
 				// 该数据可以被真正释放
-				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' successed.",
-					record.SrvInstanceName, record.K8SResourceID)
+				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' recycle_object_id='%s' successed.",
+					record.SrvInstanceName, record.K8SResourceID, record.RecycleObjectID)
 
 				// 读取要回收的数据
 				ipBindRows, err := msm.dbMgr.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",

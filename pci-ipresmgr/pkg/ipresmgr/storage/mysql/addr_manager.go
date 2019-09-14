@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
@@ -303,16 +304,18 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 	k8sResourceIPRecycleRecord.Replicas = k8sResourceReplicas
 	k8sResourceIPRecycleRecord.CreateTime = time.Now()
 	k8sResourceIPRecycleRecord.NSPResourceReleaseTime = k8sResourceIPRecycleRecord.CreateTime.Add(config.GetK8SResourceAddrLeasePeriodSecs() * time.Second)
+	k8sResourceIPRecycleRecord.RecycleObjectID = uuid.New().String()
 
 	_, err = msm.dbMgr.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
-	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES 
-	(?, ?, ?, ?, ?, ?)`,
+	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time, recycle_object_id) VALUES 
+	(?, ?, ?, ?, ?, ?, ?)`,
 		k8sResourceIPRecycleRecord.SrvInstanceName,
 		k8sResourceIPRecycleRecord.K8SResourceID,
 		k8sResourceIPRecycleRecord.K8SResourceType,
 		k8sResourceIPRecycleRecord.Replicas,
 		k8sResourceIPRecycleRecord.CreateTime,
 		k8sResourceIPRecycleRecord.NSPResourceReleaseTime,
+		k8sResourceIPRecycleRecord.RecycleObjectID,
 	)
 	if err != nil {
 		err = errors.Wrapf(err, "INSERT tbl_K8SResourceIPRecycle k8sResourceID:%s failed.", k8sResourceID)
@@ -329,5 +332,6 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 
 func (msm *mysqlStoreMgr) ScaleDownK8SResourceAddrs(k8sResourceID string, scaleDownSize int) error {
 
-	return errors.Errorf("k8sResourceID:%s scaleDownSize is Zero", k8sResourceID)
+	calm_utils.Debugf("k8sResourceID:%s scaleDownSize:%d", k8sResourceID, scaleDownSize)
+	return nil
 }

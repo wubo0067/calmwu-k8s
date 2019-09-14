@@ -44,6 +44,7 @@ type TblK8SResourceIPRecycleS struct {
 	//UnbindCount            int       `db:"unbind_count"`
 	CreateTime             time.Time `db:"create_time"`
 	NSPResourceReleaseTime time.Time `db:"nspresource_release_time"`
+	RecycleObjectID        string    `db:"recycle_object_id"`
 	//NetRegionalID          string    `db:"netregional_id"`
 	//SubNetID               string    `db:"subnet_id"`
 	//PortID                 string    `db:"port_id"`

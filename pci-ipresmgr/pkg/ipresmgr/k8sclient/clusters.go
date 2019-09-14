@@ -40,14 +40,20 @@ func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K
 	for index := range k8sClusterCfgDataLst {
 		k8sClusterCfgData := &k8sClusterCfgDataLst[index]
 		// 创建clientset
-		kubeCfg := base64.StdEncoding.EncodeToString(calm_utils.String2Bytes(k8sClusterCfgData.KubeCfg))
-		clientSet, err := NewClientSetByKubeCfgContent(calm_utils.String2Bytes(kubeCfg))
+		kubeCfg, err := base64.StdEncoding.DecodeString(k8sClusterCfgData.KubeCfg)
 		if err != nil {
-			calm_utils.Errorf("Load cluster:%s kube config failed. err:%s", k8sClusterCfgData.K8SClusterID, err.Error())
-			kci.multiClusterClient.Store(k8sClusterCfgData.K8SClusterID, clientSet)
 			loadOk = false
+			calm_utils.Errorf("cluster:%s base64 DecodeString kubeCfg failed. err:%s", k8sClusterCfgData.K8SClusterID, err.Error())
 		} else {
-			calm_utils.Errorf("Load cluster:%s kube config successed", k8sClusterCfgData.K8SClusterID)
+			calm_utils.Debug("cluster:%s \nkubeCfg:%s", k8sClusterCfgData.K8SClusterID, calm_utils.Bytes2String(kubeCfg))
+			clientSet, err := NewClientSetByKubeCfgContent(kubeCfg)
+			if err != nil {
+				calm_utils.Errorf("Load cluster:%s kube config failed. err:%s", k8sClusterCfgData.K8SClusterID, err.Error())
+				kci.multiClusterClient.Store(k8sClusterCfgData.K8SClusterID, clientSet)
+				loadOk = false
+			} else {
+				calm_utils.Errorf("Load cluster:%s kube config successed", k8sClusterCfgData.K8SClusterID)
+			}
 		}
 	}
 	return loadOk

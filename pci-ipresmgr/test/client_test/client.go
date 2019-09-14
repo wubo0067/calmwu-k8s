@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
+	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30002/", "srv ipresmgr addr")
 	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP")
 	unBindPodID     = flag.String("unbindpodid", "", "Unbind podID")
 	logger          *log.Logger

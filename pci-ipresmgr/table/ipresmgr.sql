@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
     replicas INT NOT NULL,                         -- pod数量
     create_time TIMESTAMP NOT NULL,                -- 释放资源插入时间
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip资源归还给nsp的时间，租期到期时间
+    recycle_object_id VARCHAR(64) NOT NULL,        -- 回收对象id，每次都不同
     -- unbind_count INT NOT NULL DEFAULT 0,            取消绑定的数量    
     -- netregional_id VARCHAR(128) NOT NULL,           释放用到的网络域id
     -- subnet_id VARCHAR(36) NOT NULL,                 释放用到的子网id

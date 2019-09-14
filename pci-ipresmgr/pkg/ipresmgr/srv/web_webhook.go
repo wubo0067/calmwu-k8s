@@ -170,6 +170,8 @@ func wbReleaseIPPool(c *gin.Context) {
 		if err != nil {
 			err = errors.Wrapf(err, "ReqID:%s AddK8SResourceAddressToRecycle failed.", req.ReqID)
 			calm_utils.Error(err.Error())
+			res.Code = proto.IPResMgrErrnoReleaseIPPoolFailed
+			res.Msg = err.Error()
 		}
 	} else {
 		// job, cronjob
