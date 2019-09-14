@@ -37,6 +37,7 @@ require (
 	golang.org/x/tools/gopls v0.1.5 // indirect
 	google.golang.org/appengine v1.6.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	k8s.io/apimachinery v0.0.0-20190831074630-461753078381
 	k8s.io/client-go v0.0.0-20190906195228-67a413f31aea
 	k8s.io/utils v0.0.0-20190907131718-3d4f5b7dea0b // indirect
 )

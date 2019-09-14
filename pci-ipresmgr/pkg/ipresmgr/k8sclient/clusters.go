@@ -12,7 +12,9 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"sync"
 
+	"github.com/pkg/errors"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 )
 
@@ -23,6 +25,9 @@ type K8SClient interface {
 
 	// GetClientSetByClusterID 获取clientset根据clusterid
 	GetClientSetByClusterID(clusterID string) *kubernetes.Clientset
+
+	// 根据cluster-id, namespace，pod-id获取所在节点node的状态
+	GetNodeStatus(clusterID string, namespace string, podID string) error
 }
 
 type K8sClientImpl struct {
@@ -65,5 +70,39 @@ func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.
 	if exist {
 		return value.(*kubernetes.Clientset)
 	}
+	return nil
+}
+
+// GetNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
+func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podID string) error {
+	clientSet := kci.GetClientSetByClusterID(clusterID)
+	if clientSet == nil {
+		err := errors.Errorf("clusterID:%s not in config", clusterID)
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	k8sPod, err := clientSet.CoreV1().Pods(namespace).Get(podID, metav1.GetOptions{
+		ResourceVersion: "0",
+	})
+	if err != nil {
+		err := errors.Wrapf(err, "Get Pod:%s Namespace:%s failed.", podID, namespace)
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	nodeName := k8sPod.Spec.NodeName
+	calm_utils.Debugf("clusterID:%s namespace:%s podID:%s Nodename:%s", clusterID, namespace, podID, nodeName)
+
+	k8sNode, err := clientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{
+		ResourceVersion: "0",
+	})
+	if err != nil {
+		err := errors.Wrapf(err, "Get Node:%s failed.", nodeName)
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	calm_utils.Debugf("%v", k8sNode.Status.Conditions)
 	return nil
 }
