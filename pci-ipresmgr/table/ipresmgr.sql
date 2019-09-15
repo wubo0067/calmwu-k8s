@@ -43,24 +43,24 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
     -- subnetgatewayaddr VARCHAR(16) NOT NULL,         子网网关地址    
     -- nsp_resources BLOB,                             释放的ip列表，[{ip,portid},....]  
     PRIMARY KEY(k8sresource_id),
-    INDEX(srv_instance_name)
+    INDEX(srv_instance_name),
+    INDEX(recycle_object_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
     id INT UNSIGNED AUTO_INCREMENT, 
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
-    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
-    replicas INT NOT NULL,                         -- pod数量    
+    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType  
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
+    ip VARCHAR(16) NOT NULL,                       -- 分配的ip
+    mac VARCHAR(16) NOT NULL,                      -- mac地址    
     netregional_id VARCHAR(128) NOT NULL,          -- 释放用到的网络域id
     subnet_id VARCHAR(36) NOT NULL,                -- 释放用到的子网id
     port_id VARCHAR(48) NOT NULL,                  -- PortID，释放只需要这个参数    
-    create_time TIMESTAMP NOT NULL,                -- 插入时间
-    nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}   
+    create_time TIMESTAMP NOT NULL,                -- 插入时间  
     PRIMARY KEY(id),
     INDEX(k8sresource_id),
     INDEX(port_id),
-    INDEX(subnet_id)    
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
