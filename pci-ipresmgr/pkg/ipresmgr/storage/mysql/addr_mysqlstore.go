@@ -265,7 +265,7 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 					}
 				}
 
-				// TODO: 存放历史表
+				// TODO: 存放历史表, 也许我该用日志系统来取代这个表
 			}
 			return nil
 		},
