@@ -52,13 +52,12 @@ type WB2IPResMgrReleaseIPPoolReq struct {
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 }
 
-// WB2IPResMgrScaleIPPoolReq webhook层通知ipresmgr扩缩容ippool
+// WB2IPResMgrScaleIPPoolReq webhook层通知ipresmgr修改副本数量，用户可以做update
 type WB2IPResMgrScaleIPPoolReq struct {
 	ReqID                     string                 `json:"ReqID" mapstructure:"ReqID"`
 	K8SApiResourceKind        K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
 	K8SClusterID              string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
 	K8SNamespace              string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID          string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName        string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	K8SApiResourceOldReplicas int                    `json:"K8SApiResourceOldReplicas" mapstructure:"K8SApiResourceOldReplicas"`
 	K8SApiResourceNewReplicas int                    `json:"K8SApiResourceNewReplicas" mapstructure:"K8SApiResourceNewReplicas"`

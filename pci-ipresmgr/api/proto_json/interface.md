@@ -52,7 +52,7 @@ type WB2IPResMgrReleaseIPPoolReq struct {
 }
 ```
 
-#### 2.3 IPPool扩缩容
+#### 2.3 IPPool扩缩容，webhook层通知ipresmgr修改副本数量，用户可以做update
 
 `Url: http://api.ipresmgr.com/v1/ippool/scale`
 
@@ -65,7 +65,6 @@ type WB2IPResMgrScaleIPPoolReq struct {
 	K8SApiResourceKind        K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
 	K8SClusterID              string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`
 	K8SNamespace              string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`
-	K8SApiResourceID          string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"`
 	K8SApiResourceName        string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	K8SApiResourceOldReplicas int                    `json:"K8SApiResourceOldReplicas" mapstructure:"K8SApiResourceOldReplicas"`
 	K8SApiResourceNewReplicas int                    `json:"K8SApiResourceNewReplicas" mapstructure:"K8SApiResourceNewReplicas"`

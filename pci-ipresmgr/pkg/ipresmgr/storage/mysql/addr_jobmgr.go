@@ -66,17 +66,17 @@ func (msm *mysqlStoreMgr) DelJobNetInfo(k8sResourceID string) error {
 
 // BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
 func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error {
-	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_k8SJobIPBind (k8sresource_id, 
+	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_K8SJobIPBind (k8sresource_id, 
 		ip, 
 		bind_podid, 
 		port_id) VALUES (?, ?, ?, ?)`, k8sResourceID, podIP, podID, portID)
 	if err != nil {
-		err = errors.Wrapf(err, "INSERT INTO tbl_k8SJobIPBind VALUES (%s, %s, %s, %s), Exec failed.", k8sResourceID,
+		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s), Exec failed.", k8sResourceID,
 			podIP, podID, portID)
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("INSERT INTO tbl_k8SJobIPBind VALUES (%s, %s, %s, %s), Exec successed.", k8sResourceID,
+	calm_utils.Debugf("INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s), Exec successed.", k8sResourceID,
 		podIP, podID, portID)
 	return nil
 }
@@ -85,25 +85,25 @@ func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, podIP strin
 func (msm *mysqlStoreMgr) UnbindJobPodWithPortID(k8sResourceID string, podID string) error {
 	var k8sJobIPBind table.TblK8SJobIPBindS
 
-	err := msm.dbMgr.Get(&k8sJobIPBind, `SELECT * FROM tbl_k8SJobIPBind WHERE k8sresource_id=? AND bind_podid=? LIMIT 1`,
+	err := msm.dbMgr.Get(&k8sJobIPBind, `SELECT * FROM tbl_K8SJobIPBind WHERE k8sresource_id=? AND bind_podid=? LIMIT 1`,
 		k8sResourceID, podID)
 	if err != nil {
-		err = errors.Wrapf(err, "SELECT * FROM tbl_k8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Get failed",
+		err = errors.Wrapf(err, "SELECT * FROM tbl_K8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Get failed",
 			k8sResourceID, podID)
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("SELECT * FROM tbl_k8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Get successed. k8sJobIPBind:%s",
+	calm_utils.Debugf("SELECT * FROM tbl_K8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Get successed. k8sJobIPBind:%s",
 		k8sResourceID, podID, litter.Sdump(&k8sJobIPBind))
 
 	// 删除
-	_, err = msm.dbMgr.Exec("DELETE FROM tbl_k8SJobIPBind WHERE k8sresource_id=? AND bind_podid=? LIMIT 1",
+	_, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SJobIPBind WHERE k8sresource_id=? AND bind_podid=? LIMIT 1",
 		k8sResourceID, podID)
 	if err != nil {
-		err = errors.Wrapf(err, "DELETE FROM tbl_k8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Exec failed.",
+		err = errors.Wrapf(err, "DELETE FROM tbl_K8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Exec failed.",
 			k8sResourceID, podID)
 	}
-	calm_utils.Debugf("DELETE FROM tbl_k8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Exec successed.",
+	calm_utils.Debugf("DELETE FROM tbl_K8SJobIPBind WHERE k8sresource_id=%s AND bind_podid=%s LIMIT 1, Exec successed.",
 		k8sResourceID, podID)
 	calm_utils.Debugf("Return k8s addr{%s---%s} to NSP", k8sJobIPBind.IP, k8sJobIPBind.PortID)
 	nsp.NSPMgr.ReleaseAddrResources(k8sJobIPBind.PortID)

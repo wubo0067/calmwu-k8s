@@ -72,13 +72,19 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
     PRIMARY KEY(k8sresource_id)         
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-CREATE TABLE IF NOT EXISTS tbl_k8SJobIPBind (
+CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name    
     ip VARCHAR(16) NOT NULL,                       -- 分配的ip
     bind_podid VARCHAR(36) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除  
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
     PRIMARY KEY(k8sresource_id, port_id),
     INDEX(bind_podid)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
+    recycle_mark_id VARCHAR(64) NOT NULL,          -- 回收标记id，每次都不同
+    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name  
+    PRIMARY KEY(recycle_mark_id, k8sresource_id)  
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_Test (
