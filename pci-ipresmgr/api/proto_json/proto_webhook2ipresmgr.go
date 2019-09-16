@@ -61,6 +61,9 @@ type WB2IPResMgrScaleIPPoolReq struct {
 	K8SApiResourceName        string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	K8SApiResourceOldReplicas int                    `json:"K8SApiResourceOldReplicas" mapstructure:"K8SApiResourceOldReplicas"`
 	K8SApiResourceNewReplicas int                    `json:"K8SApiResourceNewReplicas" mapstructure:"K8SApiResourceNewReplicas"`
+	NetRegionalID             string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`         // 网络域ID
+	SubnetID                  string                 `json:"SubnetID" mapstructure:"SubnetID"`                   // 子网ID
+	SubnetGatewayAddr         string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"` // 子网网关地址
 }
 
 // 操作返回信息
