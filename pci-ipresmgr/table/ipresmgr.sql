@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name 
     k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType 
     pod_id VARCHAR(128) NULL,                      -- statefulset准备
-    PRIMARY KEY(recycle_mark_id, k8sresource_id)
+    PRIMARY KEY(recycle_mark_id),
+    INDEX(k8sresource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_Test (

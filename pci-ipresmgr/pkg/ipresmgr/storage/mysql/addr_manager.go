@@ -11,6 +11,7 @@ import (
 	"context"
 	proto "pci-ipresmgr/api/proto_json"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/table"
 	"strings"
 	"time"
@@ -226,13 +227,67 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sRe
 		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0, bind_podid=? WHERE k8sresource_id=? AND bind_podid=?",
 			"", k8sResourceID, unBindPodID)
 		if err != nil {
-			calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s failed. err:%s.",
-				k8sResourceID, unBindPodID, err.Error())
+			err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s failed.",
+				k8sResourceID, unBindPodID)
+			calm_utils.Error(err.Error())
 			return err
 		}
 		updateRows, _ := updateRes.RowsAffected()
 		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s successed. updateRows:%d.",
 			k8sResourceID, unBindPodID, updateRows)
+
+		// 释放该IP
+		var recycleIP, portID string
+		ipBindRow := msm.dbMgr.QueryRow("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_podid=?",
+			k8sResourceID, unBindPodID)
+		err = ipBindRow.Scan(&recycleIP, &portID)
+		if err != nil {
+			err = errors.Wrapf(err, "SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND bind_podid=%s failed.",
+				k8sResourceID, unBindPodID)
+			calm_utils.Error(err.Error())
+			return err
+		}
+
+		// 判断该条记录是否要回收
+		if k8sResourceType == proto.K8SApiResourceKindDeployment {
+			var scaleDownMark table.TblK8SScaleDownMarkS
+			err = msm.dbMgr.Get(&scaleDownMark, "SELECT * FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? LIMIT 1")
+			if err != nil {
+				if !strings.Contains(err.Error(), "no rows in result set") {
+					err = errors.Wrapf(err, "SELECT * FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s LIMIT 1", k8sResourceID)
+					calm_utils.Error(err.Error())
+					return err
+				}
+				// 没有标记，无需处理
+				return nil
+			}
+
+			// 删除标记
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? AND recycle_mark_id=?",
+				k8sResourceID, scaleDownMark.RecycleMarkID)
+			if err != nil {
+				err = errors.Wrapf(err, "DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s AND recycle_mark_id=%s failed",
+					k8sResourceID, scaleDownMark.RecycleMarkID)
+				calm_utils.Error(err.Error())
+				return err
+			}
+
+			delRows, _ := delRes.RowsAffected()
+			if delRows != 1 {
+				err = errors.Wrapf(err, "DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s AND recycle_mark_id=%s is incorrect, delRows:%d",
+					k8sResourceID, scaleDownMark.RecycleMarkID, delRows)
+				calm_utils.Error(err)
+				return err
+			}
+
+			// 释放该条记录
+			msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_podid=?",
+				k8sResourceID, unBindPodID)
+			// NSP回收
+			nsp.NSPMgr.ReleaseAddrResources(portID)
+		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
+			// TODO:
+		}
 		return nil
 	})
 }
@@ -255,7 +310,7 @@ func (msm *mysqlStoreMgr) CheckRecycledResources(k8sResourceID string) (bool, in
 	delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?", k8sResourceID)
 	if err != nil {
 		err = errors.Wrapf(err, "DELETE tbl_K8SResourceIPRecycle by %s failed", k8sResourceID)
-		calm_utils.Fatalf(err.Error())
+		calm_utils.Error(err.Error())
 		return false, 0, err
 	}
 
@@ -338,8 +393,32 @@ func (msm *mysqlStoreMgr) ScaleDownK8SResourceAddrs(k8sResourceID string, scaleD
 
 func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
 	originalReplicas int, scaleDownSize int) error {
-	if k8sResourceType == proto.K8SApiResourceKindDeployment {
 
+	if k8sResourceType == proto.K8SApiResourceKindDeployment {
+		return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
+			tx := msm.dbMgr.MustBegin()
+			// tbl_K8SScaleDownMark 插入
+			for scaleDownSize > 0 {
+				recycleMarkID := uuid.New().String()
+				_, err := tx.Exec(`INSERT INTO tbl_K8SScaleDownMark (recycle_mark_id, k8sresource_id, k8sresource_type) VALUES (?, ?, ?)`,
+					recycleMarkID,
+					k8sResourceID,
+					k8sResourceType,
+				)
+				if err != nil {
+					err = errors.Wrapf(err, "INSERT tbl_K8SScaleDownMark recycleMarkID:%s k8sResourceID:%s %d failed.",
+						recycleMarkID, k8sResourceID, scaleDownSize)
+					calm_utils.Error(err.Error())
+					tx.Rollback()
+					return err
+				} else {
+					calm_utils.Debugf("INSERT tbl_K8SScaleDownMark %s %s %s successed.", recycleMarkID, k8sResourceID, k8sResourceType.String())
+				}
+				scaleDownSize--
+			}
+			tx.Commit()
+			return nil
+		})
 	}
 	return nil
 }
