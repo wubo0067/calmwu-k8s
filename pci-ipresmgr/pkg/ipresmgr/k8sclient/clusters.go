@@ -57,7 +57,7 @@ func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K
 				kci.multiClusterClient.Store(k8sClusterCfgData.K8SClusterID, clientSet)
 				loadOk = false
 			} else {
-				calm_utils.Errorf("Load cluster:%s kube config successed", k8sClusterCfgData.K8SClusterID)
+				calm_utils.Debugf("Load cluster:%s kube config successed", k8sClusterCfgData.K8SClusterID)
 			}
 		}
 	}
