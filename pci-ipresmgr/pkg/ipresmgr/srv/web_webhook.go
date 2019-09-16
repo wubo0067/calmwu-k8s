@@ -202,6 +202,27 @@ func wbScaleIPPool(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoSuccessed
 	defer sendResponse(c, &res)
 
+	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
+
 	// TODO:
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+		if req.K8SApiResourceNewReplicas > req.K8SApiResourceOldReplicas {
+			// 需要增加地址
+			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleUp [%d===>%d]",
+				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceOldReplicas, req.K8SApiResourceNewReplicas)
+		} else if req.K8SApiResourceNewReplicas < req.K8SApiResourceOldReplicas {
+			// 需要缩减地址
+			// 插入标记表，在cni真正释放的时候才回收给nsp
+			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleDown [%d<===%d]",
+				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceNewReplicas, req.K8SApiResourceOldReplicas)
+			storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceOldReplicas,
+				(req.K8SApiResourceOldReplicas - req.K8SApiResourceNewReplicas))
+		}
+	} else {
+		err = errors.Errorf("Kind[%s] Not support scale IPPool", req.K8SApiResourceKind.String())
+		res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
+		res.Msg = err.Error()
+		calm_utils.Error(err.Error())
+	}
 	return
 }

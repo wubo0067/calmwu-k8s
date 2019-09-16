@@ -335,3 +335,11 @@ func (msm *mysqlStoreMgr) ScaleDownK8SResourceAddrs(k8sResourceID string, scaleD
 	calm_utils.Debugf("k8sResourceID:%s scaleDownSize:%d", k8sResourceID, scaleDownSize)
 	return nil
 }
+
+func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
+	originalReplicas int, scaleDownSize int) error {
+	if k8sResourceType == proto.K8SApiResourceKindDeployment {
+
+	}
+	return nil
+}

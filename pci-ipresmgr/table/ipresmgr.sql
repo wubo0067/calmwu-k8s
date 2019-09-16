@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址
     alloc_time TIMESTAMP NOT NULL,                 -- ip从nsp分配的时间   
     is_bind TINYINT NOT NULL,                      -- ip是否绑定，0：没有绑定，1：绑定
-    bind_podid VARCHAR(36) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除
+    bind_podid VARCHAR(128) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
     PRIMARY KEY(k8sresource_id, port_id),
     INDEX(bind_podid),
@@ -35,13 +35,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
     replicas INT NOT NULL,                         -- pod数量
     create_time TIMESTAMP NOT NULL,                -- 释放资源插入时间
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip资源归还给nsp的时间，租期到期时间
-    recycle_object_id VARCHAR(64) NOT NULL,        -- 回收对象id，每次都不同
-    -- unbind_count INT NOT NULL DEFAULT 0,            取消绑定的数量    
-    -- netregional_id VARCHAR(128) NOT NULL,           释放用到的网络域id
-    -- subnet_id VARCHAR(36) NOT NULL,                 释放用到的子网id
-    -- port_id VARCHAR(48) NOT NULL,                   PortID，释放只需要这个参数  
-    -- subnetgatewayaddr VARCHAR(16) NOT NULL,         子网网关地址    
-    -- nsp_resources BLOB,                             释放的ip列表，[{ip,portid},....]  
+    recycle_object_id VARCHAR(64) NOT NULL,        -- 回收对象id，每次都不同  
     PRIMARY KEY(k8sresource_id),
     INDEX(srv_instance_name),
     INDEX(recycle_object_id)
@@ -60,7 +54,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
     create_time TIMESTAMP NOT NULL,                -- 插入时间  
     PRIMARY KEY(id),
     INDEX(k8sresource_id),
-    INDEX(port_id),
+    INDEX(port_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
@@ -83,8 +77,10 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
 
 CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
     recycle_mark_id VARCHAR(64) NOT NULL,          -- 回收标记id，每次都不同
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name  
-    PRIMARY KEY(recycle_mark_id, k8sresource_id)  
+    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name 
+    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType 
+    pod_id VARCHAR(128) NULL,                      -- statefulset准备
+    PRIMARY KEY(recycle_mark_id, k8sresource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_Test (

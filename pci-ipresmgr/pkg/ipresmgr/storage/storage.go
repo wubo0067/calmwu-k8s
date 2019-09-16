@@ -61,6 +61,9 @@ type StoreMgr interface {
 
 	// ScaledK8SResourceAddrs 给k8s资源地址数量进行缩容
 	ScaleDownK8SResourceAddrs(k8sResourceID string, scaleDownSize int) error
+
+	// AddScaleDownMarked 添加缩减标记，每个一条记录
+	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, originalReplicas int, scaleDownSize int) error
 }
 
 // StoreOptions 存储的参数

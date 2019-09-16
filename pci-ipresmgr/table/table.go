@@ -82,3 +82,10 @@ type TblK8SJobIPBindS struct {
 	BindPodID     string `db:"bind_podid"`
 	PortID        string `db:"port_id"`
 }
+
+type TblK8SScaleDownMarkS struct {
+	RecycleMarkID   string         `db:"recycle_mark_id"`
+	K8SResourceID   string         `db:"k8sresource_id"`
+	K8SResourceType int            `db:"k8sresource_type"` // proto.K8SApiResourceKindType
+	PodID           sql.NullString `db:"pod_id"`
+}
