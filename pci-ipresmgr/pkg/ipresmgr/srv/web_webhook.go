@@ -199,15 +199,38 @@ func wbScaleIPPool(c *gin.Context) {
 
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestScaleIPPool
-	res.Code = proto.IPResMgrErrnoSuccessed
+	res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 	defer sendResponse(c, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
-	// TODO:
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		if req.K8SApiResourceNewReplicas > req.K8SApiResourceOldReplicas {
 			// 需要增加地址
+
+			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, (req.K8SApiResourceNewReplicas - req.K8SApiResourceOldReplicas),
+				req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+			if err != nil {
+				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
+				res.Msg = err.Error()
+				calm_utils.Error(err.Error())
+				return
+			}
+
+			// 设置地址
+			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+			if err != nil {
+				// 设置对应关系失败，见IP归还给NSP
+				for _, k8sAddr := range k8sAddrs {
+					nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
+				}
+				err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
+				res.Msg = err.Error()
+				calm_utils.Error(err.Error())
+				return
+			}
+
+			res.Code = proto.IPResMgrErrnoSuccessed
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleUp [%d===>%d]",
 				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceOldReplicas, req.K8SApiResourceNewReplicas)
 		} else if req.K8SApiResourceNewReplicas < req.K8SApiResourceOldReplicas {
