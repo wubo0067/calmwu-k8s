@@ -38,16 +38,16 @@ func wbCreateIPPool(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoCreateIPPoolFailed
 	defer sendResponse(c, &res)
 
-	if req.K8SApiResourceReplicas <= 0 {
-		errInfo := fmt.Sprintf("ReqID:%s K8SApiResourceReplicas is invalid.", req.K8SApiResourceReplicas)
-		calm_utils.Error(errInfo)
-		res.Msg = errInfo
-		return
-	}
-
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+		if req.K8SApiResourceReplicas <= 0 {
+			errInfo := fmt.Sprintf("ReqID:%s K8SApiResourceReplicas is invalid.", req.K8SApiResourceReplicas)
+			calm_utils.Error(errInfo)
+			res.Msg = errInfo
+			return
+		}
+
 		// 判断是否在租期内，以及当前副本数量
 		exists, replicas, err := storeMgr.CheckRecycledResources(k8sResourceID)
 		if err != nil {
