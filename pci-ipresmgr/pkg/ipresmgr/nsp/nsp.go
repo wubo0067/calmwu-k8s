@@ -96,7 +96,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 		}
 		// 发送请求
 		allocPortsURL := fmt.Sprintf("%s", ni.nspURL)
-		resData, err := calm_utils.PostRequest(allocPortsURL, serialData)
+		resData, httpCode, err := calm_utils.PostRequest(allocPortsURL, serialData)
 		if err != nil {
 			err = errors.Wrapf(err, "Post k8sResourceID:[%s] allocPortsURL:[%s] failed.", k8sResourceID, allocPortsURL)
 			calm_utils.Error(err)
@@ -104,31 +104,36 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 			return nil, err
 		}
 
-		// 解析请求
-		allocPortsRes := &NSPAllocPortsRes{}
-		err = json.Unmarshal(resData, allocPortsRes)
-		if err != nil {
-			err = errors.Wrapf(err, "Unmarshal k8sResourceID:[%s] allocPortsRes failed.", k8sResourceID)
-			calm_utils.Error(err)
-			rollBackFlag = 1
+		if httpCode >= 200 && httpCode <= 299 {
+			// 解析请求
+			allocPortsRes := &NSPAllocPortsRes{}
+			err = json.Unmarshal(resData, allocPortsRes)
+			if err != nil {
+				err = errors.Wrapf(err, "Unmarshal k8sResourceID:[%s] allocPortsRes failed.", k8sResourceID)
+				calm_utils.Error(err)
+				rollBackFlag = 1
+				return nil, err
+			}
+
+			for index := range allocPortsRes.PortLst {
+				portResult := &allocPortsRes.PortLst[index]
+
+				calm_utils.Debugf("%d portResult:%+v", index, portResult)
+				k8sAddrInfoLst = append(k8sAddrInfoLst, &proto.K8SAddrInfo{
+					IP:                portResult.FixedIPs[0].IP,
+					MacAddr:           portResult.MacAddress,
+					NetRegionalID:     netRegionID,
+					SubNetID:          subNetID,
+					PortID:            portResult.PortID,
+					SubNetGatewayAddr: subNetGatewayAddr,
+				})
+			}
+			replicas -= batchCount
+		} else {
+			err = errors.Errorf("Post to %s, httpCode is not 2xx", allocPortsURL)
+			calm_utils.Errorf(err.Error())
 			return nil, err
 		}
-
-		for index := range allocPortsRes.PortLst {
-			portResult := &allocPortsRes.PortLst[index]
-
-			calm_utils.Debugf("%d portResult:%+v", index, portResult)
-			k8sAddrInfoLst = append(k8sAddrInfoLst, &proto.K8SAddrInfo{
-				IP:                portResult.FixedIPs[0].IP,
-				MacAddr:           portResult.MacAddress,
-				NetRegionalID:     netRegionID,
-				SubNetID:          subNetID,
-				PortID:            portResult.PortID,
-				SubNetGatewayAddr: subNetGatewayAddr,
-			})
-		}
-
-		replicas -= batchCount
 	}
 	return k8sAddrInfoLst, nil
 }
@@ -145,6 +150,9 @@ func (ni *nspMgrImpl) ReleaseAddrResources(portID string) error {
 		calm_utils.Error(err)
 		return err
 	}
+
+	calm_utils.Debugf("Post to %s, httpCode:%d", delPortURL, res.StatusCode)
+
 	if res != nil {
 		defer res.Body.Close()
 	}

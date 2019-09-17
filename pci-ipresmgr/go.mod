@@ -28,7 +28,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20190911083930-4d85ac10bc70
+	github.com/wubo0067/calmwu-go v0.0.0-20190917070104-3322ebfe4ef4
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0

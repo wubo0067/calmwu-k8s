@@ -39,17 +39,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 				k8sResourceType.String(), k8sAddrInfo)
 
 			insRes := tx.MustExec(`INSERT INTO tbl_K8SResourceIPBind 
-			k8sresource_id, 
-			k8sresource_type, 
-			ip, 
-			mac,
-			netregional_id,
-			subnet_id,
-			port_id,
-			subnetgatewayaddr,
-			alloc_time,
-			is_bind,
-			VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
+			(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				k8sResourceID,
 				int(k8sResourceType),
 				k8sAddrInfo.IP,
@@ -103,7 +94,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 				}
 			}(&transactionFlag)
 
-			selRow := tx.QueryRow("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1",
+			selRow := tx.QueryRow("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1 FOR UPDATE",
 				k8sResourceID, k8sResourceType)
 			if selRow == nil {
 				err = errors.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s AND is_bind=0 LIMIT 1, QueryRow return Nil",
@@ -224,16 +215,16 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sRe
 	unBindPodID string) error {
 
 	return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
-		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0, bind_podid=? WHERE k8sresource_id=? AND bind_podid=?",
-			"", k8sResourceID, unBindPodID)
+		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0 WHERE k8sresource_id=? AND bind_podid=?",
+			k8sResourceID, unBindPodID)
 		if err != nil {
-			err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s failed.",
+			err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE k8sresource_id=%s AND bind_podid=%s failed.",
 				k8sResourceID, unBindPodID)
 			calm_utils.Error(err.Error())
 			return err
 		}
 		updateRows, _ := updateRes.RowsAffected()
-		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0, bind_podid=\"\" WHERE k8sresource_id=%s AND bind_podid=%s successed. updateRows:%d.",
+		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE k8sresource_id=%s AND bind_podid=%s successed. updateRows:%d.",
 			k8sResourceID, unBindPodID, updateRows)
 
 		// 释放该IP
@@ -251,7 +242,7 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sRe
 		// 判断该条记录是否要回收
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
 			var scaleDownMark table.TblK8SScaleDownMarkS
-			err = msm.dbMgr.Get(&scaleDownMark, "SELECT * FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? LIMIT 1")
+			err = msm.dbMgr.Get(&scaleDownMark, "SELECT * FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? LIMIT 1", k8sResourceID)
 			if err != nil {
 				if !strings.Contains(err.Error(), "no rows in result set") {
 					err = errors.Wrapf(err, "SELECT * FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s LIMIT 1", k8sResourceID)
