@@ -77,13 +77,19 @@ func cniRequireIP(c *gin.Context) {
 					res.Msg = err.Error()
 				} else {
 					k8sPodAddrInfo := k8sAddrs[0]
-					res.IP = k8sPodAddrInfo.IP
-					res.MacAddr = k8sPodAddrInfo.MacAddr
-					res.PortID = k8sPodAddrInfo.PortID
-					res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
-					res.Code = proto.IPResMgrErrnoSuccessed
-					calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
-						k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+					err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, req.K8SPodID)
+					if err != nil {
+						// 归还地址
+						nsp.NSPMgr.ReleaseAddrResources(k8sPodAddrInfo.PortID)
+					} else {
+						res.IP = k8sPodAddrInfo.IP
+						res.MacAddr = k8sPodAddrInfo.MacAddr
+						res.PortID = k8sPodAddrInfo.PortID
+						res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
+						res.Code = proto.IPResMgrErrnoSuccessed
+						calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
+							k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+					}
 				}
 			}
 		}

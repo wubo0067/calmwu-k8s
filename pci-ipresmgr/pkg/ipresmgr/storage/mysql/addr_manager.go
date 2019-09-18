@@ -387,14 +387,16 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 
 	if k8sResourceType == proto.K8SApiResourceKindDeployment {
 		return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
+			now := time.Now()
 			tx := msm.dbMgr.MustBegin()
 			// tbl_K8SScaleDownMark 插入
 			for scaleDownSize > 0 {
 				recycleMarkID := uuid.New().String()
-				_, err := tx.Exec(`INSERT INTO tbl_K8SScaleDownMark (recycle_mark_id, k8sresource_id, k8sresource_type) VALUES (?, ?, ?)`,
+				_, err := tx.Exec(`INSERT INTO tbl_K8SScaleDownMark (recycle_mark_id, k8sresource_id, k8sresource_type, create_time) VALUES (?, ?, ?, ?)`,
 					recycleMarkID,
 					k8sResourceID,
 					k8sResourceType,
+					now,
 				)
 				if err != nil {
 					err = errors.Wrapf(err, "INSERT tbl_K8SScaleDownMark recycleMarkID:%s k8sResourceID:%s %d failed.",
@@ -403,7 +405,8 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 					tx.Rollback()
 					return err
 				} else {
-					calm_utils.Debugf("INSERT tbl_K8SScaleDownMark %s %s %s successed.", recycleMarkID, k8sResourceID, k8sResourceType.String())
+					calm_utils.Debugf("INSERT tbl_K8SScaleDownMark VALUES(%s, %s, %s, %s) successed.",
+						recycleMarkID, k8sResourceID, k8sResourceType.String(), now.String())
 				}
 				scaleDownSize--
 			}

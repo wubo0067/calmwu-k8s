@@ -11,6 +11,7 @@ import (
 	proto "pci-ipresmgr/api/proto_json"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/table"
+	"time"
 
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
@@ -22,19 +23,21 @@ import (
 // SetJobNetInfo 设置job、cronjob的网络信息
 func (msm *mysqlStoreMgr) SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
 	netRegionalID, subNetID, subNetGatewayAddr string) error {
+	now := time.Now()
 	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_K8SJobNetInfo (k8sresource_id, 
 		k8sresource_type, 
 		netregional_id, 
 		subnet_id,
-		subnetgatewayaddr) VALUES (?, ?, ?, ?, ?)`, k8sResourceID, int(k8sResourceType), netRegionalID, subNetID, subNetGatewayAddr)
+		subnetgatewayaddr,
+		create_time) VALUES (?, ?, ?, ?, ?, ?)`, k8sResourceID, int(k8sResourceType), netRegionalID, subNetID, subNetGatewayAddr, now)
 	if err != nil {
-		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobNetInfo VALUES (%s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
-			k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr)
+		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobNetInfo VALUES (%s, %s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
+			k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, now.String())
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("SetJobNetInfo k8sResourceID:%s k8sResourceType:%s netRegionalID:%s subNetID:%s subNetGatewayAddr:%s successed.",
-		k8sResourceID, k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr)
+	calm_utils.Debugf("SetJobNetInfo k8sResourceID:%s k8sResourceType:%s netRegionalID:%s subNetID:%s subNetGatewayAddr:%s createTime:%s successed.",
+		k8sResourceID, k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, now.String())
 	return nil
 }
 
@@ -66,18 +69,20 @@ func (msm *mysqlStoreMgr) DelJobNetInfo(k8sResourceID string) error {
 
 // BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
 func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error {
+	now := time.Now()
 	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_K8SJobIPBind (k8sresource_id, 
 		ip, 
 		bind_podid, 
-		port_id) VALUES (?, ?, ?, ?)`, k8sResourceID, podIP, podID, portID)
+		port_id,
+		bind_time ) VALUES (?, ?, ?, ?, ?)`, k8sResourceID, podIP, podID, portID, now)
 	if err != nil {
-		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s), Exec failed.", k8sResourceID,
-			podIP, podID, portID)
+		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
+			podIP, podID, portID, now.String())
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s), Exec successed.", k8sResourceID,
-		podIP, podID, portID)
+	calm_utils.Debugf("INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s, %s), Exec successed.", k8sResourceID,
+		podIP, podID, portID, now.String())
 	return nil
 }
 

@@ -179,7 +179,7 @@ func wbReleaseIPPool(c *gin.Context) {
 		if err != nil {
 			calm_utils.Errorf("Req:%s DelJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
 		} else {
-			calm_utils.Errorf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
+			calm_utils.Debugf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
 		}
 	}
 
@@ -199,7 +199,7 @@ func wbScaleIPPool(c *gin.Context) {
 
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestScaleIPPool
-	res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
+	res.Code = proto.IPResMgrErrnoSuccessed
 	defer sendResponse(c, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
@@ -213,6 +213,7 @@ func wbScaleIPPool(c *gin.Context) {
 			if err != nil {
 				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
 				res.Msg = err.Error()
+				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
 				return
 			}
@@ -226,6 +227,7 @@ func wbScaleIPPool(c *gin.Context) {
 				}
 				err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
 				res.Msg = err.Error()
+				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
 				return
 			}
