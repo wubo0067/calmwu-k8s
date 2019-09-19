@@ -33,6 +33,7 @@ type TblK8SResourceIPBindS struct {
 	IsBind            int8           `db:"is_bind"`
 	BindPodID         sql.NullString `db:"bind_podid"`
 	BindTime          time.Time      `db:"bind_time"`
+	ScaledownFlag     int            `db:"scaledown_flag"`
 }
 
 // TblK8SResourceIPRecycleS 地址资源回收表

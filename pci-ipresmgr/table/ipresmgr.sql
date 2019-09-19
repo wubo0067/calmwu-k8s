@@ -20,8 +20,9 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址
     alloc_time TIMESTAMP NOT NULL,                 -- ip从nsp分配的时间   
     is_bind TINYINT NOT NULL,                      -- ip是否绑定，0：没有绑定，1：绑定
-    bind_podid VARCHAR(128) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除
+    bind_podid VARCHAR(128) NULL,                  -- 绑定的podid，解绑后StatefuSet这个podid不能清除
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
+    scaledown_flag int NOT NULL DEFAULT 0,         -- 是否scaledown标志，设置该标志后，unbind后立即归还给nsp
     PRIMARY KEY(k8sresource_id, port_id),
     INDEX(bind_podid),
     INDEX(k8sresource_type),
@@ -77,6 +78,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
     INDEX(bind_podid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+-- !!Deprecate!!
 CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
     recycle_mark_id VARCHAR(64) NOT NULL,          -- 回收标记id，每次都不同
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name 

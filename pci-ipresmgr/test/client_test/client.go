@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	proto "pci-ipresmgr/api/proto_json"
 
@@ -24,9 +25,12 @@ import (
 )
 
 var (
-	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30002/", "srv ipresmgr addr")
+	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
 	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP")
 	unBindPodID     = flag.String("unbindpodid", "", "Unbind podID")
+	oldReplicas     = flag.Int("oldreplicas", 0, "old replicas")
+	newReplicas     = flag.Int("newreplicas", 1, "new replicas")
+	parallel        = flag.Int("parallel", 1, "parallel requests")
 	logger          *log.Logger
 )
 
@@ -93,6 +97,38 @@ func testReleaseIPPool() {
 	logger.Printf("releaseIPPooRes:%s\n", litter.Sdump(&releaseIPPooRes))
 }
 
+func testScaleIPPool() {
+	var scaleIPPoolReq proto.WB2IPResMgrScaleIPPoolReq
+	scaleIPPoolReq.ReqID = ksuid.New().String()
+	scaleIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	scaleIPPoolReq.K8SClusterID = "cluster-1"
+	scaleIPPoolReq.K8SNamespace = "default"
+	scaleIPPoolReq.K8SApiResourceName = "kata-nginx-deployment"
+	scaleIPPoolReq.K8SApiResourceOldReplicas = *oldReplicas
+	scaleIPPoolReq.K8SApiResourceNewReplicas = *newReplicas
+	scaleIPPoolReq.NetRegionalID = fmt.Sprintf("netregional-%s", ksuid.New().String())
+	scaleIPPoolReq.SubnetID = fmt.Sprintf("subnet-%s", ksuid.New().String())
+	scaleIPPoolReq.SubnetGatewayAddr = "1.1.1.1"
+
+	var scaleIPPoolRes proto.IPResMgr2WBRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&scaleIPPoolReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/ippool/").Post("scale").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&scaleIPPoolRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/ippool/scale failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode != 200 {
+		logger.Fatalf("post %sv1/ippool/scale failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("scaleIPPoolRes:%s\n", litter.Sdump(&scaleIPPoolRes))
+}
+
 func testRequireIP() {
 	var requireIPReq proto.IPAM2IPResMgrRequireIPReq
 	requireIPReq.ReqID = ksuid.New().String()
@@ -152,6 +188,7 @@ func testReleaseIP() {
 func main() {
 	flag.Parse()
 
+	var wg sync.WaitGroup
 	logger = calm_utils.NewSimpleLog(nil)
 
 	switch *testType {
@@ -159,13 +196,22 @@ func main() {
 		testCreateIPPool()
 	case 2:
 		testReleaseIPPool()
+	case 3:
+		testScaleIPPool()
 	case 4:
-		testRequireIP()
+		wg.Add(*parallel)
+		for i := 0; i < *parallel; i++ {
+			go func() {
+				defer wg.Done()
+				testRequireIP()
+			}()
+		}
 	case 5:
 		testReleaseIP()
 	default:
 		logger.Fatalf("Not support type:%d\n", *testType)
 	}
 
+	wg.Wait()
 	logger.Println("test completed")
 }

@@ -49,7 +49,7 @@ func cniRequireIP(c *gin.Context) {
 			res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 			res.PortID = k8sPodAddrInfo.PortID
 			res.Code = proto.IPResMgrErrnoSuccessed
-			calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
+			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podID:%s bind with addrInfo:%s successed.", req.ReqID,
 				k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
