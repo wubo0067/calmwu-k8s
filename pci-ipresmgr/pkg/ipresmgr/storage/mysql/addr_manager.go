@@ -12,6 +12,7 @@ import (
 	"database/sql"
 	proto "pci-ipresmgr/api/proto_json"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/k8sclient"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/table"
 	"strings"
@@ -22,11 +23,6 @@ import (
 	"github.com/sanity-io/litter"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
-
-// GetAddrCountByK8SResourceID 根据资源id名，获取k8s资源对应的地址数量
-func (msm *mysqlStoreMgr) GetAddrCountByK8SResourceID(k8sResourceID string) (int, error) {
-	return 0, nil
-}
 
 // SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
@@ -207,6 +203,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 		calm_utils.Infof("k8sResourceID:[%s] k8sResourceType:[%s] bindPodID:[%s] bind Addr:[%s]", k8sResourceID,
 			k8sResourceType.String(), bindPodID, litter.Sdump(k8sAddrInfo))
 	} else {
+		// TODO 发送告警
 		calm_utils.Errorf("k8sResourceID:[%s] k8sResourceType:[%s] bindPodID:[%s] bind Addr failed", k8sResourceID,
 			k8sResourceType.String(), bindPodID)
 	}
@@ -354,9 +351,54 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 	return nil
 }
 
-func (msm *mysqlStoreMgr) ScaleDownK8SResourceAddrs(k8sResourceID string, scaleDownSize int) error {
+// ReduceK8SResourceAddrs 租期恢复期间降低副本数量
+func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error {
+	// 找出所有对应地址，见解绑中的地址进行回收，如果数量不够，就等待，等待超时就失败
+	calm_utils.Debugf("k8sResourceID:%s reduceCount:%d", k8sResourceID, reduceCount)
 
-	calm_utils.Debugf("k8sResourceID:%s scaleDownSize:%d", k8sResourceID, scaleDownSize)
+	reduceRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPBind")
+	if err != nil {
+		errors.Wrap(err, "SELECT * FROM tbl_K8SResourceIPBind WHEREfailed.")
+		calm_utils.Error(err.Error())
+		return err
+	}
+
+	reduceK8sBindAddrs := make([]*table.TblK8SResourceIPBindS, 0)
+	unbindCount := 0
+	for reduceRows.Next() {
+		k8sBindAddr := new(table.TblK8SResourceIPBindS)
+		err = reduceRows.StructScan(k8sBindAddr)
+		if err != nil {
+			errors.Wrapf(err, "StructScan for tbl_K8SResourceIPBind record failed.")
+			calm_utils.Error(err.Error())
+			return err
+		}
+		reduceK8sBindAddrs = append(reduceK8sBindAddrs, k8sBindAddr)
+		if k8sBindAddr.IsBind == 0 {
+			unbindCount++
+		}
+	}
+
+	calm_utils.Infof("k8sResourceID:%s UnBind Addr count:%d", k8sResourceID, unbindCount)
+
+	if unbindCount < reduceCount {
+		// TODO: 告警
+		// 去查询还有哪些没有释放的pod状态，node状态
+		for _, k8sBindAddr := range reduceK8sBindAddrs {
+			k8sclient.K8SClient.GetNodeStatus(k8sResourceID, k8sBindAddr.PortID)
+		}
+	} else {
+		// 找到reduce count的unbind地址进行释放
+		for _, k8sBindAddr := range reduceK8sBindAddrs {
+			if k8sBindAddr.IsBind == 0 {
+
+				unbindCount--
+				if unbindCount == 0 {
+					break
+				}
+			}
+		}
+	}
 	return nil
 }
 

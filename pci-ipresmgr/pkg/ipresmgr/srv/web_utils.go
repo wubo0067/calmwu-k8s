@@ -51,5 +51,5 @@ func sendResponse(c *gin.Context, res interface{}) {
 }
 
 func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {
-	return fmt.Sprintf("%s-%s-%s", clusterID, k8sNamespace, k8sResourceName)
+	return fmt.Sprintf("%s:%s:%s", clusterID, k8sNamespace, k8sResourceName)
 }

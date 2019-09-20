@@ -10,6 +10,7 @@ package k8sclient
 import (
 	"encoding/base64"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -27,7 +28,7 @@ type K8SClient interface {
 	GetClientSetByClusterID(clusterID string) *kubernetes.Clientset
 
 	// 根据cluster-id, namespace，pod-id获取所在节点node的状态
-	GetNodeStatus(clusterID string, namespace string, podID string) error
+	GetNodeStatus(k8sResourceID string, podID string) error
 }
 
 type K8sClientImpl struct {
@@ -74,7 +75,16 @@ func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.
 }
 
 // GetNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
-func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podID string) error {
+func (kci *K8sClientImpl) GetNodeStatus(k8sResourceID string, podID string) error {
+	content := k8sResourceID
+	pos := strings.IndexByte(k8sResourceID, ':')
+	clusterID := k8sResourceID[:pos]
+	content = k8sResourceID[pos+1:]
+	pos = strings.IndexByte(content, ':')
+	namespace := content[:pos]
+
+	calm_utils.Debugf("k8sResourceID:%s clusterID:%s namespace:%s", clusterID, clusterID, namespace)
+
 	clientSet := kci.GetClientSetByClusterID(clusterID)
 	if clientSet == nil {
 		err := errors.Errorf("clusterID:%s not in config", clusterID)
@@ -90,10 +100,9 @@ func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podI
 		calm_utils.Error(err.Error())
 		return err
 	}
+	calm_utils.Debugf("clusterID:%s namespace:%s podID:%s Status:%#v", clusterID, namespace, podID, k8sPod.Status)
 
 	nodeName := k8sPod.Spec.NodeName
-	calm_utils.Debugf("clusterID:%s namespace:%s podID:%s Nodename:%s", clusterID, namespace, podID, nodeName)
-
 	k8sNode, err := clientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{
 		ResourceVersion: "0",
 	})
@@ -103,6 +112,6 @@ func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podI
 		return err
 	}
 
-	calm_utils.Debugf("%v", k8sNode.Status.Conditions)
+	calm_utils.Debugf("node:%s status:%v", nodeName, k8sNode.Status.Conditions)
 	return nil
 }
