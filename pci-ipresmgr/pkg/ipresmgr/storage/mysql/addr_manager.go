@@ -364,7 +364,7 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 	}
 
 	reduceK8sBindAddrs := make([]*table.TblK8SResourceIPBindS, 0)
-	unbindCount := 0
+	unBindCount := 0
 	for reduceRows.Next() {
 		k8sBindAddr := new(table.TblK8SResourceIPBindS)
 		err = reduceRows.StructScan(k8sBindAddr)
@@ -375,13 +375,13 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		}
 		reduceK8sBindAddrs = append(reduceK8sBindAddrs, k8sBindAddr)
 		if k8sBindAddr.IsBind == 0 {
-			unbindCount++
+			unBindCount++
 		}
 	}
 
-	calm_utils.Infof("k8sResourceID:%s UnBind Addr count:%d", k8sResourceID, unbindCount)
+	calm_utils.Infof("k8sResourceID:%s UnBind Addr count:%d", k8sResourceID, unBindCount)
 
-	if unbindCount < reduceCount {
+	if unBindCount < reduceCount {
 		// TODO: 告警
 		// 去查询还有哪些没有释放的pod状态，node状态
 		for _, k8sBindAddr := range reduceK8sBindAddrs {
@@ -391,9 +391,15 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		// 找到reduce count的unbind地址进行释放
 		for _, k8sBindAddr := range reduceK8sBindAddrs {
 			if k8sBindAddr.IsBind == 0 {
-
-				unbindCount--
-				if unbindCount == 0 {
+				calm_utils.Infof("k8sResourceID:%s BindPodID:%s ip:%s portID:%s address will be recycled and returned to nsp",
+					k8sResourceID, k8sBindAddr.BindPodID, k8sBindAddr.IP, k8sBindAddr.PortID)
+				// 删除该条记录
+				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_podid=?",
+					k8sResourceID, k8sBindAddr.BindPodID)
+				// NSP回收
+				nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
+				unBindCount--
+				if unBindCount == 0 {
 					break
 				}
 			}
