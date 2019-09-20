@@ -27,8 +27,8 @@ type K8SClient interface {
 	// GetClientSetByClusterID 获取clientset根据clusterid
 	GetClientSetByClusterID(clusterID string) *kubernetes.Clientset
 
-	// 根据cluster-id, namespace，pod-id获取所在节点node的状态
-	GetNodeStatus(k8sResourceID string, podID string) error
+	// 根据cluster-id, namespace，pod-id获取所在节点node的状态和pod的状态
+	GetPodAndNodeStatus(k8sResourceID string, podID string) error
 }
 
 // K8SClientImpl 接口的实现
@@ -75,8 +75,8 @@ func (kci *K8SClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.
 	return nil
 }
 
-// GetNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
-func (kci *K8SClientImpl) GetNodeStatus(k8sResourceID string, podID string) error {
+// GetPodAndNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
+func (kci *K8SClientImpl) GetPodAndNodeStatus(k8sResourceID string, podID string) error {
 	content := k8sResourceID
 	pos := strings.IndexByte(k8sResourceID, ':')
 	clusterID := k8sResourceID[:pos]
