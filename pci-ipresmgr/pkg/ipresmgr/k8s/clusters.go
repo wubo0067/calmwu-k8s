@@ -5,7 +5,7 @@
  * @Last Modified time: 2019-09-13 16:17:03
  */
 
-package k8sclient
+package k8s
 
 import (
 	"encoding/base64"
@@ -31,17 +31,18 @@ type K8SClient interface {
 	GetNodeStatus(k8sResourceID string, podID string) error
 }
 
-type K8sClientImpl struct {
+// K8SClientImpl 接口的实现
+type K8SClientImpl struct {
 	multiClusterClient sync.Map
 }
 
 var (
 	// DefaultK8SClient 默认对象
-	DefaultK8SClient K8SClient = &K8sClientImpl{}
+	DefaultK8SClient K8SClient = &K8SClientImpl{}
 )
 
 // LoadMultiClusterClient 通过配置数据加载多集群的clientset
-func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
+func (kci *K8SClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
 	var loadOk bool = true
 	for index := range k8sClusterCfgDataLst {
 		k8sClusterCfgData := &k8sClusterCfgDataLst[index]
@@ -66,7 +67,7 @@ func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K
 }
 
 // GetClientSetByClusterID 获取clientset根据clusterid
-func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.Clientset {
+func (kci *K8SClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.Clientset {
 	value, exist := kci.multiClusterClient.Load(clusterID)
 	if exist {
 		return value.(*kubernetes.Clientset)
@@ -75,7 +76,7 @@ func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.
 }
 
 // GetNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
-func (kci *K8sClientImpl) GetNodeStatus(k8sResourceID string, podID string) error {
+func (kci *K8SClientImpl) GetNodeStatus(k8sResourceID string, podID string) error {
 	content := k8sResourceID
 	pos := strings.IndexByte(k8sResourceID, ':')
 	clusterID := k8sResourceID[:pos]

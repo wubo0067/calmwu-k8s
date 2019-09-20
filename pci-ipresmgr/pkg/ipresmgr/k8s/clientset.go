@@ -5,7 +5,7 @@
  * @Last Modified time: 2019-09-13 16:02:25
  */
 
-package k8sclient
+package k8s
 
 import (
 	"time"

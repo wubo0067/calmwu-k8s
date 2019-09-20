@@ -385,7 +385,7 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		// TODO: 告警
 		// 去查询还有哪些没有释放的pod状态，node状态
 		for _, k8sBindAddr := range reduceK8sBindAddrs {
-			k8sclient.K8SClient.GetNodeStatus(k8sResourceID, k8sBindAddr.PortID)
+			k8sclient.DefaultK8SClient.GetNodeStatus(k8sResourceID, k8sBindAddr.PortID)
 		}
 	} else {
 		// 找到reduce count的unbind地址进行释放

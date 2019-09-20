@@ -13,7 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
-	"pci-ipresmgr/pkg/ipresmgr/k8sclient"
+	"pci-ipresmgr/pkg/ipresmgr/k8s"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/pkg/ipresmgr/storage/mysql"
@@ -84,7 +84,7 @@ func setupSignalHandler(cancel context.CancelFunc) {
 				return
 			case syscall.SIGUSR1:
 				config.ReloadConfig()
-				k8sclient.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
+				k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
 			case syscall.SIGUSR2:
 				calm_utils.DumpStacks()
 			}
@@ -114,7 +114,7 @@ func SvrMain(c *cli.Context) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	setupSignalHandler(cancel)
 
-	loadOk := k8sclient.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
+	loadOk := k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
 	if !loadOk {
 		calm_utils.Fatal("LoadMultiClusterClient failed")
 	}
