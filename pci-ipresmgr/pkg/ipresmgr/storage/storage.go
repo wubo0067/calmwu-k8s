@@ -29,9 +29,6 @@ type StoreMgr interface {
 	// CheckRecycledResources 检查对应资源是否存在，bool = true存在，int=副本数量，
 	CheckRecycledResources(k8sResourceID string) (bool, int, error)
 
-	// GetAddrCountByK8SResourceID 根据资源id名，获取k8s资源对应的地址数量
-	GetAddrCountByK8SResourceID(k8sResourceID string) (int, error)
-
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
@@ -59,8 +56,8 @@ type StoreMgr interface {
 	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
 	UnbindJobPodWithPortID(k8sResourceID string, podID string) error
 
-	// ScaledK8SResourceAddrs 给k8s资源地址数量进行缩容
-	ScaleDownK8SResourceAddrs(k8sResourceID string, scaleDownSize int) error
+	// ReduceK8SResourceAddrs 给k8s资源地址数量进行缩容
+	ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error
 
 	// AddScaleDownMarked 添加缩减标记，每个一条记录
 	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, originalReplicas int, scaleDownSize int) error

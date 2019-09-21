@@ -115,9 +115,9 @@ func wbCreateIPPool(c *gin.Context) {
 				calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 			} else if req.K8SApiResourceReplicas < replicas {
 				// 新建副本数小于现有数量，减少IP
-				err = storeMgr.ScaleDownK8SResourceAddrs(k8sResourceID, replicas-req.K8SApiResourceReplicas)
+				err = storeMgr.ReduceK8SResourceAddrs(k8sResourceID, replicas-req.K8SApiResourceReplicas)
 				if err != nil {
-					err = errors.Wrapf(err, "ReqID:%s ScaleDownK8SResourceAddrs failed.", req.ReqID)
+					err = errors.Wrapf(err, "ReqID:%s ReduceK8SResourceAddrs failed.", req.ReqID)
 					res.Msg = err.Error()
 					calm_utils.Error(err.Error())
 					return
@@ -181,7 +181,6 @@ func wbReleaseIPPool(c *gin.Context) {
 			calm_utils.Debugf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
 		}
 	}
-
 	return
 }
 

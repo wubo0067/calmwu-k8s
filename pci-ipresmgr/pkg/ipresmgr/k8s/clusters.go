@@ -5,11 +5,12 @@
  * @Last Modified time: 2019-09-13 16:17:03
  */
 
-package k8sclient
+package k8s
 
 import (
 	"encoding/base64"
 	"pci-ipresmgr/pkg/ipresmgr/config"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -26,21 +27,22 @@ type K8SClient interface {
 	// GetClientSetByClusterID 获取clientset根据clusterid
 	GetClientSetByClusterID(clusterID string) *kubernetes.Clientset
 
-	// 根据cluster-id, namespace，pod-id获取所在节点node的状态
-	GetNodeStatus(clusterID string, namespace string, podID string) error
+	// 根据cluster-id, namespace，pod-id获取所在节点node的状态和pod的状态
+	GetPodAndNodeStatus(k8sResourceID string, podID string) error
 }
 
-type K8sClientImpl struct {
+// K8SClientImpl 接口的实现
+type K8SClientImpl struct {
 	multiClusterClient sync.Map
 }
 
 var (
 	// DefaultK8SClient 默认对象
-	DefaultK8SClient K8SClient = &K8sClientImpl{}
+	DefaultK8SClient K8SClient = &K8SClientImpl{}
 )
 
 // LoadMultiClusterClient 通过配置数据加载多集群的clientset
-func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
+func (kci *K8SClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
 	var loadOk bool = true
 	for index := range k8sClusterCfgDataLst {
 		k8sClusterCfgData := &k8sClusterCfgDataLst[index]
@@ -65,7 +67,7 @@ func (kci *K8sClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K
 }
 
 // GetClientSetByClusterID 获取clientset根据clusterid
-func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.Clientset {
+func (kci *K8SClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.Clientset {
 	value, exist := kci.multiClusterClient.Load(clusterID)
 	if exist {
 		return value.(*kubernetes.Clientset)
@@ -73,8 +75,17 @@ func (kci *K8sClientImpl) GetClientSetByClusterID(clusterID string) *kubernetes.
 	return nil
 }
 
-// GetNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
-func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podID string) error {
+// GetPodAndNodeStatus 根据cluster-id, namespace，pod-id获取所在节点node的状态
+func (kci *K8SClientImpl) GetPodAndNodeStatus(k8sResourceID string, podID string) error {
+	content := k8sResourceID
+	pos := strings.IndexByte(k8sResourceID, ':')
+	clusterID := k8sResourceID[:pos]
+	content = k8sResourceID[pos+1:]
+	pos = strings.IndexByte(content, ':')
+	namespace := content[:pos]
+
+	calm_utils.Debugf("k8sResourceID:%s clusterID:%s namespace:%s", clusterID, clusterID, namespace)
+
 	clientSet := kci.GetClientSetByClusterID(clusterID)
 	if clientSet == nil {
 		err := errors.Errorf("clusterID:%s not in config", clusterID)
@@ -90,10 +101,9 @@ func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podI
 		calm_utils.Error(err.Error())
 		return err
 	}
+	calm_utils.Debugf("clusterID:%s namespace:%s podID:%s Status:%#v", clusterID, namespace, podID, k8sPod.Status)
 
 	nodeName := k8sPod.Spec.NodeName
-	calm_utils.Debugf("clusterID:%s namespace:%s podID:%s Nodename:%s", clusterID, namespace, podID, nodeName)
-
 	k8sNode, err := clientSet.CoreV1().Nodes().Get(nodeName, metav1.GetOptions{
 		ResourceVersion: "0",
 	})
@@ -103,6 +113,6 @@ func (kci *K8sClientImpl) GetNodeStatus(clusterID string, namespace string, podI
 		return err
 	}
 
-	calm_utils.Debugf("%v", k8sNode.Status.Conditions)
+	calm_utils.Debugf("node:%s status:%v", nodeName, k8sNode.Status.Conditions)
 	return nil
 }

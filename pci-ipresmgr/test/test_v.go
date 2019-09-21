@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"unsafe"
 
 	"github.com/sanity-io/litter"
@@ -40,6 +41,20 @@ func testdef() {
 	nums = append(nums, 3)
 }
 
+func testGetClusterID() {
+	k8sResourceID := "cluster-1:default:kata-nginx-deployment"
+	pos := strings.IndexByte(k8sResourceID, ':')
+	clusterID := k8sResourceID[:pos]
+	fmt.Printf("clusterID Type-Name:%s Type-String:%s\n", reflect.ValueOf(clusterID).Type().Name(), reflect.ValueOf(clusterID).Type().String())
+	fmt.Printf("clusterID :%s remaind:%s\n", clusterID, k8sResourceID[pos+1:])
+
+	content := k8sResourceID[pos+1:]
+
+	pos = strings.IndexByte(content, ':')
+	namespace := content[:pos]
+	fmt.Printf("namespace :%s\n", namespace)
+}
+
 func main() {
 	fmt.Println(time)
 	fmt.Println(version)
@@ -56,6 +71,8 @@ func main() {
 	fmt.Println(dumpStr)
 
 	testdef()
+
+	testGetClusterID()
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go
