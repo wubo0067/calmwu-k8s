@@ -84,7 +84,6 @@ func wbCreateIPPool(c *gin.Context) {
 
 			res.Code = proto.IPResMgrErrnoSuccessed
 			calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
-			return
 		} else {
 			// 恢复的数据
 
