@@ -11,7 +11,6 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"net/http/httputil"
 	"time"
 
 	"github.com/DeanThompson/ginpprof"
@@ -22,29 +21,6 @@ import (
 var (
 	httpSrv *http.Server
 )
-
-func ginRecovery() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		defer func() {
-			if err := recover(); err != nil {
-				stack := calm_utils.CallStack(3)
-				httprequest, _ := httputil.DumpRequest(c.Request, false)
-				calm_utils.Errorf("[Recovery] panic recovered:\n%s\n%s\n%s", calm_utils.Bytes2String(httprequest), err, stack)
-				c.AbortWithStatus(500)
-			}
-		}()
-		c.Next()
-	}
-}
-
-func ginLogger() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		t := time.Now()
-		c.Next()
-		latency := time.Since(t)
-		calm_utils.Debugf("%s latency:%s", c.Request.RequestURI, latency.String())
-	}
-}
 
 func registerHandler(router *gin.Engine) {
 	// webhook接口
@@ -62,8 +38,8 @@ func registerHandler(router *gin.Engine) {
 func startWebSrv(listenAddr string, listenPort int) error {
 	gin.SetMode(gin.DebugMode)
 	ginRouter := gin.New()
-	ginRouter.Use(ginLogger())
-	ginRouter.Use(ginRecovery())
+	ginRouter.Use(calm_utils.GinLogger())
+	ginRouter.Use(calm_utils.GinRecovery())
 
 	// 注册健康检查接口
 	ginRouter.GET("/ping", func(c *gin.Context) {
