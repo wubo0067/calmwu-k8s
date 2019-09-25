@@ -10,7 +10,8 @@ package srv
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
@@ -38,7 +39,7 @@ func unpackRequest(c *gin.Context, req interface{}) error {
 	return nil
 }
 
-func sendResponse(c *gin.Context, res interface{}) {
+func sendResponse(c *gin.Context, httpCode int, res interface{}) {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	resData, err := json.Marshal(res)
 	if err != nil {
@@ -46,10 +47,30 @@ func sendResponse(c *gin.Context, res interface{}) {
 		return
 	}
 	calm_utils.Debugf("send response to %s successed", c.Request.RemoteAddr)
-	c.Data(http.StatusOK, "text/plain; charset=utf-8", resData)
+	// http.StatusOK, StatusBadRequest
+	c.Data(httpCode, "text/plain; charset=utf-8", resData)
 	return
 }
 
 func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {
 	return fmt.Sprintf("%s:%s:%s", clusterID, k8sNamespace, k8sResourceName)
+}
+
+func getsubNetMask(subnetCIDR string) (int, error) {
+	pos := strings.LastIndexByte(subnetCIDR, '/')
+	if pos == -1 {
+		err := errors.Errorf("subnetCIDR:[%s] is invalid.", subnetCIDR)
+		calm_utils.Error(err.Error())
+		return -1, err
+	}
+
+	maskStr := subnetCIDR[pos+1:]
+	mask, err := strconv.Atoi(maskStr)
+	if err != nil {
+		err := errors.Wrapf(err, "mask:[%s] is invalid.", maskStr)
+		calm_utils.Error(err.Error())
+		return -1, err
+	}
+	calm_utils.Debugf("subnetCIDR:[%s] mask:%d", subnetCIDR, mask)
+	return mask, nil
 }

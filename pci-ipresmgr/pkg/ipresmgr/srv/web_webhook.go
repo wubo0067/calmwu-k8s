@@ -36,9 +36,21 @@ func wbCreateIPPool(c *gin.Context) {
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestCreateIPPool
 	res.Code = proto.IPResMgrErrnoCreateIPPoolFailed
-	defer sendResponse(c, &res)
+
+	httpCode := http.StatusBadRequest
+	defer func(status *int) {
+		sendResponse(c, *status, &res)
+	}(&httpCode)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
+
+	netMask, err := getsubNetMask(req.SubnetCIDR)
+	if err != nil {
+		err = errors.Wrapf(err, "ReqID:%s getsubNetMask failed.", req.ReqID)
+		res.Msg = err.Error()
+		calm_utils.Error(err.Error())
+		return
+	}
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		if req.K8SApiResourceReplicas <= 0 {
@@ -61,7 +73,8 @@ func wbCreateIPPool(c *gin.Context) {
 
 		if !exists {
 			// 从nsp获取地址
-			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, req.K8SApiResourceReplicas, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, req.K8SApiResourceReplicas, req.NetRegionalID,
+				req.SubnetID, req.SubnetGatewayAddr, netMask)
 			if err != nil {
 				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
 				res.Msg = err.Error()
@@ -83,14 +96,16 @@ func wbCreateIPPool(c *gin.Context) {
 			}
 
 			res.Code = proto.IPResMgrErrnoSuccessed
+			httpCode = http.StatusOK
 			calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 		} else {
 			// 恢复的数据
-
 			if req.K8SApiResourceReplicas > replicas {
 				// 新建副本数大于现有数量
+
 				scaleUpSize := req.K8SApiResourceReplicas - replicas
-				k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, scaleUpSize, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+				k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, scaleUpSize, req.NetRegionalID, req.SubnetID,
+					req.SubnetGatewayAddr, netMask)
 				if err != nil {
 					err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources scaleUpSize:%d failed.", req.ReqID, scaleUpSize)
 					res.Msg = err.Error()
@@ -125,6 +140,7 @@ func wbCreateIPPool(c *gin.Context) {
 			} else {
 				// 副本数相同，直接返回
 				res.Code = proto.IPResMgrErrnoSuccessed
+				httpCode = http.StatusOK
 			}
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
@@ -132,12 +148,14 @@ func wbCreateIPPool(c *gin.Context) {
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job、cronjob，直接插入网络信息
-		err = storeMgr.SetJobNetInfo(k8sResourceID, req.K8SApiResourceKind, req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+		err = storeMgr.SetJobNetInfo(k8sResourceID, req.K8SApiResourceKind, req.NetRegionalID, req.SubnetID,
+			req.SubnetGatewayAddr, req.SubnetCIDR)
 		if err != nil {
 			res.Msg = err.Error()
 			calm_utils.Errorf("ReqID:%s SetJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
 		} else {
 			res.Code = proto.IPResMgrErrnoSuccessed
+			httpCode = http.StatusOK
 			calm_utils.Debugf("ReqID:%s SetJobNetInfo %s successed", req.ReqID, k8sResourceID)
 		}
 	}
@@ -159,7 +177,11 @@ func wbReleaseIPPool(c *gin.Context) {
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestReleaseIPPool
 	res.Code = proto.IPResMgrErrnoSuccessed
-	defer sendResponse(c, &res)
+
+	httpCode := http.StatusOK
+	defer func(status *int) {
+		sendResponse(c, *status, &res)
+	}(&httpCode)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
@@ -171,6 +193,7 @@ func wbReleaseIPPool(c *gin.Context) {
 			calm_utils.Error(err.Error())
 			res.Code = proto.IPResMgrErrnoReleaseIPPoolFailed
 			res.Msg = err.Error()
+			httpCode = http.StatusBadRequest
 		}
 	} else {
 		// job, cronjob
@@ -198,21 +221,35 @@ func wbScaleIPPool(c *gin.Context) {
 	res.ReqID = req.ReqID
 	res.ReqType = proto.WB2IPResMgrRequestScaleIPPool
 	res.Code = proto.IPResMgrErrnoSuccessed
-	defer sendResponse(c, &res)
+
+	httpCode := http.StatusOK
+	defer func(status *int) {
+		sendResponse(c, *status, &res)
+	}(&httpCode)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
+
+	netMask, err := getsubNetMask(req.SubnetCIDR)
+	if err != nil {
+		err = errors.Wrapf(err, "ReqID:%s getsubNetMask failed.", req.ReqID)
+		res.Msg = err.Error()
+		res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
+		calm_utils.Error(err.Error())
+		httpCode = http.StatusBadRequest
+		return
+	}
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		if req.K8SApiResourceNewReplicas > req.K8SApiResourceOldReplicas {
 			// 需要增加地址
-
 			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, (req.K8SApiResourceNewReplicas - req.K8SApiResourceOldReplicas),
-				req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr)
+				req.NetRegionalID, req.SubnetID, req.SubnetGatewayAddr, netMask)
 			if err != nil {
 				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
+				httpCode = http.StatusBadRequest
 				return
 			}
 
@@ -227,6 +264,7 @@ func wbScaleIPPool(c *gin.Context) {
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
+				httpCode = http.StatusBadRequest
 				return
 			}
 
@@ -246,6 +284,7 @@ func wbScaleIPPool(c *gin.Context) {
 		res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 		res.Msg = err.Error()
 		calm_utils.Error(err.Error())
+		httpCode = http.StatusBadRequest
 	}
 	return
 }

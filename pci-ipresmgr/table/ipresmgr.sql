@@ -12,8 +12,8 @@ CREATE TABLE IF NOT EXISTS tbl_IPResMgrSrvRegister (
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
     k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
-    ip VARCHAR(16) NOT NULL,                       -- 分配的ip
-    mac VARCHAR(16) NOT NULL,                      -- mac地址
+    ip VARCHAR(32) NOT NULL,                       -- 分配的ip
+    mac VARCHAR(32) NOT NULL,                      -- mac地址
     netregional_id VARCHAR(128) NOT NULL,          -- 用到的网络域id  
     subnet_id VARCHAR(36) NOT NULL,                -- 用到的子网id  
     port_id VARCHAR(48) NOT NULL,                  -- PortID
@@ -47,8 +47,8 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
     k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType  
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
-    ip VARCHAR(16) NOT NULL,                       -- 分配的ip
-    mac VARCHAR(16) NOT NULL,                      -- mac地址    
+    ip VARCHAR(32) NOT NULL,                       -- 分配的ip
+    mac VARCHAR(32) NOT NULL,                      -- mac地址    
     netregional_id VARCHAR(128) NOT NULL,          -- 释放用到的网络域id
     subnet_id VARCHAR(36) NOT NULL,                -- 释放用到的子网id
     port_id VARCHAR(48) NOT NULL,                  -- PortID，释放只需要这个参数    
@@ -63,14 +63,15 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
     k8sresource_type int NOT NULL,                 -- 资源类型，Job CronJob proto.K8SApiResourceKindType
     netregional_id VARCHAR(128) NOT NULL,          -- 用到的网络域id  
     subnet_id VARCHAR(36) NOT NULL,                -- 用到的子网id
-    subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址   
+    subnetgatewayaddr VARCHAR(32) NOT NULL,        -- 子网网关地址 
+    subnetcidr VARCHAR(32) NOT NULL,               -- 子网cidr   
     create_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00', -- 创建时间
     PRIMARY KEY(k8sresource_id)         
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
     k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name    
-    ip VARCHAR(16) NOT NULL,                       -- 分配的ip
+    ip VARCHAR(32) NOT NULL,                       -- 分配的ip
     bind_podid VARCHAR(36) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除  
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 

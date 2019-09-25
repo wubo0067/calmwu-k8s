@@ -1,8 +1,8 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-09-07 16:07:14
- * @Last Modified by:   calm.wu
- * @Last Modified time: 2019-09-07 16:07:14
+ * @Last Modified by: calm.wu
+ * @Last Modified time: 2019-09-23 14:52:50
  */
 
 package main
@@ -50,6 +50,7 @@ func testCreateIPPool() {
 	createIPPoolReq.NetRegionalID = fmt.Sprintf("netregional-%s", ksuid.New().String())
 	createIPPoolReq.SubnetID = fmt.Sprintf("subnet-%s", ksuid.New().String())
 	createIPPoolReq.SubnetGatewayAddr = "1.1.1.1"
+	createIPPoolReq.SubnetCIDR = "1.1.1.1/26"
 
 	var createIPPooRes proto.IPResMgr2WBRes
 
@@ -109,6 +110,7 @@ func testScaleIPPool() {
 	scaleIPPoolReq.NetRegionalID = fmt.Sprintf("netregional-%s", ksuid.New().String())
 	scaleIPPoolReq.SubnetID = fmt.Sprintf("subnet-%s", ksuid.New().String())
 	scaleIPPoolReq.SubnetGatewayAddr = "1.1.1.1"
+	scaleIPPoolReq.SubnetCIDR = "1.1.1.1/26"
 
 	var scaleIPPoolRes proto.IPResMgr2WBRes
 

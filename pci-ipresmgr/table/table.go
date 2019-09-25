@@ -68,6 +68,7 @@ type TblK8SJobNetInfoS struct {
 	NetRegionalID     string    `db:"netregional_id"`
 	SubNetID          string    `db:"subnet_id"`
 	SubNetGatewayAddr string    `db:"subnetgatewayaddr"`
+	SubNetCIDR        string    `db:"subnetcidr"`
 	CreateTime        time.Time `db:"create_time"`
 }
 
