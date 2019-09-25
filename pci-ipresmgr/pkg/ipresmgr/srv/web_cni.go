@@ -34,7 +34,11 @@ func cniRequireIP(c *gin.Context) {
 
 	res.ReqID = req.ReqID
 	res.Code = proto.IPResMgrErrnoGetIPFailed
-	defer sendResponse(c, &res)
+
+	httpCode := http.StatusBadRequest
+	defer func(status *int) {
+		sendResponse(c, *status, &res)
+	}(&httpCode)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 
@@ -51,6 +55,8 @@ func cniRequireIP(c *gin.Context) {
 			res.Code = proto.IPResMgrErrnoSuccessed
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podID:%s bind with addrInfo:%s successed.", req.ReqID,
 				k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+
+			httpCode = http.StatusCreated
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		//
@@ -89,6 +95,7 @@ func cniRequireIP(c *gin.Context) {
 						res.Code = proto.IPResMgrErrnoSuccessed
 						calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
 							k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+						httpCode = http.StatusCreated
 					}
 				}
 			}
@@ -113,7 +120,11 @@ func cniReleaseIP(c *gin.Context) {
 
 	res.ReqID = req.ReqID
 	res.Code = proto.IPResMgrErrnoSuccessed
-	defer sendResponse(c, &res)
+
+	httpCode := http.StatusCreated
+	defer func(status *int) {
+		sendResponse(c, *status, &res)
+	}(&httpCode)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 

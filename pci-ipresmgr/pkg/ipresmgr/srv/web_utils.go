@@ -10,7 +10,6 @@ package srv
 import (
 	"fmt"
 	"io/ioutil"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
@@ -38,7 +37,7 @@ func unpackRequest(c *gin.Context, req interface{}) error {
 	return nil
 }
 
-func sendResponse(c *gin.Context, res interface{}) {
+func sendResponse(c *gin.Context, httpCode int, res interface{}) {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	resData, err := json.Marshal(res)
 	if err != nil {
@@ -46,7 +45,8 @@ func sendResponse(c *gin.Context, res interface{}) {
 		return
 	}
 	calm_utils.Debugf("send response to %s successed", c.Request.RemoteAddr)
-	c.Data(http.StatusOK, "text/plain; charset=utf-8", resData)
+	// http.StatusOK, StatusBadRequest
+	c.Data(httpCode, "text/plain; charset=utf-8", resData)
 	return
 }
 
