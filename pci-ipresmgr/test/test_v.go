@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 	"unsafe"
 
@@ -41,6 +42,25 @@ func testdef() {
 	nums = append(nums, 3)
 }
 
+func testGetNetMask() int {
+	cidr := "192.168.1.19/26"
+
+	pos := strings.LastIndexByte(cidr, '/')
+	if pos == -1 {
+		fmt.Println("/ is not found")
+		return -1
+	}
+
+	fmt.Printf("/ last pos:%d, cidr len:%d\n", pos, len(cidr))
+
+	mask, err := strconv.Atoi(cidr[pos+1:])
+	if err != nil {
+		fmt.Println(err.Error())
+		return -2
+	}
+	return mask
+}
+
 func testGetClusterID() {
 	k8sResourceID := "cluster-1:default:kata-nginx-deployment"
 	pos := strings.IndexByte(k8sResourceID, ':')
@@ -73,6 +93,8 @@ func main() {
 	testdef()
 
 	testGetClusterID()
+
+	fmt.Println(testGetNetMask())
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

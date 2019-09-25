@@ -22,37 +22,39 @@ import (
 
 // SetJobNetInfo 设置job、cronjob的网络信息
 func (msm *mysqlStoreMgr) SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
-	netRegionalID, subNetID, subNetGatewayAddr string) error {
+	netRegionalID, subNetID, subNetGatewayAddr string, subNetCIDR string) error {
 	now := time.Now()
 	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_K8SJobNetInfo (k8sresource_id, 
 		k8sresource_type, 
 		netregional_id, 
 		subnet_id,
 		subnetgatewayaddr,
-		create_time) VALUES (?, ?, ?, ?, ?, ?)`, k8sResourceID, int(k8sResourceType), netRegionalID, subNetID, subNetGatewayAddr, now)
+		subnetcidr,
+		create_time) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+		k8sResourceID, int(k8sResourceType), netRegionalID, subNetID, subNetGatewayAddr, subNetCIDR, now)
 	if err != nil {
-		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobNetInfo VALUES (%s, %s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
-			k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, now.String())
+		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobNetInfo VALUES (%s, %s, %s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
+			k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, subNetCIDR, now.String())
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("SetJobNetInfo k8sResourceID:%s k8sResourceType:%s netRegionalID:%s subNetID:%s subNetGatewayAddr:%s createTime:%s successed.",
-		k8sResourceID, k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, now.String())
+	calm_utils.Debugf("SetJobNetInfo k8sResourceID:%s k8sResourceType:%s netRegionalID:%s subNetID:%s subNetGatewayAddr:%s subNetCIDR:%s createTime:%s successed.",
+		k8sResourceID, k8sResourceType.String(), netRegionalID, subNetID, subNetGatewayAddr, subNetCIDR, now.String())
 	return nil
 }
 
 // GetJobNetInfo 查询Job、Cronjob的网络信息, 网络域id， 子网id，子网网关地址
-func (msm *mysqlStoreMgr) GetJobNetInfo(k8sResourceID string) (string, string, string, error) {
+func (msm *mysqlStoreMgr) GetJobNetInfo(k8sResourceID string) (string, string, string, string, error) {
 	var k8sJobNetInfo table.TblK8SJobNetInfoS
 
 	err := msm.dbMgr.Get(&k8sJobNetInfo, `SELECT * FROM tbl_K8SJobNetInfo WHERE k8sresource_id=? LIMIT 1`, k8sResourceID)
 	if err != nil {
 		err = errors.Wrapf(err, "SELECT * FROM tbl_K8SJobNetInfo WHERE k8sresource_id=%s LIMIT 1, Get failed", k8sResourceID)
 		calm_utils.Error(err.Error())
-		return "", "", "", err
+		return "", "", "", "", err
 	}
 	calm_utils.Debugf("SELECT * FROM tbl_K8SJobNetInfo WHERE k8sresource_id=%s LIMIT 1, Get successed.", k8sResourceID)
-	return k8sJobNetInfo.NetRegionalID, k8sJobNetInfo.SubNetID, k8sJobNetInfo.SubNetGatewayAddr, nil
+	return k8sJobNetInfo.NetRegionalID, k8sJobNetInfo.SubNetID, k8sJobNetInfo.SubNetGatewayAddr, k8sJobNetInfo.SubNetCIDR, nil
 }
 
 // DelJobNetInfo 删除Job、Cronjob的网络信息

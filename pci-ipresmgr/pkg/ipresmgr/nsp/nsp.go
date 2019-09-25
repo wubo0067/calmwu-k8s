@@ -22,7 +22,7 @@ import (
 // NSPMgrItf nsp交互接口
 type NSPMgrItf interface {
 	// AllocAddrResources 从nsp获取资源
-	AllocAddrResources(k8sResourceID string, replicas int, netRegionID string, subNetID string, subNetGatewayAddr string) ([]*proto.K8SAddrInfo, error)
+	AllocAddrResources(k8sResourceID string, replicas int, netRegionID string, subNetID string, subNetGatewayAddr string, netMask int) ([]*proto.K8SAddrInfo, error)
 
 	// ReleaseAddrResources 释放资源
 	ReleaseAddrResources(portID string) error
@@ -47,7 +47,7 @@ const (
 
 // AllocAddrResources 从nsp获取资源
 func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, netRegionID string,
-	subNetID string, subNetGatewayAddr string) ([]*proto.K8SAddrInfo, error) {
+	subNetID string, subNetGatewayAddr string, netMask int) ([]*proto.K8SAddrInfo, error) {
 	k8sAddrInfoLst := make([]*proto.K8SAddrInfo, 0)
 
 	// TODO: 失败了要回滚
@@ -120,7 +120,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 
 				calm_utils.Debugf("%d portResult:%+v", index, portResult)
 				k8sAddrInfoLst = append(k8sAddrInfoLst, &proto.K8SAddrInfo{
-					IP:                portResult.FixedIPs[0].IP,
+					IP:                fmt.Sprintf("%s/%d", portResult.FixedIPs[0].IP, netMask),
 					MacAddr:           portResult.MacAddress,
 					NetRegionalID:     netRegionID,
 					SubNetID:          subNetID,

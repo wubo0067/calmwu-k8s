@@ -41,6 +41,7 @@ type WB2IPResMgrCreateIPPoolReq struct {
 	NetRegionalID          string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`                   // 网络域ID
 	SubnetID               string                 `json:"SubnetID" mapstructure:"SubnetID"`                             // 子网ID
 	SubnetGatewayAddr      string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"`           // 子网网关地址
+	SubnetCIDR             string                 `json:"SubnetCIDR" mapstructure:"SubnetCIDR"`                         // 子网CIDR，为了掩码
 }
 
 // WB2IPResMgrReleaseIPPoolReq webhook层通知ipresmgr释放ippool
@@ -64,6 +65,7 @@ type WB2IPResMgrScaleIPPoolReq struct {
 	NetRegionalID             string                 `json:"NetRegionalID" mapstructure:"NetRegionalID"`         // 网络域ID
 	SubnetID                  string                 `json:"SubnetID" mapstructure:"SubnetID"`                   // 子网ID
 	SubnetGatewayAddr         string                 `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"` // 子网网关地址
+	SubnetCIDR                string                 `json:"SubnetCIDR" mapstructure:"SubnetCIDR"`               // 子网CIDR，为了掩码
 }
 
 // 操作返回信息

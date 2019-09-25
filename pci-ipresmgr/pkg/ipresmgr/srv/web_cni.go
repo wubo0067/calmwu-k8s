@@ -63,39 +63,46 @@ func cniRequireIP(c *gin.Context) {
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 查询网络信息
-		netRegionID, subNetID, subNetGatewayAddr, err := storeMgr.GetJobNetInfo(k8sResourceID)
+		netRegionID, subNetID, subNetGatewayAddr, subNetCIDR, err := storeMgr.GetJobNetInfo(k8sResourceID)
 		if err != nil {
-			err = errors.Wrapf(err, "ReqID:%s GetJobNetInfo %s failed.", req.ReqID, k8sResourceID)
+			err = errors.Wrapf(err, "ReqID:%s k8sResourceID:%s GetJobNetInfo failed.", req.ReqID, k8sResourceID)
 			calm_utils.Error(err.Error())
 			res.Msg = err.Error()
 		} else {
 			// 直接从nsp获取地址
-			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, 1, netRegionID, subNetID, subNetGatewayAddr)
+			netMask, err := getsubNetMask(subNetCIDR)
 			if err != nil {
-				err = errors.Wrapf(err, "ReqID:%s AllocAddrResources from nsp %s failed.", req.ReqID, k8sResourceID)
+				err = errors.Wrapf(err, "ReqID:%s k8sResourceID:%s getsubNetMask failed.", req.ReqID, k8sResourceID)
 				calm_utils.Error(err.Error())
 				res.Msg = err.Error()
 			} else {
-				allocK8SPodAddrsSize := len(k8sAddrs)
-				if allocK8SPodAddrsSize < 1 {
-					err = errors.Wrapf(err, "ReqID:%s AllocAddrResources count:%d from nsp %s is invalid.", req.ReqID, allocK8SPodAddrsSize, k8sResourceID)
+				k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, 1, netRegionID, subNetID, subNetGatewayAddr, netMask)
+				if err != nil {
+					err = errors.Wrapf(err, "ReqID:%s AllocAddrResources from nsp %s failed.", req.ReqID, k8sResourceID)
 					calm_utils.Error(err.Error())
 					res.Msg = err.Error()
 				} else {
-					k8sPodAddrInfo := k8sAddrs[0]
-					err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, req.K8SPodID)
-					if err != nil {
-						// 归还地址
-						nsp.NSPMgr.ReleaseAddrResources(k8sPodAddrInfo.PortID)
+					allocK8SPodAddrsSize := len(k8sAddrs)
+					if allocK8SPodAddrsSize < 1 {
+						err = errors.Wrapf(err, "ReqID:%s AllocAddrResources count:%d from nsp %s is invalid.", req.ReqID, allocK8SPodAddrsSize, k8sResourceID)
+						calm_utils.Error(err.Error())
+						res.Msg = err.Error()
 					} else {
-						res.IP = k8sPodAddrInfo.IP
-						res.MacAddr = k8sPodAddrInfo.MacAddr
-						res.PortID = k8sPodAddrInfo.PortID
-						res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
-						res.Code = proto.IPResMgrErrnoSuccessed
-						calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
-							k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
-						httpCode = http.StatusCreated
+						k8sPodAddrInfo := k8sAddrs[0]
+						err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, req.K8SPodID)
+						if err != nil {
+							// 归还地址
+							nsp.NSPMgr.ReleaseAddrResources(k8sPodAddrInfo.PortID)
+						} else {
+							res.IP = k8sPodAddrInfo.IP
+							res.MacAddr = k8sPodAddrInfo.MacAddr
+							res.PortID = k8sPodAddrInfo.PortID
+							res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
+							res.Code = proto.IPResMgrErrnoSuccessed
+							calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
+								k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+							httpCode = http.StatusCreated
+						}
 					}
 				}
 			}

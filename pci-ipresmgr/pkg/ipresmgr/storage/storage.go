@@ -42,10 +42,11 @@ type StoreMgr interface {
 	AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
 
 	// SetJobNetInfo 设置job、cronjob的网络信息
-	SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, netRegionalID, subNetID, subNetGatewayAddr string) error
+	SetJobNetInfo(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, netRegionalID, subNetID,
+		subNetGatewayAddr string, subNetCIDR string) error
 
-	// GetJobNetInfo 查询Job、Cronjob的网络信息, 网络域id， 子网id，子网网关地址
-	GetJobNetInfo(k8sResourceID string) (string, string, string, error)
+	// GetJobNetInfo 查询Job、Cronjob的网络信息, 网络域id， 子网id，子网网关地址, subnetcidr
+	GetJobNetInfo(k8sResourceID string) (string, string, string, string, error)
 
 	// DelJobNetInfo 删除Job、Cronjob的网络信息
 	DelJobNetInfo(k8sResourceID string) error

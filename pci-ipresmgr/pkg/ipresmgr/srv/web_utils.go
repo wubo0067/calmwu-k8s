@@ -10,6 +10,8 @@ package srv
 import (
 	"fmt"
 	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	jsoniter "github.com/json-iterator/go"
@@ -52,4 +54,23 @@ func sendResponse(c *gin.Context, httpCode int, res interface{}) {
 
 func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {
 	return fmt.Sprintf("%s:%s:%s", clusterID, k8sNamespace, k8sResourceName)
+}
+
+func getsubNetMask(subnetCIDR string) (int, error) {
+	pos := strings.LastIndexByte(subnetCIDR, '/')
+	if pos == -1 {
+		err := errors.Errorf("subnetCIDR:[%s] is invalid.", subnetCIDR)
+		calm_utils.Error(err.Error())
+		return -1, err
+	}
+
+	maskStr := subnetCIDR[pos+1:]
+	mask, err := strconv.Atoi(maskStr)
+	if err != nil {
+		err := errors.Wrapf(err, "mask:[%s] is invalid.", maskStr)
+		calm_utils.Error(err.Error())
+		return -1, err
+	}
+	calm_utils.Debugf("subnetCIDR:[%s] mask:%d", subnetCIDR, mask)
+	return mask, nil
 }
