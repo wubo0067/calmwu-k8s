@@ -75,6 +75,18 @@ func testGetClusterID() {
 	fmt.Printf("namespace :%s\n", namespace)
 }
 
+func testDefer(flag int) {
+	fmt.Printf("before defer\n")
+
+	if flag == 1 {
+		return
+	}
+	defer func() {
+		fmt.Printf("defer after\n")
+	}()
+	return
+}
+
 func main() {
 	fmt.Println(time)
 	fmt.Println(version)
@@ -95,6 +107,9 @@ func main() {
 	testGetClusterID()
 
 	fmt.Println(testGetNetMask())
+
+	testDefer(1)
+	testDefer(0)
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

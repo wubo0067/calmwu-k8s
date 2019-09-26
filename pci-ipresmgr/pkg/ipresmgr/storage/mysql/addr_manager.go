@@ -73,6 +73,24 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 	err := msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
 
+			// 判断这个pod是否已经绑定了
+			var checkExistk8sAddrBindInfo table.TblK8SResourceIPBindS
+			err := msm.dbMgr.Get(&checkExistk8sAddrBindInfo,
+				"SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=1 AND bind_podid=? LIMIT 1",
+				k8sResourceID, k8sResourceType, bindPodID)
+			if err == nil {
+				// 该pod已经绑定，直接返回
+				k8sAddrInfo = new(proto.K8SAddrInfo)
+				k8sAddrInfo.IP = checkExistk8sAddrBindInfo.IP
+				k8sAddrInfo.MacAddr = checkExistk8sAddrBindInfo.MacAddr
+				k8sAddrInfo.NetRegionalID = checkExistk8sAddrBindInfo.NetRegionalID
+				k8sAddrInfo.SubNetID = checkExistk8sAddrBindInfo.SubNetID
+				k8sAddrInfo.SubNetGatewayAddr = checkExistk8sAddrBindInfo.SubNetGatewayAddr
+				k8sAddrInfo.PortID = checkExistk8sAddrBindInfo.PortID
+				calm_utils.Warnf("k8sResourceID:%s bindPod:%s is already occupied address:%s resources", k8sResourceID, bindPodID, checkExistk8sAddrBindInfo.IP)
+				return nil
+			}
+
 			// https://www.cnblogs.com/diegodu/p/9239200.html 用串行化事务，gap lock
 			tx, err := msm.dbMgr.BeginTx(context.Background(), &sql.TxOptions{
 				Isolation: sql.LevelSerializable,
@@ -110,6 +128,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodID(k8sResourceID string, k8sReso
 				&k8sAddrBindInfo.BindTime, &k8sAddrBindInfo.ScaledownFlag)
 
 			if err != nil {
+				// TODO 查询node，和所有pod的状态
 				err = errors.Wrapf(err, "k8sResourceID:%s bindPod:%s Scan failed.", k8sResourceID, bindPodID)
 				calm_utils.Error(err.Error())
 				transactionFlag = -1
