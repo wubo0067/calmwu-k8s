@@ -43,7 +43,7 @@ var (
 
 // LoadMultiClusterClient 通过配置数据加载多集群的clientset
 func (kci *K8SClientImpl) LoadMultiClusterClient(k8sClusterCfgDataLst []config.K8SClusterCfgData) bool {
-	var loadOk bool = true
+	loadOk := true
 	for index := range k8sClusterCfgDataLst {
 		k8sClusterCfgData := &k8sClusterCfgDataLst[index]
 		// 创建clientset
