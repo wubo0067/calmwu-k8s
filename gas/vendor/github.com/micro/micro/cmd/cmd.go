@@ -7,12 +7,17 @@ import (
 	"github.com/micro/micro/api"
 	"github.com/micro/micro/bot"
 	"github.com/micro/micro/cli"
+	"github.com/micro/micro/monitor"
+	"github.com/micro/micro/network"
 	"github.com/micro/micro/new"
 	"github.com/micro/micro/plugin"
+	"github.com/micro/micro/plugin/build"
 	"github.com/micro/micro/proxy"
+	"github.com/micro/micro/registry"
 	"github.com/micro/micro/router"
 	"github.com/micro/micro/server"
 	"github.com/micro/micro/service"
+	"github.com/micro/micro/tunnel"
 	"github.com/micro/micro/web"
 
 	// include usage
@@ -22,8 +27,12 @@ import (
 var (
 	name        = "micro"
 	description = "A microservice runtime"
-	version     = "1.8.3"
+	version     = "1.10.0"
 )
+
+func init() {
+	plugin.Register(build.Flags())
+}
 
 func setup(app *ccli.App) {
 	app.Flags = append(app.Flags,
@@ -79,13 +88,18 @@ func setup(app *ccli.App) {
 		},
 		ccli.StringFlag{
 			Name:   "router_address",
-			Usage:  "Set the micro router address e.g. :9093",
+			Usage:  "Set the micro router address e.g. :8084",
 			EnvVar: "MICRO_ROUTER_ADDRESS",
 		},
 		ccli.StringFlag{
 			Name:   "gateway_address",
 			Usage:  "Set the micro default gateway address e.g. :9094",
 			EnvVar: "MICRO_GATEWAY_ADDRESS",
+		},
+		ccli.StringFlag{
+			Name:   "tunnel_address",
+			Usage:  "Set the micro tunnel address e.g. :8083",
+			EnvVar: "MICRO_TUNNEL_ADDRESS",
 		},
 		ccli.StringFlag{
 			Name:   "api_handler",
@@ -147,6 +161,9 @@ func setup(app *ccli.App) {
 		if len(ctx.String("router_address")) > 0 {
 			router.Router = ctx.String("router_address")
 		}
+		if len(ctx.String("tunnel_address")) > 0 {
+			tunnel.Address = ctx.String("tunnel_address")
+		}
 		if len(ctx.String("api_namespace")) > 0 {
 			api.Namespace = ctx.String("api_namespace")
 		}
@@ -178,14 +195,20 @@ func Init(options ...micro.Option) {
 
 // Setup sets up a cli.App
 func Setup(app *ccli.App, options ...micro.Option) {
+	// Add the various commands
 	app.Commands = append(app.Commands, api.Commands(options...)...)
 	app.Commands = append(app.Commands, bot.Commands()...)
 	app.Commands = append(app.Commands, cli.Commands()...)
 	app.Commands = append(app.Commands, proxy.Commands(options...)...)
+	app.Commands = append(app.Commands, monitor.Commands(options...)...)
 	app.Commands = append(app.Commands, router.Commands(options...)...)
+	app.Commands = append(app.Commands, tunnel.Commands(options...)...)
+	app.Commands = append(app.Commands, network.Commands(options...)...)
+	app.Commands = append(app.Commands, registry.Commands(options...)...)
 	app.Commands = append(app.Commands, server.Commands(options...)...)
 	app.Commands = append(app.Commands, service.Commands(options...)...)
 	app.Commands = append(app.Commands, new.Commands()...)
+	app.Commands = append(app.Commands, build.Commands()...)
 	app.Commands = append(app.Commands, web.Commands(options...)...)
 	app.Action = func(context *ccli.Context) { ccli.ShowAppHelp(context) }
 
