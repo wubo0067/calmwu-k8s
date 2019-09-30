@@ -56,6 +56,10 @@ func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {
 	return fmt.Sprintf("%s:%s:%s", clusterID, k8sNamespace, k8sResourceName)
 }
 
+func makePodUniqueName(clusterID, k8sNamespace, podName string) string {
+	return fmt.Sprintf("%s:%s:%s", clusterID, k8sNamespace, podName)
+}
+
 func getsubNetMask(subnetCIDR string) (int, error) {
 	pos := strings.LastIndexByte(subnetCIDR, '/')
 	if pos == -1 {

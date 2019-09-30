@@ -27,7 +27,7 @@ import (
 var (
 	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
 	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP")
-	unBindPodID     = flag.String("unbindpodid", "", "Unbind podID")
+	unBindPodName   = flag.String("unbindpodname", "", "Unbind podName")
 	oldReplicas     = flag.Int("oldreplicas", 0, "old replicas")
 	newReplicas     = flag.Int("newreplicas", 1, "new replicas")
 	parallel        = flag.Int("parallel", 1, "parallel requests")
@@ -138,7 +138,7 @@ func testRequireIP() {
 	requireIPReq.K8SClusterID = "cluster-1"
 	requireIPReq.K8SNamespace = "default"
 	requireIPReq.K8SApiResourceName = "kata-nginx-deployment"
-	requireIPReq.K8SPodID = fmt.Sprintf("pod-%s", uuid.New().String())
+	requireIPReq.K8SPodName = fmt.Sprintf("podName-%s", uuid.New().String())
 
 	var requireIPRes proto.IPResMgr2IPAMRequireIPRes
 
@@ -165,8 +165,7 @@ func testReleaseIP() {
 	releaseIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
 	releaseIPReq.K8SClusterID = "cluster-1"
 	releaseIPReq.K8SNamespace = "default"
-	releaseIPReq.K8SApiResourceName = "kata-nginx-deployment"
-	releaseIPReq.K8SPodID = *unBindPodID
+	releaseIPReq.K8SPodName = *unBindPodName
 
 	var releaseIPRes proto.IPResMgr2IPAMReleaseIPRes
 

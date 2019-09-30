@@ -31,7 +31,7 @@ type TblK8SResourceIPBindS struct {
 	SubNetGatewayAddr string         `db:"subnetgatewayaddr"`
 	AllocTime         time.Time      `db:"alloc_time"`
 	IsBind            int8           `db:"is_bind"`
-	BindPodID         sql.NullString `db:"bind_podid"`
+	BindPodUniqueName sql.NullString `db:"bind_poduniquename"`
 	BindTime          time.Time      `db:"bind_time"`
 	ScaledownFlag     int            `db:"scaledown_flag"`
 }
@@ -74,17 +74,17 @@ type TblK8SJobNetInfoS struct {
 
 // TblK8SJobIPBindS job 和 cronjob 的pod的ip地址绑定信息
 type TblK8SJobIPBindS struct {
-	K8SResourceID string    `db:"k8sresource_id"`
-	IP            string    `db:"ip"`
-	BindPodID     string    `db:"bind_podid"`
-	PortID        string    `db:"port_id"`
-	BindTime      time.Time `db:"bind_time"`
+	K8SResourceID     string         `db:"k8sresource_id"`
+	IP                string         `db:"ip"`
+	BindPodUniqueName sql.NullString `db:"bind_poduniquename"`
+	PortID            string         `db:"port_id"`
+	BindTime          time.Time      `db:"bind_time"`
 }
 
-type TblK8SScaleDownMarkS struct {
-	RecycleMarkID   string         `db:"recycle_mark_id"`
-	K8SResourceID   string         `db:"k8sresource_id"`
-	K8SResourceType int            `db:"k8sresource_type"` // proto.K8SApiResourceKindType
-	PodID           sql.NullString `db:"pod_id"`
-	CreateTime      time.Time      `db:"create_time"`
-}
+// type TblK8SScaleDownMarkS struct {
+// 	RecycleMarkID   string         `db:"recycle_mark_id"`
+// 	K8SResourceID   string         `db:"k8sresource_id"`
+// 	K8SResourceType int            `db:"k8sresource_type"` // proto.K8SApiResourceKindType
+// 	PodID           sql.NullString `db:"pod_id"`
+// 	CreateTime      time.Time      `db:"create_time"`
+// }

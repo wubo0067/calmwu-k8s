@@ -41,8 +41,9 @@ func cniRequireIP(c *gin.Context) {
 	}(&httpCode)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 
-		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
+		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodUniqueName(k8sResourceID, proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
 			err := errors.Wrapf(err, "ReqID:%s get k8sPodAddrInfo by %s failed", req.ReqID, k8sResourceID)
 			calm_utils.Error(err.Error())
@@ -53,15 +54,16 @@ func cniRequireIP(c *gin.Context) {
 			res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 			res.PortID = k8sPodAddrInfo.PortID
 			res.Code = proto.IPResMgrErrnoSuccessed
-			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podID:%s bind with addrInfo:%s successed.", req.ReqID,
-				k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podName:%s bind with addrInfo:%s successed.", req.ReqID,
+				k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 
 			httpCode = http.StatusCreated
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		//
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
-	} else {
+	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindJob {
 		// 查询网络信息
 		netRegionID, subNetID, subNetGatewayAddr, subNetCIDR, err := storeMgr.GetJobNetInfo(k8sResourceID)
 		if err != nil {
@@ -89,7 +91,9 @@ func cniRequireIP(c *gin.Context) {
 						res.Msg = err.Error()
 					} else {
 						k8sPodAddrInfo := k8sAddrs[0]
-						err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, req.K8SPodID)
+						podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+
+						err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, podUniqueName)
 						if err != nil {
 							// 归还地址
 							nsp.NSPMgr.ReleaseAddrResources(k8sPodAddrInfo.PortID)
@@ -99,8 +103,8 @@ func cniRequireIP(c *gin.Context) {
 							res.PortID = k8sPodAddrInfo.PortID
 							res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 							res.Code = proto.IPResMgrErrnoSuccessed
-							calm_utils.Debugf("ReqID:%s k8sResourceID:%d podID:%s bind with addrInfo:%s successed.", req.ReqID,
-								k8sResourceID, req.K8SPodID, litter.Sdump(k8sPodAddrInfo))
+							calm_utils.Debugf("ReqID:%s k8sResourceID:%d podName:%s bind with addrInfo:%s successed.", req.ReqID,
+								k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 							httpCode = http.StatusCreated
 						}
 					}
@@ -133,22 +137,23 @@ func cniReleaseIP(c *gin.Context) {
 		sendResponse(c, *status, &res)
 	}(&httpCode)
 
-	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
-
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
-		err = storeMgr.UnbindAddrInfoWithK8SPodID(k8sResourceID, proto.K8SApiResourceKindDeployment, req.K8SPodID)
+		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+
+		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
 			// TODO 告警
-			calm_utils.Errorf("ReqID:%s k8sResourceID:%s podID:%s unBind failed.", req.ReqID, k8sResourceID, req.K8SPodID)
+			calm_utils.Errorf("ReqID:%s podName:%s unBind failed.", req.ReqID, req.K8SPodName)
 		} else {
-			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podID:%s unBind successed.", req.ReqID, k8sResourceID, req.K8SPodID)
+			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		//
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job，cronjob
-		storeMgr.UnbindJobPodWithPortID(k8sResourceID, req.K8SPodID)
+		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+		storeMgr.UnbindJobPodWithPortID(podUniqueName)
 		// TODO 告警
 	}
 

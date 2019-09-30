@@ -32,11 +32,11 @@ type StoreMgr interface {
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
-	// BindAddrInfoWithK8SPodID 获取一个地址信息，和k8s资源绑定
-	BindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodID string) (*proto.K8SAddrInfo, error)
+	// BindAddrInfoWithK8SPodUniqueName 获取一个地址信息，和k8s资源绑定
+	BindAddrInfoWithK8SPodUniqueName(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodUniqueName string) (*proto.K8SAddrInfo, error)
 
 	// UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
-	UnbindAddrInfoWithK8SPodID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, unBindPodID string) error
+	UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SApiResourceKindType, unBindPodUniqueName string) error
 
 	// AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
 	AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
@@ -52,10 +52,10 @@ type StoreMgr interface {
 	DelJobNetInfo(k8sResourceID string) error
 
 	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
-	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podID string) error
+	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, unBindPodUniqueName string) error
 
 	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
-	UnbindJobPodWithPortID(k8sResourceID string, podID string) error
+	UnbindJobPodWithPortID(unBindPodUniqueName string) error
 
 	// ReduceK8SResourceAddrs 给k8s资源地址数量进行缩容
 	ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error
