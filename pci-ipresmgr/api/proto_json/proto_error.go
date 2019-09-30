@@ -7,13 +7,18 @@
 
 package protojson
 
-// 错误码类型
+// IPResMgrErrorCode 错误码类型
 type IPResMgrErrorCode int
 
 const (
+	// IPResMgrErrnoSuccessed 成功
 	IPResMgrErrnoSuccessed IPResMgrErrorCode = iota
+	// IPResMgrErrnoCreateIPPoolFailed 创建IPPool失败
 	IPResMgrErrnoCreateIPPoolFailed
+	// IPResMgrErrnoReleaseIPPoolFailed 释放IPPool失败
 	IPResMgrErrnoReleaseIPPoolFailed
+	// IPResMgrErrnoScaleIPPoolFailed 扩缩容IPPool失败
 	IPResMgrErrnoScaleIPPoolFailed
+	// IPResMgrErrnoGetIPFailed 获取IP失败
 	IPResMgrErrnoGetIPFailed
 )

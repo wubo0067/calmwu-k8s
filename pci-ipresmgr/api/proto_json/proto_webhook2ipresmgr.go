@@ -25,8 +25,11 @@ const (
 type WB2IPResMgrRequestType int
 
 const (
+	// WB2IPResMgrRequestCreateIPPool 创建IPPool
 	WB2IPResMgrRequestCreateIPPool WB2IPResMgrRequestType = iota
+	// WB2IPResMgrRequestReleaseIPPool 释放IPPool
 	WB2IPResMgrRequestReleaseIPPool
+	// WB2IPResMgrRequestScaleIPPool 扩缩容IPPool
 	WB2IPResMgrRequestScaleIPPool
 )
 
@@ -68,7 +71,7 @@ type WB2IPResMgrScaleIPPoolReq struct {
 	SubnetCIDR                string                 `json:"SubnetCIDR" mapstructure:"SubnetCIDR"`               // 子网CIDR，为了掩码
 }
 
-// 操作返回信息
+// IPResMgr2WBRes 操作返回信息
 type IPResMgr2WBRes struct {
 	ReqID   string                 `json:"ReqID" mapstructure:"ReqID"`
 	ReqType WB2IPResMgrRequestType `json:"ReqType" mapstructure:"ReqType"`

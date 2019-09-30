@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS tbl_IPResMgrSrvRegister (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name
     k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType
     ip VARCHAR(32) NOT NULL,                       -- 分配的ip
     mac VARCHAR(32) NOT NULL,                      -- mac地址
@@ -20,11 +20,11 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     subnetgatewayaddr VARCHAR(16) NOT NULL,        -- 子网网关地址
     alloc_time TIMESTAMP NOT NULL,                 -- ip从nsp分配的时间   
     is_bind TINYINT NOT NULL,                      -- ip是否绑定，0：没有绑定，1：绑定
-    bind_podid VARCHAR(128) NULL,                  -- 绑定的podid，解绑后StatefuSet这个podid不能清除
+    bind_podinfo VARCHAR(192) NULL,                  -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
     scaledown_flag int NOT NULL DEFAULT 0,         -- 是否scaledown标志，设置该标志后，unbind后立即归还给nsp
     PRIMARY KEY(k8sresource_id, port_id),
-    INDEX(bind_podid),
+    UNIQUE KEY(bind_podinfo),
     INDEX(k8sresource_type),
     INDEX(is_bind)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycle (
 
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
     id INT UNSIGNED AUTO_INCREMENT, 
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name
     k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType  
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     ip VARCHAR(32) NOT NULL,                       -- 分配的ip
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPRecycleHistroy (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name
     k8sresource_type int NOT NULL,                 -- 资源类型，Job CronJob proto.K8SApiResourceKindType
     netregional_id VARCHAR(128) NOT NULL,          -- 用到的网络域id  
     subnet_id VARCHAR(36) NOT NULL,                -- 用到的子网id
@@ -70,13 +70,13 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name    
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name    
     ip VARCHAR(32) NOT NULL,                       -- 分配的ip
-    bind_podid VARCHAR(36) NULL,                   -- 绑定的podid，解绑后StatefuSet这个podid不能清除  
+    bind_podinfo VARCHAR(192) NULL,                  -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
     PRIMARY KEY(k8sresource_id, port_id),
-    INDEX(bind_podid)
+    UNIQUE KEY(bind_podinfo),
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- !!Deprecate!!
