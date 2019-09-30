@@ -8,13 +8,12 @@ require (
 	github.com/gin-contrib/sse v0.0.0-20190125020943-a7658810eb74 // indirect
 	github.com/gin-gonic/gin v1.3.0
 	github.com/golang/protobuf v1.3.2
-	github.com/google/go-cmp v0.3.1 // indirect
 	github.com/hashicorp/consul v1.5.1 // indirect
 	github.com/micro/cli v0.2.0
 	github.com/micro/go-api v0.6.0
-	github.com/micro/go-micro v1.8.2
+	github.com/micro/go-micro v1.10.0
 	github.com/micro/go-plugins v1.2.0
-	github.com/micro/micro v1.8.3
+	github.com/micro/micro v1.10.0
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/nu7hatch/gouuid v0.0.0-20131221200532-179d4d0c4d8d

@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-03-18 18:31:10
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-03-20 16:22:08
+ * @Last Modified time: 2019-09-18 15:09:35
  */
 
 package main
@@ -187,10 +187,11 @@ func main() {
 			logger.Fatal(err)
 		}
 
-		listPod(clientSet)
-		listDeployment(clientSet)
-		listServices(clientSet)
-		createJob(clientSet)
+		//listPod(clientSet)
+		//listDeployment(clientSet)
+		//listServices(clientSet)
+		//createJob(clientSet)
+		watchNS(clientSet)
 		return nil
 	}
 
