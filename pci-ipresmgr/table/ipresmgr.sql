@@ -72,11 +72,11 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
 CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
     k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name    
     ip VARCHAR(32) NOT NULL,                       -- 分配的ip
-    bind_poduniquename VARCHAR(192) NULL,                  -- 这里是clusterid-ns-podname, 而且是个唯一索引。
+    bind_poduniquename VARCHAR(192) NULL,          -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
     PRIMARY KEY(k8sresource_id, port_id),
-    UNIQUE KEY(bind_poduniquename),
+    UNIQUE KEY(bind_poduniquename)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- !!Deprecate!!

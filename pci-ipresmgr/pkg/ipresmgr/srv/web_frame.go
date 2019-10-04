@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-27 17:32:13
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-08-28 17:18:39
+ * @Last Modified time: 2019-10-04 12:16:07
  */
 
 package srv
@@ -33,6 +33,11 @@ func registerHandler(router *gin.Engine) {
 	cniV1Group := router.Group("/v1/ip")
 	cniV1Group.POST("/require", cniRequireIP)
 	cniV1Group.POST("/release", cniReleaseIP)
+
+	// maintain接口
+	maintainGroup := router.Group("/v1/maintain")
+	maintainGroup.POST("/unbindIP", maintainUnbindIP)
+	maintainGroup.POST("/releaseIP", maintainReleaseIP)
 }
 
 func startWebSrv(listenAddr string, listenPort int) error {
