@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-29 14:29:52
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-07 16:38:38
+ * @Last Modified time: 2019-10-04 16:42:19
  */
 
 // https://cloud.tencent.com/developer/article/1079583
@@ -325,7 +325,7 @@ func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
 		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind 
 		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-			"cluster-1-default-kata-nginx-deployment",
+			"cluster-1:default:kata-nginx-deployment",
 			int(proto.K8SApiResourceKindDeployment),
 			randomdata.IpV4Address(),
 			mac,

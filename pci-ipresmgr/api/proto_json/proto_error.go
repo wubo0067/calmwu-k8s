@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-07-11 14:22:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-04 14:50:31
+ * @Last Modified time: 2019-10-04 16:56:25
  */
 
 package protojson
@@ -19,6 +19,8 @@ const (
 	IPResMgrErrnoReleaseIPPoolFailed
 	// IPResMgrErrnoScaleIPPoolFailed 扩缩容IPPool失败
 	IPResMgrErrnoScaleIPPoolFailed
-	// IPResMgrErrnoGetIPFailed 获取IP失败
+	// IPResMgrErrnoGetIPFailed IPAM获取IP失败
 	IPResMgrErrnoGetIPFailed
+	// IPResMgrErrnoReleaseIPFailed IPAM释放IP失败
+	IPResMgrErrnoReleaseIPFailed
 )

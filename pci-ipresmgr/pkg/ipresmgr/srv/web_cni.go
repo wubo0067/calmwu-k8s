@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-08-28 15:25:30
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-13 10:57:48
+ * @Last Modified time: 2019-10-04 16:58:46
  */
 
 package srv
@@ -143,7 +143,11 @@ func cniReleaseIP(c *gin.Context) {
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
 			// TODO 告警
-			calm_utils.Errorf("ReqID:%s podName:%s unBind failed.", req.ReqID, req.K8SPodName)
+			err = errors.Wrapf(err, "ReqID:%s podName:%s unBind failed.", req.ReqID, req.K8SPodName)
+			calm_utils.Errorf(err.Error())
+			res.Code = proto.IPResMgrErrnoReleaseIPFailed
+			res.Msg = err.Error()
+			httpCode = http.StatusBadRequest
 		} else {
 			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
 		}
@@ -153,7 +157,11 @@ func cniReleaseIP(c *gin.Context) {
 	} else {
 		// 处理job，cronjob
 		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
-		storeMgr.UnbindJobPodWithPortID(podUniqueName)
+		err = storeMgr.UnbindJobPodWithPortID(podUniqueName)
+		calm_utils.Errorf(err.Error())
+		res.Code = proto.IPResMgrErrnoReleaseIPFailed
+		res.Msg = err.Error()
+		httpCode = http.StatusBadRequest
 		// TODO 告警
 	}
 

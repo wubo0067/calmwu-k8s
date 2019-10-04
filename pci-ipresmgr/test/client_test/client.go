@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-09-07 16:07:14
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-23 14:52:50
+ * @Last Modified time: 2019-10-04 16:50:06
  */
 
 package main
@@ -91,7 +91,7 @@ func testReleaseIPPool() {
 		logger.Fatalf("post %sv1/ippool/release failed. err:%s", *srvIPResMgrAddr, err.Error())
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		logger.Fatalf("post %sv1/ippool/release failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
 	}
 
@@ -124,7 +124,7 @@ func testScaleIPPool() {
 		logger.Fatalf("post %sv1/ippool/scale failed. err:%s", *srvIPResMgrAddr, err.Error())
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		logger.Fatalf("post %sv1/ippool/scale failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
 	}
 
@@ -152,7 +152,7 @@ func testRequireIP() {
 		logger.Fatalf("post %sv1/ip/require failed. err:%s", *srvIPResMgrAddr, err.Error())
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		logger.Fatalf("post %sv1/ip/require failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
 	}
 
@@ -179,7 +179,7 @@ func testReleaseIP() {
 		logger.Fatalf("post %sv1/ip/release failed. err:%s", *srvIPResMgrAddr, err.Error())
 	}
 
-	if res.StatusCode != 200 {
+	if res.StatusCode < 200 || res.StatusCode > 299 {
 		logger.Fatalf("post %sv1/ip/release failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
 	}
 
