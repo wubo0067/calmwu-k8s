@@ -162,7 +162,6 @@ func testRequireIP() {
 func testReleaseIP() {
 	var releaseIPReq proto.IPAM2IPResMgrReleaseIPReq
 	releaseIPReq.ReqID = ksuid.New().String()
-	releaseIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
 	releaseIPReq.K8SClusterID = "cluster-1"
 	releaseIPReq.K8SNamespace = "default"
 	releaseIPReq.K8SPodName = *unBindPodName

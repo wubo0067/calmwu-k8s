@@ -66,7 +66,7 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 
 // BindAddrInfoWithK8SPodUniqueName 获取一个地址信息，和k8s资源绑定
 func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType,
-	bindPodUniqueName string) (*proto.K8SAddrInfo, error) {
+	podUniqueName string) (*proto.K8SAddrInfo, error) {
 
 	var k8sAddrInfo *proto.K8SAddrInfo
 
@@ -77,7 +77,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			var checkExistk8sAddrBindInfo table.TblK8SResourceIPBindS
 			err := msm.dbMgr.Get(&checkExistk8sAddrBindInfo,
 				"SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=1 AND bind_poduniquename=? LIMIT 1",
-				k8sResourceID, k8sResourceType, bindPodUniqueName)
+				k8sResourceID, k8sResourceType, podUniqueName)
 			if err == nil {
 				// 该pod已经绑定，直接返回
 				k8sAddrInfo = new(proto.K8SAddrInfo)
@@ -87,7 +87,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 				k8sAddrInfo.SubNetID = checkExistk8sAddrBindInfo.SubNetID
 				k8sAddrInfo.SubNetGatewayAddr = checkExistk8sAddrBindInfo.SubNetGatewayAddr
 				k8sAddrInfo.PortID = checkExistk8sAddrBindInfo.PortID
-				calm_utils.Warnf("k8sResourceID:%s bindPod:%s is already occupied address:%s resources", k8sResourceID, bindPodUniqueName, checkExistk8sAddrBindInfo.IP)
+				calm_utils.Warnf("k8sResourceID:%s bindPod:%s is already occupied address:%s resources", k8sResourceID, podUniqueName, checkExistk8sAddrBindInfo.IP)
 				return nil
 			}
 
@@ -96,7 +96,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 				Isolation: sql.LevelSerializable,
 			})
 			if err != nil {
-				err := errors.Wrapf(err, "k8sResourceID:%s bindPod:%s begin transaction failed.", k8sResourceID, bindPodUniqueName)
+				err := errors.Wrapf(err, "k8sResourceID:%s bindPod:%s begin transaction failed.", k8sResourceID, podUniqueName)
 				calm_utils.Error(err.Error())
 				return err
 			}
@@ -104,10 +104,10 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			var transactionFlag int
 			defer func(flag *int) {
 				if *flag == 0 {
-					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Commit", k8sResourceID, bindPodUniqueName)
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Commit", k8sResourceID, podUniqueName)
 					tx.Commit()
 				} else {
-					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Rollback", k8sResourceID, bindPodUniqueName)
+					calm_utils.Debugf("k8sResourceID:%s bindPod:%s tbl_K8SResourceIPBind SELECT FOR UPDATE Rollback", k8sResourceID, podUniqueName)
 					tx.Rollback()
 				}
 			}(&transactionFlag)
@@ -129,26 +129,26 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 
 			if err != nil {
 				// TODO 查询node，和所有pod的状态
-				err = errors.Wrapf(err, "k8sResourceID:%s bindPod:%s Scan failed.", k8sResourceID, bindPodUniqueName)
+				err = errors.Wrapf(err, "k8sResourceID:%s bindPod:%s Scan failed.", k8sResourceID, podUniqueName)
 				calm_utils.Error(err.Error())
 				transactionFlag = -1
 				return err
 			}
 
-			calm_utils.Debugf("k8sResourceID:%s bindPod:%s k8sAddrBindInfo:%s", k8sResourceID, bindPodUniqueName, litter.Sdump(&k8sAddrBindInfo))
+			calm_utils.Debugf("k8sResourceID:%s bindPod:%s k8sAddrBindInfo:%s", k8sResourceID, podUniqueName, litter.Sdump(&k8sAddrBindInfo))
 
 			currTime := time.Now()
 			updateRes, err := tx.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND port_id=?",
-				bindPodUniqueName, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+				podUniqueName, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
 			if err != nil {
 				err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s, bind_time=%s WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=0 AND port_id=%s. tx Exec UPDATE failed.",
-					bindPodUniqueName, currTime.String(), k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+					podUniqueName, currTime.String(), k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
 				transactionFlag = -1
 				return err
 			}
 
 			updateRowCount, _ := updateRes.RowsAffected()
-			calm_utils.Debugf("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, bindPodUniqueName, updateRowCount)
+			calm_utils.Debugf("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, podUniqueName, updateRowCount)
 
 			k8sAddrInfo = new(proto.K8SAddrInfo)
 			k8sAddrInfo.IP = k8sAddrBindInfo.IP
@@ -186,20 +186,20 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			// 		// 修改表
 			// 		currTime := time.Now()
 			// 		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND ip=?",
-			// 			bindPodUniqueName, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.IP)
+			// 			podUniqueName, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.IP)
 			// 		if err != nil {
 			// 			calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s failed. err:%s. do try:%d",
-			// 				bindPodUniqueName, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
+			// 				podUniqueName, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
 			// 		} else {
 			// 			updateRows, _ := updateRes.RowsAffected()
 			// 			// if err != nil {
 			// 			// 	calm_utils.Errorf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s RowsAffected failed. err:%s. do try:%d",
-			// 			// 		bindPodUniqueName, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
+			// 			// 		podUniqueName, k8sResourceID, k8sAddrBindInfo.IP, err.Error(), replicas)
 			// 			// 	continue
 			// 			// }
 
 			// 			calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s WHERE k8sresource_id=%s AND k8sresource_type=0 AND is_bind=0 AND ip=%s successed. updateRows:[%d]",
-			// 				bindPodUniqueName, k8sResourceID, k8sAddrBindInfo.IP, updateRows)
+			// 				podUniqueName, k8sResourceID, k8sAddrBindInfo.IP, updateRows)
 
 			// 			k8sAddrInfo = new(proto.K8SAddrInfo)
 			// 			k8sAddrInfo.IP = k8sAddrBindInfo.IP
@@ -219,37 +219,37 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 	})
 
 	if k8sAddrInfo != nil {
-		calm_utils.Infof("k8sResourceID:[%s] k8sResourceType:[%s] bindPodUniqueName:[%s] bind Addr:[%s]", k8sResourceID,
-			k8sResourceType.String(), bindPodUniqueName, litter.Sdump(k8sAddrInfo))
+		calm_utils.Infof("k8sResourceID:[%s] k8sResourceType:[%s] podUniqueName:[%s] bind Addr:[%s]", k8sResourceID,
+			k8sResourceType.String(), podUniqueName, litter.Sdump(k8sAddrInfo))
 	} else {
 		// TODO 发送告警
-		calm_utils.Errorf("k8sResourceID:[%s] k8sResourceType:[%s] bindPodUniqueName:[%s] bind Addr failed", k8sResourceID,
-			k8sResourceType.String(), bindPodUniqueName)
+		calm_utils.Errorf("k8sResourceID:[%s] k8sResourceType:[%s] podUniqueName:[%s] bind Addr failed", k8sResourceID,
+			k8sResourceType.String(), podUniqueName)
 	}
 
 	return k8sAddrInfo, err
 }
 
 // UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
-func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SApiResourceKindType, unBindPodUniqueName string) error {
+func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SApiResourceKindType, podUniqueName string) error {
 
 	return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
-		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0 WHERE bind_poduniquename=? LIMIT 1", unBindPodUniqueName)
+		updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=0 WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
 		if err != nil {
-			err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE bind_poduniquename=%s LIMIT 1 failed.", unBindPodUniqueName)
+			err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE bind_poduniquename=%s LIMIT 1 failed.", podUniqueName)
 			calm_utils.Error(err.Error())
 			return err
 		}
 		updateRows, _ := updateRes.RowsAffected()
-		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE bind_poduniquename=%s successed. updateRows:%d.", unBindPodUniqueName, updateRows)
+		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE bind_poduniquename=%s successed. updateRows:%d.", podUniqueName, updateRows)
 
 		// 释放该IP
 		var recycleIP, portID string
 		var scaleDownFlag int
-		ipBindRow := msm.dbMgr.QueryRow("SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", unBindPodUniqueName)
+		ipBindRow := msm.dbMgr.QueryRow("SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
 		err = ipBindRow.Scan(&recycleIP, &portID, &scaleDownFlag)
 		if err != nil {
-			err = errors.Wrapf(err, "SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=%s LIMIT 1 failed.", unBindPodUniqueName)
+			err = errors.Wrapf(err, "SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=%s LIMIT 1 failed.", podUniqueName)
 			calm_utils.Error(err.Error())
 			return err
 		}
@@ -257,9 +257,9 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SAp
 		// 判断该条记录是否要回收
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
 			if scaleDownFlag == 1 {
-				calm_utils.Infof("BindPodID:%s set scaledown flag, so release immediately", unBindPodUniqueName)
+				calm_utils.Infof("BindPodID:%s set scaledown flag, so release immediately", podUniqueName)
 				// 释放该条记录
-				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=?", unBindPodUniqueName)
+				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=?", podUniqueName)
 				// NSP回收
 				nsp.NSPMgr.ReleaseAddrResources(portID)
 			}
@@ -445,16 +445,16 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 	return nil
 }
 
-func (msm *mysqlStoreMgr) QueryK8SResourceKindByPodUniqueName(unBindPodUniqueName string) proto.K8SApiResourceKindType {
+func (msm *mysqlStoreMgr) QueryK8SResourceKindByPodUniqueName(podUniqueName string) proto.K8SApiResourceKindType {
 	var k8sResourceType int
-	err := msm.dbMgr.Get(&k8sResourceType, `SELECT k8sresource_type FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1`, unBindPodUniqueName)
+	err := msm.dbMgr.Get(&k8sResourceType, `SELECT k8sresource_type FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1`, podUniqueName)
 	if err != nil {
-		calm_utils.Infof("unBindPodUniqueName:%s not in tbl_K8SResourceIPBind, so type is proto.K8SApiResourceKindLikeJob", unBindPodUniqueName)
+		calm_utils.Infof("podUniqueName:%s not in tbl_K8SResourceIPBind, so type is proto.K8SApiResourceKindLikeJob", podUniqueName)
 		return proto.K8SApiResourceKindLikeJob
 	}
 
 	kindType := proto.K8SApiResourceKindType(k8sResourceType)
-	calm_utils.Debugf("unBindPodUniqueName:%s in tbl_K8SResourceIPBind, type is %s", unBindPodUniqueName, kindType.String())
+	calm_utils.Debugf("podUniqueName:%s in tbl_K8SResourceIPBind, type is %s", podUniqueName, kindType.String())
 
 	return kindType
 }

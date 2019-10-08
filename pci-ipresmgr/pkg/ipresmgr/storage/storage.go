@@ -33,10 +33,10 @@ type StoreMgr interface {
 	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
 
 	// BindAddrInfoWithK8SPodUniqueName 获取一个地址信息，和k8s资源绑定
-	BindAddrInfoWithK8SPodUniqueName(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, bindPodUniqueName string) (*proto.K8SAddrInfo, error)
+	BindAddrInfoWithK8SPodUniqueName(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, podUniqueName string) (*proto.K8SAddrInfo, error)
 
 	// UnbindAddrInfoWithK8SPodID 地址和k8s资源解绑
-	UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SApiResourceKindType, unBindPodUniqueName string) error
+	UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SApiResourceKindType, podUniqueName string) error
 
 	// AddK8SResourceAddressToRecycle 加入回收站，待租期到期回收
 	AddK8SResourceAddressToRecycle(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
@@ -52,10 +52,10 @@ type StoreMgr interface {
 	DelJobNetInfo(k8sResourceID string) error
 
 	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
-	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, unBindPodUniqueName string) error
+	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podUniqueName string) error
 
 	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
-	UnbindJobPodWithPortID(unBindPodUniqueName string) error
+	UnbindJobPodWithPortID(podUniqueName string) error
 
 	// ReduceK8SResourceAddrs 给k8s资源地址数量进行缩容
 	ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error
@@ -64,7 +64,7 @@ type StoreMgr interface {
 	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, originalReplicas int, scaleDownSize int) error
 
 	// QueryK8SResourceKindByPodUniqueName 在表tbl_K8SResourceIPBind查询pod对应的k8s类型，查不到就是job和cronjob
-	QueryK8SResourceKindByPodUniqueName(unBindPodUniqueName string) proto.K8SApiResourceKindType
+	QueryK8SResourceKindByPodUniqueName(podUniqueName string) proto.K8SApiResourceKindType
 }
 
 // StoreOptions 存储的参数
