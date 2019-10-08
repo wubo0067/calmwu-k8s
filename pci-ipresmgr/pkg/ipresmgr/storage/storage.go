@@ -62,6 +62,9 @@ type StoreMgr interface {
 
 	// AddScaleDownMarked 添加缩减标记，每个一条记录
 	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, originalReplicas int, scaleDownSize int) error
+
+	// QueryK8SResourceKindByPodUniqueName 在表tbl_K8SResourceIPBind查询pod对应的k8s类型，查不到就是job和cronjob
+	QueryK8SResourceKindByPodUniqueName(unBindPodUniqueName string) proto.K8SApiResourceKindType
 }
 
 // StoreOptions 存储的参数

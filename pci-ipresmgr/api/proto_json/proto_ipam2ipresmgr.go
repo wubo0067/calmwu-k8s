@@ -11,10 +11,10 @@ package protojson
 type IPAM2IPResMgrRequireIPReq struct {
 	ReqID              string                 `json:"ReqID" mapstructure:"ReqID"`
 	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"`
-	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"` // k8s集群id
-	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"` // 对应的namespace
+	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"`             // k8s集群id
+	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"`             // 对应的namespace
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"` // deployment、statefulset、job、cronjob 名字
-	K8SPodName         string                 `json:"K8SPodName" mapstructure:"K8SPodName"` // podname
+	K8SPodName         string                 `json:"K8SPodName" mapstructure:"K8SPodName"`                 // podname
 	//K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
 	//K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id 不是podname
 }
@@ -32,12 +32,11 @@ type IPResMgr2IPAMRequireIPRes struct {
 
 // IPAM2IPResMgrReleaseIPReq ipam向ipresmgr释放ip地址
 type IPAM2IPResMgrReleaseIPReq struct {
-	ReqID              string                 `json:"ReqID" mapstructure:"ReqID"`
-	K8SApiResourceKind K8SApiResourceKindType `json:"K8SApiResourceKind" mapstructure:"K8SApiResourceKind"` 
-	K8SClusterID       string                 `json:"K8SClusterID" mapstructure:"K8SClusterID"` // k8s集群id
-	K8SNamespace       string                 `json:"K8SNamespace" mapstructure:"K8SNamespace"` // 对应的namespace
-	K8SPodName         string                 `json:"K8SPodName" mapstructure:"K8SPodName"`     // podname
-	IP                 string                 `json:"IP" mapstructure:"IP"`
+	ReqID        string `json:"ReqID" mapstructure:"ReqID"`
+	K8SClusterID string `json:"K8SClusterID" mapstructure:"K8SClusterID"` // k8s集群id
+	K8SNamespace string `json:"K8SNamespace" mapstructure:"K8SNamespace"` // 对应的namespace
+	K8SPodName   string `json:"K8SPodName" mapstructure:"K8SPodName"`     // podname
+	IP           string `json:"IP" mapstructure:"IP"`
 	//K8SApiResourceID   string                 `json:"K8SApiResourceID" mapstructure:"K8SApiResourceID"` // Deployment-id 或 StatefulSet-id
 	//K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 	//K8SPodID           string                 `json:"K8SPodID" mapstructure:"K8SPodID"` // pod-id 不是podname

@@ -444,3 +444,17 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 	}
 	return nil
 }
+
+func (msm *mysqlStoreMgr) QueryK8SResourceKindByPodUniqueName(unBindPodUniqueName string) proto.K8SApiResourceKindType {
+	var k8sResourceType int
+	err := msm.dbMgr.Get(&k8sResourceType, `SELECT k8sresource_type FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1`, unBindPodUniqueName)
+	if err != nil {
+		calm_utils.Infof("unBindPodUniqueName:%s not in tbl_K8SResourceIPBind, so type is proto.K8SApiResourceKindLikeJob", unBindPodUniqueName)
+		return proto.K8SApiResourceKindLikeJob
+	}
+
+	kindType := proto.K8SApiResourceKindType(k8sResourceType)
+	calm_utils.Debugf("unBindPodUniqueName:%s in tbl_K8SResourceIPBind, type is %s", unBindPodUniqueName, kindType.String())
+
+	return kindType
+}

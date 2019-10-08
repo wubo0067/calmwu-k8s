@@ -10,11 +10,14 @@ func _() {
 	var x [1]struct{}
 	_ = x[K8SApiResourceKindDeployment-0]
 	_ = x[K8SApiResourceKindStatefulSet-1]
+	_ = x[K8SApiResourceKindJob-2]
+	_ = x[K8SApiResourceKindCronJob-3]
+	_ = x[K8SApiResourceKindLikeJob-4]
 }
 
-const _K8SApiResourceKindType_name = "K8SApiResourceKindDeploymentK8SApiResourceKindStatefulSet"
+const _K8SApiResourceKindType_name = "K8SApiResourceKindDeploymentK8SApiResourceKindStatefulSetK8SApiResourceKindJobK8SApiResourceKindCronJobK8SApiResourceKindLikeJob"
 
-var _K8SApiResourceKindType_index = [...]uint8{0, 28, 57}
+var _K8SApiResourceKindType_index = [...]uint8{0, 28, 57, 78, 103, 128}
 
 func (i K8SApiResourceKindType) String() string {
 	if i < 0 || i >= K8SApiResourceKindType(len(_K8SApiResourceKindType_index)-1) {

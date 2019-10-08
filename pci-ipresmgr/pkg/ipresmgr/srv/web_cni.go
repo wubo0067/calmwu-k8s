@@ -137,8 +137,11 @@ func cniReleaseIP(c *gin.Context) {
 		sendResponse(c, *status, &res)
 	}(&httpCode)
 
-	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
-		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+	podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+	// 查询pod对应的类型
+	k8sResourceType := storeMgr.QueryK8SResourceKindByPodUniqueName(podUniqueName)
+
+	if k8sResourceType == proto.K8SApiResourceKindDeployment {
 
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
@@ -151,7 +154,7 @@ func cniReleaseIP(c *gin.Context) {
 		} else {
 			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
 		}
-	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
+	} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 		//
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
