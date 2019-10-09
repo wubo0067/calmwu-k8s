@@ -93,7 +93,7 @@ func cniRequireIP(c *gin.Context) {
 						k8sPodAddrInfo := k8sAddrs[0]
 						podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 
-						err = storeMgr.BindJobPodWithPortID(k8sResourceID, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, podUniqueName)
+						err = storeMgr.BindJobPodWithPortID(k8sResourceID, req.K8SApiResourceKind, k8sPodAddrInfo.IP, k8sPodAddrInfo.PortID, podUniqueName)
 						if err != nil {
 							// 归还地址
 							nsp.NSPMgr.ReleaseAddrResources(k8sPodAddrInfo.PortID)
@@ -118,6 +118,7 @@ func cniRequireIP(c *gin.Context) {
 	return
 }
 
+//  不明白，为什么bridge这个cni会重试4次，而且明确说明了不要返回error
 func cniReleaseIP(c *gin.Context) {
 	var req proto.IPAM2IPResMgrReleaseIPReq
 	var res proto.IPResMgr2IPAMReleaseIPRes
@@ -148,23 +149,24 @@ func cniReleaseIP(c *gin.Context) {
 			// TODO 告警
 			err = errors.Wrapf(err, "ReqID:%s podName:%s unBind failed.", req.ReqID, req.K8SPodName)
 			calm_utils.Errorf(err.Error())
-			res.Code = proto.IPResMgrErrnoReleaseIPFailed
+			//res.Code = proto.IPResMgrErrnoReleaseIPFailed
 			res.Msg = err.Error()
-			httpCode = http.StatusBadRequest
+			//httpCode = http.StatusBadRequest
 		} else {
 			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
 		}
 	} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 		//
 		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
-	} else {
+	} else if k8sResourceType == proto.K8SApiResourceKindCronJob ||
+		k8sResourceType == proto.K8SApiResourceKindJob {
 		// 处理job，cronjob
 		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 		err = storeMgr.UnbindJobPodWithPortID(podUniqueName)
 		calm_utils.Errorf(err.Error())
-		res.Code = proto.IPResMgrErrnoReleaseIPFailed
+		//res.Code = proto.IPResMgrErrnoReleaseIPFailed
 		res.Msg = err.Error()
-		httpCode = http.StatusBadRequest
+		//httpCode = http.StatusBadRequest
 		// TODO 告警
 	}
 

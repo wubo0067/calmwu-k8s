@@ -52,7 +52,7 @@ type StoreMgr interface {
 	DelJobNetInfo(k8sResourceID string) error
 
 	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
-	BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podUniqueName string) error
+	BindJobPodWithPortID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, podIP string, portID string, podUniqueName string) error
 
 	// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
 	UnbindJobPodWithPortID(podUniqueName string) error

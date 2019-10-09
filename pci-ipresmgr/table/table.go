@@ -33,7 +33,6 @@ type TblK8SResourceIPBindS struct {
 	IsBind            int8           `db:"is_bind"`
 	BindPodUniqueName sql.NullString `db:"bind_poduniquename"`
 	BindTime          time.Time      `db:"bind_time"`
-	ScaledownFlag     int            `db:"scaledown_flag"`
 }
 
 // TblK8SResourceIPRecycleS 地址资源回收表
@@ -75,6 +74,7 @@ type TblK8SJobNetInfoS struct {
 // TblK8SJobIPBindS job 和 cronjob 的pod的ip地址绑定信息
 type TblK8SJobIPBindS struct {
 	K8SResourceID     string         `db:"k8sresource_id"`
+	K8SResourceType   int            `db:"k8sresource_type"` // proto.K8SApiResourceKindType
 	IP                string         `db:"ip"`
 	BindPodUniqueName sql.NullString `db:"bind_poduniquename"`
 	PortID            string         `db:"port_id"`

@@ -70,20 +70,21 @@ func (msm *mysqlStoreMgr) DelJobNetInfo(k8sResourceID string) error {
 }
 
 // BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
-func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, podIP string, portID string, podUniqueName string) error {
+func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, podIP string, portID string, podUniqueName string) error {
 	now := time.Now()
 	_, err := msm.dbMgr.Exec(`INSERT INTO tbl_K8SJobIPBind (k8sresource_id, 
+		k8sresource_type,
 		ip, 
 		bind_poduniquename, 
 		port_id,
-		bind_time ) VALUES (?, ?, ?, ?, ?)`, k8sResourceID, podIP, podUniqueName, portID, now)
+		bind_time) VALUES (?, ?, ?, ?, ?, ?)`, k8sResourceID, int(k8sResourceType), podIP, podUniqueName, portID, now)
 	if err != nil {
-		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s, %s), Exec failed.", k8sResourceID,
+		err = errors.Wrapf(err, "INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s, %s, %s), Exec failed.", k8sResourceID, k8sResourceType.String(),
 			podIP, podUniqueName, portID, now.String())
 		calm_utils.Error(err.Error())
 		return err
 	}
-	calm_utils.Debugf("INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s, %s, %s), Exec successed.", k8sResourceID,
+	calm_utils.Debugf("INSERT INTO tbl_K8SJobIPBind VALUES (%s, %s, %s,  %s, %s, %s), Exec successed.", k8sResourceID, k8sResourceType.String(),
 		podIP, podUniqueName, portID, now.String())
 	return nil
 }

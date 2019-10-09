@@ -125,7 +125,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			err = selRow.Scan(&k8sAddrBindInfo.K8SResourceID, &k8sAddrBindInfo.K8SResourceType, &k8sAddrBindInfo.IP,
 				&k8sAddrBindInfo.MacAddr, &k8sAddrBindInfo.NetRegionalID, &k8sAddrBindInfo.SubNetID, &k8sAddrBindInfo.PortID,
 				&k8sAddrBindInfo.SubNetGatewayAddr, &k8sAddrBindInfo.AllocTime, &k8sAddrBindInfo.IsBind, &k8sAddrBindInfo.BindPodUniqueName,
-				&k8sAddrBindInfo.BindTime, &k8sAddrBindInfo.ScaledownFlag)
+				&k8sAddrBindInfo.BindTime)
 
 			if err != nil {
 				// TODO 查询node，和所有pod的状态
@@ -244,25 +244,33 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SAp
 		calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET bind=0 WHERE bind_poduniquename=%s successed. updateRows:%d.", podUniqueName, updateRows)
 
 		// 释放该IP
-		var recycleIP, portID string
-		var scaleDownFlag int
-		ipBindRow := msm.dbMgr.QueryRow("SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
-		err = ipBindRow.Scan(&recycleIP, &portID, &scaleDownFlag)
+		var k8sResourceID, recycleIP, portID string
+		ipBindRow := msm.dbMgr.QueryRow("SELECT k8sresource_id, ip, port_id FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
+		err = ipBindRow.Scan(&k8sResourceID, &recycleIP, &portID)
 		if err != nil {
-			err = errors.Wrapf(err, "SELECT ip, port_id, scaledown_flag FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=%s LIMIT 1 failed.", podUniqueName)
+			err = errors.Wrapf(err, "SELECT k8sresource_id, ip, port_id FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=%s LIMIT 1 failed.", podUniqueName)
 			calm_utils.Error(err.Error())
 			return err
 		}
 
 		// 判断该条记录是否要回收
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
-			if scaleDownFlag == 1 {
-				calm_utils.Infof("BindPodID:%s set scaledown flag, so release immediately", podUniqueName)
-				// 释放该条记录
-				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=?", podUniqueName)
-				// NSP回收
-				nsp.NSPMgr.ReleaseAddrResources(portID)
+			// 释放该条记录
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? LIMIT 1", k8sResourceID)
+			if err != nil {
+				// 不用回收
+				calm_utils.Infof("BindPodID:%s not set scaledown flag, No immediate release required.", podUniqueName)
+				return nil
 			}
+			delRowCount, _ := delRes.RowsAffected()
+			if delRowCount != 1 {
+				calm_utils.Infof("BindPodID:%s not set scaledown flag, No immediate release required.", podUniqueName)
+				return nil
+			}
+			// NSP回收
+			calm_utils.Debugf("BindPodID:%s set scaledown flag, so release immediately", podUniqueName)
+			msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
+			nsp.NSPMgr.ReleaseAddrResources(portID)
 		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 			// TODO:
 		}
@@ -425,20 +433,24 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 
 	if k8sResourceType == proto.K8SApiResourceKindDeployment {
 		return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
-			calm_utils.Debugf("Now Set k8sResourceID:%s k8sResourceType:%s scaleDownSize:%d flag",
+			calm_utils.Debugf("k8sResourceID:%s k8sResourceType:%s scaleDownSize:%d flag",
 				k8sResourceID, k8sResourceType.String(), scaleDownSize)
 
-			updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=1 LIMIT ?",
-				k8sResourceID, int(k8sResourceType), scaleDownSize)
-			if err != nil {
-				err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d failed.",
-					k8sResourceID, int(k8sResourceType), scaleDownSize)
-				calm_utils.Error(err.Error())
-				return err
+			createTime := time.Now()
+			for index := 0; index < scaleDownSize; index++ {
+				msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, create_time) VALUES (?, ?)", k8sResourceID, createTime)
 			}
-			updateRows, _ := updateRes.RowsAffected()
-			calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d successed. updateRows:%d.",
-				k8sResourceID, int(k8sResourceType), scaleDownSize, updateRows)
+			// updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=1 LIMIT ?",
+			// 	k8sResourceID, int(k8sResourceType), scaleDownSize)
+			// if err != nil {
+			// 	err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d failed.",
+			// 		k8sResourceID, int(k8sResourceType), scaleDownSize)
+			// 	calm_utils.Error(err.Error())
+			// 	return err
+			// }
+			// updateRows, _ := updateRes.RowsAffected()
+			// calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d successed. updateRows:%d.",
+			// 	k8sResourceID, int(k8sResourceType), scaleDownSize, updateRows)
 			return nil
 		})
 	}
@@ -447,14 +459,19 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 
 func (msm *mysqlStoreMgr) QueryK8SResourceKindByPodUniqueName(podUniqueName string) proto.K8SApiResourceKindType {
 	var k8sResourceType int
-	err := msm.dbMgr.Get(&k8sResourceType, `SELECT k8sresource_type FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1`, podUniqueName)
-	if err != nil {
-		calm_utils.Infof("podUniqueName:%s not in tbl_K8SResourceIPBind, so type is proto.K8SApiResourceKindLikeJob", podUniqueName)
-		return proto.K8SApiResourceKindLikeJob
+	err := msm.dbMgr.Get(&k8sResourceType, "SELECT k8sresource_type FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
+	if err == nil {
+		kindType := proto.K8SApiResourceKindType(k8sResourceType)
+		calm_utils.Debugf("podUniqueName:%s in tbl_K8SResourceIPBind, type is %s", podUniqueName, kindType.String())
+		return kindType
 	}
 
-	kindType := proto.K8SApiResourceKindType(k8sResourceType)
-	calm_utils.Debugf("podUniqueName:%s in tbl_K8SResourceIPBind, type is %s", podUniqueName, kindType.String())
+	err = msm.dbMgr.Get(&k8sResourceType, "SELECT k8sresource_type FROM tbl_K8SJobIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
+	if err == nil {
+		kindType := proto.K8SApiResourceKindType(k8sResourceType)
+		calm_utils.Debugf("podUniqueName:%s in tbl_K8SResourceIPBind, type is %s", podUniqueName, kindType.String())
+		return kindType
+	}
 
-	return kindType
+	return proto.K8SApiResourceKindUnknown
 }

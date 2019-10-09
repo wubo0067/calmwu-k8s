@@ -12,10 +12,10 @@ func _() {
 	_ = x[K8SApiResourceKindStatefulSet-1]
 	_ = x[K8SApiResourceKindJob-2]
 	_ = x[K8SApiResourceKindCronJob-3]
-	_ = x[K8SApiResourceKindLikeJob-4]
+	_ = x[K8SApiResourceKindUnknown-4]
 }
 
-const _K8SApiResourceKindType_name = "K8SApiResourceKindDeploymentK8SApiResourceKindStatefulSetK8SApiResourceKindJobK8SApiResourceKindCronJobK8SApiResourceKindLikeJob"
+const _K8SApiResourceKindType_name = "K8SApiResourceKindDeploymentK8SApiResourceKindStatefulSetK8SApiResourceKindJobK8SApiResourceKindCronJobK8SApiResourceKindUnknown"
 
 var _K8SApiResourceKindType_index = [...]uint8{0, 28, 57, 78, 103, 128}
 

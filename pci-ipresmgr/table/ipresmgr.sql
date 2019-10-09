@@ -22,7 +22,6 @@ CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
     is_bind TINYINT NOT NULL,                      -- ip是否绑定，0：没有绑定，1：绑定
     bind_poduniquename VARCHAR(192) NULL,                  -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     bind_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',                      -- 绑定的时间 
-    scaledown_flag int NOT NULL DEFAULT 0,         -- 是否scaledown标志，设置该标志后，unbind后立即归还给nsp
     PRIMARY KEY(k8sresource_id, port_id),
     UNIQUE KEY(bind_poduniquename),
     INDEX(k8sresource_type),
@@ -70,7 +69,8 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
-    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name    
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name
+    k8sresource_type int NOT NULL,                 -- 资源类型，Job CronJob proto.K8SApiResourceKindType    
     ip VARCHAR(32) NOT NULL,                       -- 分配的ip
     bind_poduniquename VARCHAR(192) NULL,          -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     port_id VARCHAR(48) NOT NULL,                  -- PortID  
@@ -79,14 +79,11 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
     UNIQUE KEY(bind_poduniquename)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
--- !!Deprecate!!
 CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
-    recycle_mark_id VARCHAR(64) NOT NULL,          -- 回收标记id，每次都不同
-    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name 
-    k8sresource_type int NOT NULL,                 -- 资源类型，Deployment和StatefulSet proto.K8SApiResourceKindType 
-    pod_id VARCHAR(128) NULL,                      -- statefulset准备
+    id INT UNSIGNED AUTO_INCREMENT, 
+    k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name 
     create_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',
-    PRIMARY KEY(recycle_mark_id),
+    PRIMARY KEY(id),
     INDEX(k8sresource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -96,7 +93,7 @@ CREATE TABLE IF NOT EXISTS tbl_Test (
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     subnet_id VARCHAR(36),                         -- 释放用到的子网id  
     create_time TIMESTAMP NULL DEFAULT '1970-01-02 00:00:00',                -- 插入时间
-    use_flag INT NOT NULL, -- 测试悲观锁 0: 没有使用，1：使用
+    use_flag INT NOT NULL, -- 测试悲观锁 0: 没有使用，1：使用 
     nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}   
     PRIMARY KEY(id),
     UNIQUE KEY k8sresid (k8sresource_id),

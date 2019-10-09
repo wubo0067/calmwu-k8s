@@ -19,8 +19,8 @@ const (
 	K8SApiResourceKindJob
 	// K8SApiResourceKindCronJob CronJob类型
 	K8SApiResourceKindCronJob
-	// K8SApiResourceKindLikeJob Job类型的统称
-	K8SApiResourceKindLikeJob
+	// K8SApiResourceKindUnknown
+	K8SApiResourceKindUnknown
 )
 
 // WB2IPResMgrRequestType 请求类型
