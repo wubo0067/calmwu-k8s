@@ -256,20 +256,22 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SAp
 		// 判断该条记录是否要回收
 		if k8sResourceType == proto.K8SApiResourceKindDeployment {
 			// 释放该条记录
-			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? LIMIT 1", k8sResourceID)
+			updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id=? AND scaledown_count > 0",
+				k8sResourceID)
 			if err != nil {
 				// 不用回收
 				calm_utils.Infof("BindPodID:%s not set scaledown flag, No immediate release required.", podUniqueName)
 				return nil
 			}
-			delRowCount, _ := delRes.RowsAffected()
-			if delRowCount != 1 {
+			updateRowCount, _ := updateRes.RowsAffected()
+			if updateRowCount != 1 {
 				calm_utils.Infof("BindPodID:%s not set scaledown flag, No immediate release required.", podUniqueName)
+				// 默认执行删除
+				msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?", k8sResourceID)
 				return nil
 			}
 			// NSP回收
 			calm_utils.Debugf("BindPodID:%s set scaledown flag, so release immediately", podUniqueName)
-			msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
 			nsp.NSPMgr.ReleaseAddrResources(portID)
 		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 			// TODO:
@@ -437,20 +439,23 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 				k8sResourceID, k8sResourceType.String(), scaleDownSize)
 
 			createTime := time.Now()
-			for index := 0; index < scaleDownSize; index++ {
-				msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, create_time) VALUES (?, ?)", k8sResourceID, createTime)
+			insertRes, err := msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (?, ?, ?, ?)",
+				k8sResourceID, int(k8sResourceType), scaleDownSize, createTime)
+			if err != nil {
+				err = errors.Wrapf(err, "INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (%s, %s, %d, %s) failed.",
+					k8sResourceID, k8sResourceType.String(), scaleDownSize, createTime.String())
+				calm_utils.Error(err.Error())
+				return err
 			}
-			// updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=1 LIMIT ?",
-			// 	k8sResourceID, int(k8sResourceType), scaleDownSize)
-			// if err != nil {
-			// 	err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d failed.",
-			// 		k8sResourceID, int(k8sResourceType), scaleDownSize)
-			// 	calm_utils.Error(err.Error())
-			// 	return err
-			// }
-			// updateRows, _ := updateRes.RowsAffected()
-			// calm_utils.Debugf("UPDATE tbl_K8SResourceIPBind SET scaledown_flag=1 WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=1 LIMIT %d successed. updateRows:%d.",
-			// 	k8sResourceID, int(k8sResourceType), scaleDownSize, updateRows)
+			insertRows, _ := insertRes.RowsAffected()
+			if insertRows != 1 {
+				err = errors.Errorf("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (%s, %s, %d, %s) insertRows[%d] Not equal to 1.",
+					k8sResourceID, k8sResourceType.String(), scaleDownSize, createTime.String(), insertRows)
+				calm_utils.Error(err.Error())
+				return err
+			}
+			calm_utils.Debugf("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (%s, %s, %d, %s) insertRows[%d] successed.",
+				k8sResourceID, k8sResourceType.String(), scaleDownSize, createTime.String(), insertRows)
 			return nil
 		})
 	}

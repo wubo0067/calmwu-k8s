@@ -80,22 +80,24 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SScaleDownMark (
-    id INT UNSIGNED AUTO_INCREMENT, 
     k8sresource_id VARCHAR(192) NOT NULL,          -- k8sclusterid-namespace-resource_name 
+    k8sresource_type int NOT NULL,                 -- 资源类型，Job CronJob proto.K8SApiResourceKindType 
+    scaledown_count INT NOT NULL, 
     create_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00',
-    PRIMARY KEY(id),
-    INDEX(k8sresource_id)
+    PRIMARY KEY(k8sresource_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_Test (
     id INT UNSIGNED AUTO_INCREMENT, 
-    k8sresource_id VARCHAR(128) NOT NULL,   -- k8sclusterid-namespace-resource_name
+    k8sresource_id VARCHAR(128) NOT NULL,          -- k8sclusterid-namespace-resource_name
     nspresource_release_time TIMESTAMP NOT NULL,   -- ip归还给nsp的时间，租期到期时间
     subnet_id VARCHAR(36),                         -- 释放用到的子网id  
     create_time TIMESTAMP NULL DEFAULT '1970-01-02 00:00:00',                -- 插入时间
-    use_flag INT NOT NULL, -- 测试悲观锁 0: 没有使用，1：使用 
+    use_flag INT NOT NULL,                         -- 测试悲观锁 0: 没有使用，1：使用 
+    bind_poduniquename VARCHAR(192) NULL,          -- 这里是clusterid-ns-podname, 而且是个唯一索引。
     nsp_resources BLOB,                            -- 释放的ip列表，{ip,mac}   
     PRIMARY KEY(id),
     UNIQUE KEY k8sresid (k8sresource_id),
+    UNIQUE KEY (bind_poduniquename),
     INDEX(subnet_id)    
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -344,6 +344,59 @@ func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
 	log.Printf("insert 10 recoreds into tbl_K8SResourceIPBind successed!\n")
 }
 
+func insertMultiScaleDownMarkRecord(db *sqlx.DB) {
+	createTime := time.Now()
+	k8sResourceID := fmt.Sprintf("%s:%s:%s", "cluster-1", "default", "deployment-scaledown")
+	db.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (?, ?, ?, ?)", k8sResourceID, 0, 10, createTime)
+
+}
+
+// UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id='cluster-1:default:deployment-scaledown' AND scaledown_count > 0;
+func imitationOfConcurrentUpdateScaleDownMarkRecord(db *sqlx.DB) {
+	count := 7
+	var wg sync.WaitGroup
+	wg.Add(count)
+
+	k8sResourceID := fmt.Sprintf("%s:%s:%s", "cluster-1", "default", "deployment-scaledown")
+	updateFunc := func(db *sqlx.DB) {
+		defer wg.Done()
+
+		updateRes, err := db.Exec("UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id=? AND scaledown_count > 0", k8sResourceID)
+		if err != nil {
+			log.Printf("UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id=%s AND scaledown_count > 0 failed. err:%s\n", k8sResourceID, err.Error())
+			return
+		}
+		// 没有数据也不会报错，只是affectrows数量为0
+		updateRows, _ := updateRes.RowsAffected()
+		if updateRows != 1 {
+			log.Printf("UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id=%s AND scaledown_count > 0 No effect:%d.\n", k8sResourceID, updateRows)
+			db.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?", k8sResourceID)
+			return
+		}
+		log.Printf("UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id=%s AND scaledown_count > 0 successed.\n", k8sResourceID)
+
+		// var scaleDownCount int
+		// err = db.Get(&scaleDownCount, "SELECT scaledown_count FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?", k8sResourceID)
+		// if err != nil {
+		// 	log.Printf("SELECT scaledown_count FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s failed. err:%s", k8sResourceID, err.Error())
+		// 	return
+		// }
+		// log.Printf("scaleDownCount:%d\n", scaleDownCount)
+		// 	if scaleDownCount == 0 {
+		// 		db.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?", k8sResourceID)
+		// 		log.Printf("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id==%s.", k8sResourceID)
+		// 	}
+	}
+
+	for i := 0; i < count; i++ {
+		go updateFunc(db)
+	}
+
+	wg.Wait()
+
+	log.Println("concurrent delete scaledown completed.")
+}
+
 func main() {
 	calm_utils.NewSimpleLog(nil)
 
@@ -359,5 +412,7 @@ func main() {
 	//testQueryColumn(db)
 	//testFetchOneRow(db)
 	//testPessimisticLock(db)
-	insertMultiK8SResourceIPBindRecord(db)
+	//insertMultiK8SResourceIPBindRecord(db)
+	insertMultiScaleDownMarkRecord(db)
+	imitationOfConcurrentUpdateScaleDownMarkRecord(db)
 }

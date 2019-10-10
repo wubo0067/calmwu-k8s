@@ -276,8 +276,16 @@ func wbScaleIPPool(c *gin.Context) {
 			// 插入标记表，在cni真正释放的时候才回收给nsp
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleDown [%d<===%d]",
 				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceNewReplicas, req.K8SApiResourceOldReplicas)
-			storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceOldReplicas,
+			err = storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceOldReplicas,
 				(req.K8SApiResourceOldReplicas - req.K8SApiResourceNewReplicas))
+			if err != nil {
+				err = errors.Wrapf(err, "ReqID:%s AddScaleDownMarked failed.", req.ReqID)
+				res.Msg = err.Error()
+				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
+				calm_utils.Error(err.Error())
+				httpCode = http.StatusBadRequest
+				return
+			}
 		}
 	} else {
 		err = errors.Errorf("Kind[%s] Not support scale IPPool", req.K8SApiResourceKind.String())

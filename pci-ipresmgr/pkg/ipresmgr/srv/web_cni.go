@@ -163,11 +163,13 @@ func cniReleaseIP(c *gin.Context) {
 		// 处理job，cronjob
 		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 		err = storeMgr.UnbindJobPodWithPortID(podUniqueName)
-		calm_utils.Errorf(err.Error())
-		//res.Code = proto.IPResMgrErrnoReleaseIPFailed
-		res.Msg = err.Error()
-		//httpCode = http.StatusBadRequest
-		// TODO 告警
+		if err != nil {
+			calm_utils.Errorf(err.Error())
+			//res.Code = proto.IPResMgrErrnoReleaseIPFailed
+			res.Msg = err.Error()
+			//httpCode = http.StatusBadRequest
+			// TODO 告警
+		}
 	}
 
 	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
