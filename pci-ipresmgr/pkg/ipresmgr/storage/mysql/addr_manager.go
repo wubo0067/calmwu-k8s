@@ -442,6 +442,27 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 			insertRes, err := msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (?, ?, ?, ?)",
 				k8sResourceID, int(k8sResourceType), scaleDownSize, createTime)
 			if err != nil {
+				if strings.Contains(err.Error(), "for key 'PRIMARY'") {
+					// 直接更新数量
+					calm_utils.Infof("k8sResourceID:%s already in tbl_K8SScaleDownMark, so add scaledown_count", scaleDownSize)
+					updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+? WHERE k8sresource_id=?", scaleDownSize, k8sResourceID)
+					if err != nil {
+						err = errors.Wrapf(err, "UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+%d WHERE k8sresource_id=%s failed.",
+							scaleDownSize, k8sResourceID)
+						calm_utils.Error(err.Error())
+						return err
+					}
+					updateRows, _ := updateRes.RowsAffected()
+					if updateRows != 1 {
+						err = errors.Wrapf(err, "UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+%d WHERE k8sresource_id=%s no affect, updateRows:%d.",
+							scaleDownSize, k8sResourceID, updateRows)
+						calm_utils.Error(err.Error())
+						return err
+					}
+					calm_utils.Debugf("UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+%d WHERE k8sresource_id=%s successed.",
+						scaleDownSize, k8sResourceID)
+					return nil
+				}
 				err = errors.Wrapf(err, "INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (%s, %s, %d, %s) failed.",
 					k8sResourceID, k8sResourceType.String(), scaleDownSize, createTime.String())
 				calm_utils.Error(err.Error())

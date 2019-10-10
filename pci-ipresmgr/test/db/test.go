@@ -347,8 +347,13 @@ func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
 func insertMultiScaleDownMarkRecord(db *sqlx.DB) {
 	createTime := time.Now()
 	k8sResourceID := fmt.Sprintf("%s:%s:%s", "cluster-1", "default", "deployment-scaledown")
-	db.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (?, ?, ?, ?)", k8sResourceID, 0, 10, createTime)
-
+	_, err := db.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, scaledown_count, create_time) VALUES (?, ?, ?, ?)", k8sResourceID, 0, 10, createTime)
+	if err != nil {
+		log.Println(err.Error())
+		if strings.Contains(err.Error(), "for key 'PRIMARY'") {
+			log.Println("record is already exists")
+		}
+	}
 }
 
 // UPDATE tbl_K8SScaleDownMark SET scaledown_count = scaledown_count-1 WHERE k8sresource_id='cluster-1:default:deployment-scaledown' AND scaledown_count > 0;
