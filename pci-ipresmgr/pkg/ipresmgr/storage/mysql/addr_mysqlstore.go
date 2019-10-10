@@ -232,6 +232,7 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE srv_instance_name='%s' and k8sresource_id='%s' recycle_object_id='%s' successed.",
 					record.SrvInstanceName, record.K8SResourceID, record.RecycleObjectID)
 
+				// TODO: 这里要检查是不是所有的地址资源已经解绑了。如果没有就需要做异常处理
 				// 读取要回收的数据
 				ipBindRows, err := msm.dbMgr.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
 					record.K8SResourceID, record.K8SResourceType)
