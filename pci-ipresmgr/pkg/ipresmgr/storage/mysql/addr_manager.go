@@ -272,6 +272,7 @@ func (msm *mysqlStoreMgr) UnbindAddrInfoWithK8SPodID(k8sResourceType proto.K8SAp
 			}
 			// NSP回收
 			calm_utils.Debugf("BindPodID:%s set scaledown flag, so release immediately", podUniqueName)
+			msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
 			nsp.NSPMgr.ReleaseAddrResources(portID)
 		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 			// TODO:
