@@ -127,6 +127,7 @@ func wbCreateIPPool(c *gin.Context) {
 				}
 
 				res.Code = proto.IPResMgrErrnoSuccessed
+				httpCode = http.StatusOK
 				calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 			} else if req.K8SApiResourceReplicas < replicas {
 				// 新建副本数小于现有数量，减少IP
@@ -136,6 +137,9 @@ func wbCreateIPPool(c *gin.Context) {
 					res.Msg = err.Error()
 					calm_utils.Error(err.Error())
 					return
+				} else {
+					res.Code = proto.IPResMgrErrnoSuccessed
+					httpCode = http.StatusOK
 				}
 			} else {
 				// 副本数相同，直接返回

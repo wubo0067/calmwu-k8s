@@ -377,8 +377,6 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 // ReduceK8SResourceAddrs 租期恢复期间降低副本数量
 func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error {
 	// 找出所有对应地址，见解绑中的地址进行回收，如果数量不够，就等待，等待超时就失败
-	calm_utils.Debugf("k8sResourceID:%s reduceCount:%d", k8sResourceID, reduceCount)
-
 	reduceRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)
 	if err != nil {
 		errors.Wrapf(err, "SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s failed.", k8sResourceID)
@@ -402,7 +400,7 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		}
 	}
 
-	calm_utils.Infof("k8sResourceID:%s UnBind Addr count:%d", k8sResourceID, unBindCount)
+	calm_utils.Infof("k8sResourceID:%s reduceCount:%d UnBind Addr count:%d", k8sResourceID, reduceCount, unBindCount)
 
 	if unBindCount < reduceCount {
 		// TODO: 告警
@@ -410,6 +408,9 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		for _, k8sBindAddr := range reduceK8sBindAddrs {
 			k8s.DefaultK8SClient.GetPodAndNodeStatus(k8sResourceID, k8sBindAddr.PortID)
 		}
+		err = errors.Errorf("k8sResourceID:%s Failure to reduce the number[%d] of IPs", k8sResourceID, reduceCount)
+		calm_utils.Error(err.Error())
+		return err
 	} else {
 		// 找到reduce count的unbind地址进行释放
 		for _, k8sBindAddr := range reduceK8sBindAddrs {
@@ -421,8 +422,8 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 					k8sResourceID, k8sBindAddr.BindPodUniqueName)
 				// NSP回收
 				nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
-				unBindCount--
-				if unBindCount == 0 {
+				reduceCount--
+				if reduceCount == 0 {
 					break
 				}
 			}
