@@ -37,7 +37,7 @@ func wbCreateIPPool(c *gin.Context) {
 	res.ReqType = proto.WB2IPResMgrRequestCreateIPPool
 	res.Code = proto.IPResMgrErrnoCreateIPPoolFailed
 
-	httpCode := http.StatusBadRequest
+	httpCode := http.StatusOK
 	defer func(status *int, resMgr *proto.IPResMgr2WBRes) {
 		sendResponse(c, *status, resMgr)
 	}(&httpCode, &res)
@@ -96,7 +96,6 @@ func wbCreateIPPool(c *gin.Context) {
 			}
 
 			res.Code = proto.IPResMgrErrnoSuccessed
-			httpCode = http.StatusOK
 			calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 		} else {
 			// 恢复的数据
@@ -127,7 +126,6 @@ func wbCreateIPPool(c *gin.Context) {
 				}
 
 				res.Code = proto.IPResMgrErrnoSuccessed
-				httpCode = http.StatusOK
 				calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
 			} else if req.K8SApiResourceReplicas < replicas {
 				// 新建副本数小于现有数量，减少IP
@@ -139,12 +137,10 @@ func wbCreateIPPool(c *gin.Context) {
 					return
 				} else {
 					res.Code = proto.IPResMgrErrnoSuccessed
-					httpCode = http.StatusOK
 				}
 			} else {
 				// 副本数相同，直接返回
 				res.Code = proto.IPResMgrErrnoSuccessed
-				httpCode = http.StatusOK
 			}
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
@@ -159,7 +155,6 @@ func wbCreateIPPool(c *gin.Context) {
 			calm_utils.Errorf("ReqID:%s SetJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
 		} else {
 			res.Code = proto.IPResMgrErrnoSuccessed
-			httpCode = http.StatusOK
 			calm_utils.Debugf("ReqID:%s SetJobNetInfo %s successed", req.ReqID, k8sResourceID)
 		}
 	}
@@ -198,7 +193,6 @@ func wbReleaseIPPool(c *gin.Context) {
 			calm_utils.Error(err.Error())
 			res.Code = proto.IPResMgrErrnoReleaseIPPoolFailed
 			res.Msg = err.Error()
-			httpCode = http.StatusBadRequest
 		}
 	} else {
 		// job, cronjob
@@ -241,7 +235,6 @@ func wbScaleIPPool(c *gin.Context) {
 		res.Msg = err.Error()
 		res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 		calm_utils.Error(err.Error())
-		httpCode = http.StatusBadRequest
 		return
 	}
 
@@ -255,7 +248,6 @@ func wbScaleIPPool(c *gin.Context) {
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
-				httpCode = http.StatusBadRequest
 				return
 			}
 
@@ -270,7 +262,6 @@ func wbScaleIPPool(c *gin.Context) {
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
-				httpCode = http.StatusBadRequest
 				return
 			}
 
@@ -289,7 +280,6 @@ func wbScaleIPPool(c *gin.Context) {
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
-				httpCode = http.StatusBadRequest
 				return
 			}
 		}
@@ -298,7 +288,6 @@ func wbScaleIPPool(c *gin.Context) {
 		res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 		res.Msg = err.Error()
 		calm_utils.Error(err.Error())
-		httpCode = http.StatusBadRequest
 	}
 	return
 }
