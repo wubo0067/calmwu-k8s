@@ -320,7 +320,7 @@ func testPessimisticLock(db *sqlx.DB) {
 }
 
 func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 100; i++ {
 		mac, _ := calm_utils.GenerateRandomPrivateMacAddr()
 		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind 
 		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
@@ -417,7 +417,7 @@ func main() {
 	//testQueryColumn(db)
 	//testFetchOneRow(db)
 	//testPessimisticLock(db)
-	//insertMultiK8SResourceIPBindRecord(db)
-	insertMultiScaleDownMarkRecord(db)
-	imitationOfConcurrentUpdateScaleDownMarkRecord(db)
+	insertMultiK8SResourceIPBindRecord(db)
+	//insertMultiScaleDownMarkRecord(db)
+	//imitationOfConcurrentUpdateScaleDownMarkRecord(db)
 }

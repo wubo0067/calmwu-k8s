@@ -265,6 +265,7 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 						nsp.NSPMgr.ReleaseAddrResources(portID)
 					}
 				}
+				ipBindRows.Close()
 
 				// TODO: 存放历史表, 也许我该用日志系统来取代这个表
 			}

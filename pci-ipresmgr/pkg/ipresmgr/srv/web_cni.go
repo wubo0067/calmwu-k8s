@@ -36,9 +36,10 @@ func cniRequireIP(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoGetIPFailed
 
 	httpCode := http.StatusBadRequest
-	defer func(status *int) {
-		sendResponse(c, *status, &res)
-	}(&httpCode)
+	defer func(status *int, resMgr *proto.IPResMgr2IPAMRequireIPRes) {
+		calm_utils.Debugf("sendResponse httpCode:%d, res:%s", *status, litter.Sdump(resMgr))
+		sendResponse(c, *status, resMgr)
+	}(&httpCode, &res)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
@@ -134,9 +135,10 @@ func cniReleaseIP(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoSuccessed
 
 	httpCode := http.StatusCreated
-	defer func(status *int) {
-		sendResponse(c, *status, &res)
-	}(&httpCode)
+	defer func(status *int, resMgr *proto.IPResMgr2IPAMReleaseIPRes) {
+		calm_utils.Debugf("sendResponse httpCode:%d, res:%s", *status, litter.Sdump(resMgr))
+		sendResponse(c, *status, resMgr)
+	}(&httpCode, &res)
 
 	podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 	// 查询pod对应的类型

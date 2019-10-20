@@ -131,7 +131,7 @@ func testScaleIPPool() {
 	logger.Printf("scaleIPPoolRes:%s\n", litter.Sdump(&scaleIPPoolRes))
 }
 
-func testRequireIP() {
+func testRequireIP(index int) {
 	var requireIPReq proto.IPAM2IPResMgrRequireIPReq
 	requireIPReq.ReqID = ksuid.New().String()
 	requireIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
@@ -149,14 +149,14 @@ func testRequireIP() {
 
 	res, err := scli.Path("v1/ip/").Post("require").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&requireIPRes, nil)
 	if err != nil {
-		logger.Fatalf("post %sv1/ip/require failed. err:%s", *srvIPResMgrAddr, err.Error())
+		logger.Fatalf("<%d> post %sv1/ip/require failed. err:%s", index, *srvIPResMgrAddr, err.Error())
 	}
 
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		logger.Fatalf("post %sv1/ip/require failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+		logger.Printf("<%d> post %sv1/ip/require failed. res.StatusCode:%d", index, *srvIPResMgrAddr, res.StatusCode)
 	}
 
-	logger.Printf("requireIPRes:%s\n", litter.Sdump(&requireIPRes))
+	logger.Printf("<%d> requireIPRes:%s\n", index, litter.Sdump(&requireIPRes))
 }
 
 func testReleaseIP() {
@@ -201,10 +201,10 @@ func main() {
 	case 4:
 		wg.Add(*parallel)
 		for i := 0; i < *parallel; i++ {
-			go func() {
+			go func(i int) {
 				defer wg.Done()
-				testRequireIP()
-			}()
+				testRequireIP(i)
+			}(i)
 		}
 	case 5:
 		testReleaseIP()

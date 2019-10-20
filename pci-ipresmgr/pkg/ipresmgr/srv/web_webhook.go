@@ -38,9 +38,9 @@ func wbCreateIPPool(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoCreateIPPoolFailed
 
 	httpCode := http.StatusBadRequest
-	defer func(status *int) {
-		sendResponse(c, *status, &res)
-	}(&httpCode)
+	defer func(status *int, resMgr *proto.IPResMgr2WBRes) {
+		sendResponse(c, *status, resMgr)
+	}(&httpCode, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
@@ -183,9 +183,10 @@ func wbReleaseIPPool(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoSuccessed
 
 	httpCode := http.StatusOK
-	defer func(status *int) {
-		sendResponse(c, *status, &res)
-	}(&httpCode)
+	defer func(status *int, resMgr *proto.IPResMgr2WBRes) {
+		calm_utils.Debugf("sendResponse httpCode:%d, res:%s", *status, litter.Sdump(resMgr))
+		sendResponse(c, *status, resMgr)
+	}(&httpCode, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
@@ -227,9 +228,10 @@ func wbScaleIPPool(c *gin.Context) {
 	res.Code = proto.IPResMgrErrnoSuccessed
 
 	httpCode := http.StatusOK
-	defer func(status *int) {
-		sendResponse(c, *status, &res)
-	}(&httpCode)
+	defer func(status *int, resMgr *proto.IPResMgr2WBRes) {
+		calm_utils.Debugf("sendResponse httpCode:%d, res:%s", *status, litter.Sdump(resMgr))
+		sendResponse(c, *status, resMgr)
+	}(&httpCode, &res)
 
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 

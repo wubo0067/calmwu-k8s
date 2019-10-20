@@ -92,9 +92,10 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			}
 
 			// https://www.cnblogs.com/diegodu/p/9239200.html 用串行化事务，gap lock
-			tx, err := msm.dbMgr.BeginTx(context.Background(), &sql.TxOptions{
-				Isolation: sql.LevelSerializable,
+			tx, err := msm.dbMgr.BeginTxx(context.Background(), &sql.TxOptions{
+				Isolation: sql.LevelRepeatableRead,
 			})
+			//tx, err := msm.dbMgr.Begin()
 			if err != nil {
 				err := errors.Wrapf(err, "k8sResourceID:%s bindPod:%s begin transaction failed.", k8sResourceID, podUniqueName)
 				calm_utils.Error(err.Error())
@@ -112,24 +113,39 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 				}
 			}(&transactionFlag)
 
-			selRow := tx.QueryRow("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 LIMIT 1 FOR UPDATE",
+			selRows, err := tx.Queryx("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? FOR UPDATE",
 				k8sResourceID, k8sResourceType)
-			if selRow == nil {
-				err = errors.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s AND is_bind=0 LIMIT 1, QueryRow return Nil",
+			if err != nil {
+				err = errors.Wrapf(err, "SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s failed",
 					k8sResourceID, k8sResourceType)
+				calm_utils.Error(err.Error())
 				transactionFlag = -1
 				return err
 			}
 
+			var isFindUnbindAddr bool = false
 			var k8sAddrBindInfo table.TblK8SResourceIPBindS
-			err = selRow.Scan(&k8sAddrBindInfo.K8SResourceID, &k8sAddrBindInfo.K8SResourceType, &k8sAddrBindInfo.IP,
-				&k8sAddrBindInfo.MacAddr, &k8sAddrBindInfo.NetRegionalID, &k8sAddrBindInfo.SubNetID, &k8sAddrBindInfo.PortID,
-				&k8sAddrBindInfo.SubNetGatewayAddr, &k8sAddrBindInfo.AllocTime, &k8sAddrBindInfo.IsBind, &k8sAddrBindInfo.BindPodUniqueName,
-				&k8sAddrBindInfo.BindTime)
+			// 循环过滤出未绑定的地址资源
+			for selRows.Next() {
+				err := selRows.StructScan(&k8sAddrBindInfo)
+				if err != nil {
+					err = errors.Wrapf(err, "SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s StructScan failed.",
+						k8sResourceID, k8sResourceType)
+					calm_utils.Error(err.Error())
+					transactionFlag = -1
+					selRows.Close()
+					return err
+				}
+				if k8sAddrBindInfo.IsBind == 0 {
+					isFindUnbindAddr = true
+					break
+				}
+			}
+			selRows.Close()
 
-			if err != nil {
-				// TODO 查询node，和所有pod的状态
-				err = errors.Wrapf(err, "k8sResourceID:%s bindPod:%s Scan failed.", k8sResourceID, podUniqueName)
+			if !isFindUnbindAddr {
+				err = errors.Errorf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s not found unBindAddrInfo.",
+					k8sResourceID, k8sResourceType)
 				calm_utils.Error(err.Error())
 				transactionFlag = -1
 				return err
@@ -138,16 +154,18 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			calm_utils.Debugf("k8sResourceID:%s bindPod:%s k8sAddrBindInfo:%s", k8sResourceID, podUniqueName, litter.Sdump(&k8sAddrBindInfo))
 
 			currTime := time.Now()
-			updateRes, err := tx.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=?, bind_time=? WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0 AND port_id=?",
-				podUniqueName, currTime, k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+			updateRes, err := tx.Exec("UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=?, bind_time=? WHERE k8sresource_id=? AND port_id=?",
+				podUniqueName, currTime, k8sResourceID, k8sAddrBindInfo.PortID)
 			if err != nil {
-				err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s, bind_time=%s WHERE k8sresource_id=%s AND k8sresource_type=%d AND is_bind=0 AND port_id=%s. tx Exec UPDATE failed.",
-					podUniqueName, currTime.String(), k8sResourceID, int(k8sResourceType), k8sAddrBindInfo.PortID)
+				err = errors.Wrapf(err, "UPDATE tbl_K8SResourceIPBind SET is_bind=1, bind_poduniquename=%s, bind_time=%s WHERE k8sresource_id=%s AND port_id=%s. tx Exec UPDATE failed.",
+					podUniqueName, currTime.String(), k8sResourceID, k8sAddrBindInfo.PortID)
+				calm_utils.Error(err.Error())
 				transactionFlag = -1
 				return err
 			}
 
 			updateRowCount, _ := updateRes.RowsAffected()
+
 			calm_utils.Debugf("k8sResourceID:%s bindPod:%s updateRowCount:%d\n", k8sResourceID, podUniqueName, updateRowCount)
 
 			k8sAddrInfo = new(proto.K8SAddrInfo)
