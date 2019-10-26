@@ -21,6 +21,7 @@ spec:
       annotations:
         io.kubernetes.cri.untrusted-workload: "true"  
     spec:
+      hostNetwork: true
       containers:
       - name: kata-ngdp
         image: nginx:1.16.0
