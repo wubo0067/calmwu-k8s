@@ -55,6 +55,7 @@ func cniRequireIP(c *gin.Context) {
 			res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 			res.PortID = k8sPodAddrInfo.PortID
 			res.Code = proto.IPResMgrErrnoSuccessed
+			res.NetRegionalID = k8sPodAddrInfo.NetRegionalID
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podName:%s bind with addrInfo:%s successed.", req.ReqID,
 				k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 
@@ -104,6 +105,7 @@ func cniRequireIP(c *gin.Context) {
 							res.PortID = k8sPodAddrInfo.PortID
 							res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 							res.Code = proto.IPResMgrErrnoSuccessed
+							res.NetRegionalID = netRegionID
 							calm_utils.Debugf("ReqID:%s k8sResourceID:%d podName:%s bind with addrInfo:%s successed.", req.ReqID,
 								k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 							httpCode = http.StatusCreated

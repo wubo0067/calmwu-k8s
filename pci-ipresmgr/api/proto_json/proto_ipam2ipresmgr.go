@@ -26,7 +26,8 @@ type IPResMgr2IPAMRequireIPRes struct {
 	MacAddr           string            `json:"MacAddr" mapstructure:"MacAddr"`
 	PortID            string            `json:"PortID" mapstructure:"PortID"`
 	SubnetGatewayAddr string            `json:"SubnetGatewayAddr" mapstructure:"SubnetGatewayAddr"`
-	Code              IPResMgrErrorCode `json:"Code" mapstructure:"Code"` // 0 表示成功，!=0表示失败
+	NetRegionalID     string            `json:"NetRegionalID" mapstructure:"NetRegionalID"` // 网络域ID
+	Code              IPResMgrErrorCode `json:"Code" mapstructure:"Code"`                   // 0 表示成功，!=0表示失败
 	Msg               string            `json:"Msg" mapstructure:"Msg"`
 }
 
