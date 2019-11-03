@@ -6,6 +6,8 @@ github.com/Pallinder/go-randomdata
 github.com/davecgh/go-spew/spew
 # github.com/dghubble/sling v1.3.0
 github.com/dghubble/sling
+# github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
+github.com/fvbock/endless
 # github.com/gin-contrib/sse v0.1.0
 github.com/gin-contrib/sse
 # github.com/gin-gonic/gin v1.4.0

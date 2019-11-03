@@ -8,19 +8,21 @@
 package srv
 
 import (
-	"context"
 	"fmt"
 	"net/http"
-	"time"
+	"pci-ipresmgr/pkg/ipresmgr/config"
+	"pci-ipresmgr/pkg/ipresmgr/k8s"
+	"syscall"
 
 	"github.com/DeanThompson/ginpprof"
+	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
-var (
-	httpSrv *http.Server
-)
+// var (
+// 	httpSrv *http.Server
+// )
 
 func registerHandler(router *gin.Engine) {
 	// webhook接口
@@ -40,6 +42,32 @@ func registerHandler(router *gin.Engine) {
 	maintainGroup.POST("/releaseIP", maintainReleaseIP)
 }
 
+func preHookSigUsr1Reload() {
+	config.ReloadConfig()
+	k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
+	return
+}
+
+func preHookSigUsr2DumpStack() {
+	calm_utils.DumpStacks()
+	return
+}
+
+func preHookSigIntShutdown() {
+	calm_utils.Warnf("ipresmgr-srv receive SIGINT for shutdown")
+	return
+}
+
+func preHookSigTermShutdown() {
+	calm_utils.Warnf("ipresmgr-srv receive SIGTERM for shutdown")
+	return
+}
+
+func preHookSigHupRestart() {
+	calm_utils.Warnf("ipresmgr-srv receive SIGHUP for restart")
+	return
+}
+
 func startWebSrv(listenAddr string, listenPort int) error {
 	gin.SetMode(gin.DebugMode)
 	ginRouter := gin.New()
@@ -57,33 +85,31 @@ func startWebSrv(listenAddr string, listenPort int) error {
 	// 注册业务接口
 	registerHandler(ginRouter)
 
-	httpSrv = &http.Server{
-		Addr:    fmt.Sprintf("%s:%d", listenAddr, listenPort),
-		Handler: ginRouter,
-	}
+	httpSrv := endless.NewServer(fmt.Sprintf("%s:%d", listenAddr, listenPort), ginRouter)
+
+	// 注册新号响应回调
+	httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGINT] = append(
+		httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGINT],
+		preHookSigIntShutdown)
+	httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGUSR1] = append(
+		httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGUSR1],
+		preHookSigUsr1Reload)
+	httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGUSR2] = append(
+		httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGUSR2],
+		preHookSigUsr2DumpStack)
+	httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGTERM] = append(
+		httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGTERM],
+		preHookSigTermShutdown)
+	httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGHUP] = append(
+		httpSrv.SignalHooks[endless.PRE_SIGNAL][syscall.SIGHUP],
+		preHookSigHupRestart)
 
 	// 启动监听
-	go func() {
-		calm_utils.Infof("ipresmgr-svr listen on %s:%d", listenAddr, listenPort)
-		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			calm_utils.Fatalf("Listen %s:%d failed. err:%s", listenAddr, listenPort, err.Error())
-		}
-	}()
-	return nil
-}
-
-func shutdownWebSrv() {
-	if httpSrv != nil {
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		// 给shutdown 5秒时间
-		if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-		}
-		select {
-		case <-shutdownCtx.Done():
-			calm_utils.Info("delay 5 seconds for graceful shutdown")
-		}
-		calm_utils.Info("ipresmgr-srv http server exiting")
+	calm_utils.Infof("ipresmgr-svr listen on %s:%d", listenAddr, listenPort)
+	if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		calm_utils.Errorf("Listen %s:%d failed. err:%s", listenAddr, listenPort, err.Error())
+		return err
 	}
-	return
+
+	return nil
 }

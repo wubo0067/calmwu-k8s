@@ -11,13 +11,11 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"os/signal"
 	"pci-ipresmgr/pkg/ipresmgr/config"
 	"pci-ipresmgr/pkg/ipresmgr/k8s"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/pkg/ipresmgr/storage/mysql"
-	"syscall"
 
 	"github.com/micro/cli"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
@@ -69,28 +67,28 @@ func initLog(logFilePath string, srvInstID string) {
 		zapcore.DebugLevel, 1)
 }
 
-func setupSignalHandler(cancel context.CancelFunc) {
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
-	go func() {
-		for {
-			sig := <-sigCh
-			switch sig {
-			case syscall.SIGINT:
-				fallthrough
-			case syscall.SIGTERM:
-				calm_utils.Info("-------------catch shutdown signal-------------")
-				cancel()
-				return
-			case syscall.SIGUSR1:
-				config.ReloadConfig()
-				k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
-			case syscall.SIGUSR2:
-				calm_utils.DumpStacks()
-			}
-		}
-	}()
-}
+// func setupSignalHandler(cancel context.CancelFunc) {
+// 	sigCh := make(chan os.Signal, 1)
+// 	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+// 	go func() {
+// 		for {
+// 			sig := <-sigCh
+// 			switch sig {
+// 			case syscall.SIGINT:
+// 				fallthrough
+// 			case syscall.SIGTERM:
+// 				calm_utils.Info("-------------catch shutdown signal-------------")
+// 				cancel()
+// 				return
+// 			case syscall.SIGUSR1:
+// 				config.ReloadConfig()
+// 				k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
+// 			case syscall.SIGUSR2:
+// 				calm_utils.DumpStacks()
+// 			}
+// 		}
+// 	}()
+// }
 
 // SvrMain 服务的入口
 func SvrMain(c *cli.Context) error {
@@ -111,8 +109,8 @@ func SvrMain(c *cli.Context) error {
 	}
 
 	// 信号控制
-	ctx, cancel := context.WithCancel(context.Background())
-	setupSignalHandler(cancel)
+	ctx, _ := context.WithCancel(context.Background())
+	//setupSignalHandler(cancel)
 
 	loadOk := k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
 	if !loadOk {
@@ -154,15 +152,6 @@ func SvrMain(c *cli.Context) error {
 		return err
 	}
 
-	// 等待退出信号
-	select {
-	case <-ctx.Done():
-		calm_utils.Info("ipresmgr-svr will shutdown")
-	}
-
-	// 退出清理
-
-	// 停止web服务
-	shutdownWebSrv()
+	calm_utils.Info("ipresmgr-srv http server exiting")
 	return nil
 }
