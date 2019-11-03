@@ -8,14 +8,13 @@
 package storage
 
 import (
-	"context"
 	proto "pci-ipresmgr/api/proto_json"
 )
 
 // StoreMgr 存储接口
 type StoreMgr interface {
 	// Start 启动存储管理
-	Start(context.Context, Option) error
+	Start(Option) error
 
 	// Stop 停止存储管理
 	Stop()

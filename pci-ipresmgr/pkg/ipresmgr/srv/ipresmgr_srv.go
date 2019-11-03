@@ -8,7 +8,6 @@
 package srv
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"pci-ipresmgr/pkg/ipresmgr/config"
@@ -108,10 +107,6 @@ func SvrMain(c *cli.Context) error {
 		calm_utils.Fatalf("LoadConfig %s failed, err:%s", configFile, err.Error())
 	}
 
-	// 信号控制
-	ctx, _ := context.WithCancel(context.Background())
-	//setupSignalHandler(cancel)
-
 	loadOk := k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
 	if !loadOk {
 		calm_utils.Fatal("LoadMultiClusterClient failed")
@@ -119,7 +114,7 @@ func SvrMain(c *cli.Context) error {
 
 	// 初始化存储
 	storeMgr = mysql.NewMysqlStoreMgr()
-	err = storeMgr.Start(ctx, func(opts *storage.StoreOptions) {
+	err = storeMgr.Start(func(opts *storage.StoreOptions) {
 		storeCfgData := config.GetStoreCfgData()
 		opts.SrvInstID = srvInstID
 		opts.StoreSvrAddr = storeCfgData.MysqlAddr

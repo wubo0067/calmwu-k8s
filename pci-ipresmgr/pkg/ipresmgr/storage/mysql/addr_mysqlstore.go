@@ -31,6 +31,7 @@ type mysqlStoreMgr struct {
 	dbMgr                      *sqlx.DB
 	mysqlConnStr               string
 	addrResourceLeasePeriodMgr AddrResourceLeasePeriodMgrItf
+	cancelFunc                 context.CancelFunc
 }
 
 func (msm *mysqlStoreMgr) doDBKeepAlive(ctx context.Context) {
@@ -58,10 +59,12 @@ func (msm *mysqlStoreMgr) doDBKeepAlive(ctx context.Context) {
 }
 
 // Init 初始化
-func (msm *mysqlStoreMgr) Start(ctx context.Context, opt storage.Option) error {
+func (msm *mysqlStoreMgr) Start(opt storage.Option) error {
 	// 初始化参数
 	opt(&msm.opts)
 
+	ctx, cancel := context.WithCancel(context.Background())
+	msm.cancelFunc = cancel
 	// 创建mysql连接参数
 	msm.mysqlConnStr = fmt.Sprintf("%s:%s@tcp(%s)/%s?parseTime=true&loc=Local", msm.opts.User, msm.opts.Passwd, msm.opts.StoreSvrAddr, msm.opts.DBName)
 
@@ -105,6 +108,7 @@ func (msm *mysqlStoreMgr) Start(ctx context.Context, opt storage.Option) error {
 
 func (msm *mysqlStoreMgr) Stop() {
 	if msm.dbMgr != nil {
+		msm.cancelFunc()
 		msm.dbMgr.Close()
 		msm.dbMgr = nil
 		msm.addrResourceLeasePeriodMgr.Stop()
