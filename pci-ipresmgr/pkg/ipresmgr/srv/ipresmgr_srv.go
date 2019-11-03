@@ -141,11 +141,8 @@ func SvrMain(c *cli.Context) error {
 	// 初始化nsp
 	nsp.NSPInit(config.GetNspServerAddr())
 
-	// 初始化web
-	err = startWebSrv(listenAddr, listenPort)
-	if err != nil {
-		return err
-	}
+	// 启动服务
+	startWebSrv(listenAddr, listenPort)
 
 	calm_utils.Info("ipresmgr-srv http server exiting")
 	return nil
