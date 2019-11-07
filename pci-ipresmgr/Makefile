@@ -25,6 +25,11 @@ ifeq ($(ARCH),x86_64)
         override ARCH=amd64
 endif
 
+RACECHECK = -race
+ifeq ($(env), product)
+RACECHECK =
+endif
+
 SRCFILES=$(shell find pkg cmd api table -name '*.go')
 
 #编译的目录
@@ -49,4 +54,4 @@ build: $(BIN)/ipresmgr-srv
 
 $(BIN)/ipresmgr-srv : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $@ ./cmd/ipresmgr/ipresmgr.go
+	CGO_ENABLED=1 go build $(RACECHECK) -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $@ ./cmd/ipresmgr/ipresmgr.go
