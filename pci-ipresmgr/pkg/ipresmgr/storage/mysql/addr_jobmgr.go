@@ -102,12 +102,21 @@ func (msm *mysqlStoreMgr) UnbindJobPodWithPortID(podUniqueName string) error {
 	calm_utils.Debugf("SELECT * FROM tbl_K8SJobIPBind WHERE bind_poduniquename=%s LIMIT 1, Get successed. k8sJobIPBind:%s", podUniqueName, litter.Sdump(&k8sJobIPBind))
 
 	// 删除
-	_, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SJobIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
+	delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SJobIPBind WHERE bind_poduniquename=? LIMIT 1", podUniqueName)
 	if err != nil {
 		err = errors.Wrapf(err, "DELETE FROM tbl_K8SJobIPBind WHERE bind_poduniquename=%s LIMIT 1, Exec failed.", podUniqueName)
+		calm_utils.Error(err.Error())
+		return err
 	}
 	calm_utils.Debugf("DELETE FROM tbl_K8SJobIPBind WHERE bind_poduniquename=%s LIMIT 1, Exec successed.", podUniqueName)
-	calm_utils.Debugf("Return k8s addr{%s---%s} to NSP", k8sJobIPBind.IP, k8sJobIPBind.PortID)
-	nsp.NSPMgr.ReleaseAddrResources(k8sJobIPBind.PortID)
+
+	delRows, _ := delRes.RowsAffected()
+	if delRows == 1 {
+		calm_utils.Debugf("Return k8s addr{%s---%s} to NSP", k8sJobIPBind.IP, k8sJobIPBind.PortID)
+		nsp.NSPMgr.ReleaseAddrResources(k8sJobIPBind.PortID)
+	} else {
+		calm_utils.Debugf("delRows = 0, so no need to Return k8s addr{%s---%s} to NSP", k8sJobIPBind.IP, k8sJobIPBind.PortID)
+	}
+
 	return nil
 }
