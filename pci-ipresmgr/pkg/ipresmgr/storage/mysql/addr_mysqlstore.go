@@ -54,7 +54,6 @@ func (msm *mysqlStoreMgr) doDBKeepAlive(ctx context.Context) {
 				break L
 			}
 		}
-		return
 	}()
 }
 
@@ -114,7 +113,6 @@ func (msm *mysqlStoreMgr) Stop() {
 		msm.addrResourceLeasePeriodMgr.Stop()
 		calm_utils.Info("mysqlStoreMgr stop")
 	}
-	return
 }
 
 func (msm *mysqlStoreMgr) dbSafeExec(ctx context.Context, dbHandler dbProcessHandler) (dbExecErr error) {
@@ -204,7 +202,6 @@ func (msm *mysqlStoreMgr) UnRegister() {
 			return nil
 		},
 	)
-	return
 }
 
 func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycleS) {
@@ -276,7 +273,6 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 			return nil
 		},
 	)
-	return
 }
 
 // NewMysqlStoreMgr 构造一个存储对象

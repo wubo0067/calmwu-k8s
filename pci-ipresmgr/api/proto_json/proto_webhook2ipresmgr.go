@@ -5,6 +5,9 @@
  * @Last Modified time: 2019-09-04 14:51:15
  */
 
+/*
+Package protojson 协议
+*/
 package protojson
 
 // K8SApiResourceKindType 资源类型

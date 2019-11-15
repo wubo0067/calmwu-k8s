@@ -36,8 +36,9 @@ require (
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/sys v0.0.0-20190910064555-bbd175535a8b // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
-	golang.org/x/tools v0.0.0-20190916034716-92af9d69eff2 // indirect
-	golang.org/x/tools/gopls v0.1.5 // indirect
+	golang.org/x/tools v0.0.0-20191112005509-a3f652f18032 // indirect
+	golang.org/x/tools/gopls v0.2.0 // indirect
+	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	google.golang.org/appengine v1.6.2 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	k8s.io/apimachinery v0.0.0-20190831074630-461753078381

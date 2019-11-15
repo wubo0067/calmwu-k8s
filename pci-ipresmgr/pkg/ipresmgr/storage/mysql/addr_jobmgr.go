@@ -5,6 +5,7 @@
  * @Last Modified time: 2019-09-09 20:17:53
  */
 
+// Package mysql for
 package mysql
 
 import (

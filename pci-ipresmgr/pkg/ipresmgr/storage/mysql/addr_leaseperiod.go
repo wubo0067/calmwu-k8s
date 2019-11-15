@@ -116,14 +116,12 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) Start() error {
 				break L
 			}
 		}
-		return
 	}()
 	return nil
 }
 
 func (malm *mysqlAddrResourceLeasePeriodMgr) Stop() {
 	calm_utils.Debug("mysqlAddrResourceLeasePeriodMgr stop.")
-	return
 }
 
 func (malm *mysqlAddrResourceLeasePeriodMgr) AddLeaseRecyclingRecord(record *table.TblK8SResourceIPRecycleS) {
@@ -135,7 +133,6 @@ func (malm *mysqlAddrResourceLeasePeriodMgr) AddLeaseRecyclingRecord(record *tab
 	})
 	calm_utils.Debugf("push into timerHeap srv_instance_name[%s], k8sresource_id[%s] nspresource_release_time[%s] TotalCount[%d]",
 		record.SrvInstanceName, record.K8SResourceID, record.NSPResourceReleaseTime.String(), len(malm.timerHeap))
-	return
 }
 
 // 有两个入口，恢复、彻底删除
