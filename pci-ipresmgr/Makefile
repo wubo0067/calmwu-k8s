@@ -44,7 +44,7 @@ clean:
 # Building the binary
 ###############################################################################
 BUILDTIME   =   `date +%FT%T%z`
-#VERSION     :=  `git describe --long --dirty --abbrev=14`
+VERSION     :=  `git rev-parse HEAD`
 VERSION     :=  "0.0.1"
 LDFLAGS     =   -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILDTIME) -linkmode external -extldflags -static"
 GCFLAGS     =   -gcflags "-N -l -m"
