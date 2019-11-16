@@ -17,6 +17,7 @@ import (
 type TblIPResMgrSrvRegisgerS struct {
 	SrvInstanceName string    `db:"srv_instance_name"`
 	SrvAddr         string    `db:"srv_addr"`
+	SrvPid          int       `db:"srv_pid"`
 	RegisterTime    time.Time `db:"register_time"`
 }
 
