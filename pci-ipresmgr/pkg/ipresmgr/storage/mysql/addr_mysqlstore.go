@@ -13,6 +13,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/pkg/ipresmgr/storage"
 	"pci-ipresmgr/table"
+	"syscall"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -165,14 +166,15 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 				calm_utils.Info("mysqlAddrResourceLeasePeriodMgr start successed.")
 			}
 
-			_, err = msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, register_time) VALUES (?, ?, ?)",
-				msm.opts.SrvInstID, srvAddr, registerTime)
+			srvPid := syscall.Getpid()
+			_, err = msm.dbMgr.Exec("INSERT INTO tbl_IPResMgrSrvRegister (srv_instance_name, srv_addr, srv_pid, register_time) VALUES (?, ?, ?, ?)",
+				msm.opts.SrvInstID, srvAddr, srvPid, registerTime)
 			if err != nil {
 				err = errors.Wrap(err, "INSERT INTO tbl_IPResMgrSrvRegister failed")
 				calm_utils.Error(err)
 				return err
 			}
-			calm_utils.Infof("Register %s successed.", msm.opts.SrvInstID)
+			calm_utils.Infof("Register %s:%d successed.", msm.opts.SrvInstID, srvPid)
 			return nil
 		},
 	)
@@ -181,10 +183,11 @@ func (msm *mysqlStoreMgr) Register(listenAddr string, listenPort int) error {
 func (msm *mysqlStoreMgr) UnRegister() {
 	msm.dbSafeExec(context.Background(),
 		func(ctx context.Context) error {
-			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=?",
-				msm.opts.SrvInstID)
+			srvPid := syscall.Getpid()
+			delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name=? AND srv_pid=?",
+				msm.opts.SrvInstID, srvPid)
 			if err != nil {
-				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' failed.", msm.opts.SrvInstID)
+				err = errors.Wrapf(err, "DELETE FROM tbl_IPResMgrSrvRegister WHERE srv_instance_name='%s' AND srv_pid=%d failed.", msm.opts.SrvInstID, srvPid)
 				calm_utils.Error(err)
 				return err
 			}

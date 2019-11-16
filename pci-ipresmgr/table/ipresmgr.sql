@@ -5,8 +5,9 @@ USE db_ipresmgr;
 CREATE TABLE IF NOT EXISTS tbl_IPResMgrSrvRegister (
     srv_instance_name VARCHAR(32) NOT NULL,          -- 服务实例名字
     srv_addr VARCHAR(32) NOT NULL,                   -- 服务监听的地址x.x.x.x:port
+    srv_pid int NOT NULL                             -- 服务的pid
     register_time TIMESTAMP NOT NULL,                -- 服务注册时间
-    PRIMARY KEY(srv_instance_name)
+    PRIMARY KEY(srv_instance_name, srv_pid)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SResourceIPBind (
