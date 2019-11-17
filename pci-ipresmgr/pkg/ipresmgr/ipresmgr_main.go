@@ -14,6 +14,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/srv"
 
 	"github.com/micro/cli"
+	_ "go.uber.org/automaxprocs"
 )
 
 var (

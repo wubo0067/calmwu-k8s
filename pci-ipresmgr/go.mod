@@ -30,6 +30,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
 	github.com/wubo0067/calmwu-go v0.0.0-20191116145049-c40cf549ce36
+	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/multierr v1.4.0 // indirect
 	go.uber.org/zap v1.13.0
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
