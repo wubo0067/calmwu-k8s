@@ -187,6 +187,8 @@ github.com/wubo0067/calmwu-go v0.0.0-20190923095647-94fcf0ad5f8c h1:JWSvpry/ua2S
 github.com/wubo0067/calmwu-go v0.0.0-20190923095647-94fcf0ad5f8c/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
 github.com/wubo0067/calmwu-go v0.0.0-20191111035635-1fa14a3a171d h1:VkzbourCa/xLu17OxxZj5aHCNgueNsw0EjA0h/7KelM=
 github.com/wubo0067/calmwu-go v0.0.0-20191111035635-1fa14a3a171d/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
+github.com/wubo0067/calmwu-go v0.0.0-20191116145049-c40cf549ce36 h1:8ehya0u+FfmA60iEvtDm37pykS801sLdDw0lQG7DAFY=
+github.com/wubo0067/calmwu-go v0.0.0-20191116145049-c40cf549ce36/go.mod h1:z40kB3CWJYzVxLVRp5LlQQ1uqTlLF3fCVkHDpbgyE2A=
 go.opencensus.io v0.21.0/go.mod h1:mSImk1erAIZhrmZN+AvHh14ztQfjbGwt4TtuofqLduU=
 go.uber.org/atomic v1.4.0 h1:cxzIVoETapQEqDhQu3QfnvXAV4AlzcvUCxkVUFw3+EU=
 go.uber.org/atomic v1.4.0/go.mod h1:gD2HeocX3+yG+ygLZcrzQJaqmWj9AIm7n08wl/qW/PE=
