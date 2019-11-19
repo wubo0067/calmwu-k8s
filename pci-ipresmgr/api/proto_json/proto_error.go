@@ -23,4 +23,10 @@ const (
 	IPResMgrErrnoGetIPFailed
 	// IPResMgrErrnoReleaseIPFailed IPAM释放IP失败
 	IPResMgrErrnoReleaseIPFailed
+	// IPResMgrErrnoMaintainForceUnbindIPFailed
+	IPResMgrErrnoMaintainForceUnbindIPFailed
+	// IPResMgrErrnoMaintainForceReleaseK8SResourceIPPoolFailed
+	IPResMgrErrnoMaintainForceReleaseK8SResourceIPPoolFailed
+	// IPResMgrErrnoMaintainForceReleasePodIPFailed
+	IPResMgrErrnoMaintainForceReleasePodIPFailed
 )

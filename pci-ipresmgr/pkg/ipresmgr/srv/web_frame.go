@@ -38,8 +38,9 @@ func registerHandler(router *gin.Engine) {
 
 	// maintain接口
 	maintainGroup := router.Group("/v1/maintain")
-	maintainGroup.POST("/unbindIP", maintainUnbindIP)
-	maintainGroup.POST("/releaseIP", maintainReleaseIP)
+	maintainGroup.POST("/unbindip", maintainForceUnbindIP)
+	maintainGroup.POST("/release/ippool", maintainForceReleaseK8SResourceIPPool)
+	maintainGroup.POST("/release/podip", maintainForceReleasePodIP)
 }
 
 func preHookSigUsr1Reload() {
