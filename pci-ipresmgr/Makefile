@@ -39,13 +39,13 @@ MAKE_SURE_BIN_EXIST := $(shell mkdir -p $(BIN))
 .PHONY: clean
 clean:
 	rm -rf $(BIN)
+        go get -u ./...
 
 ###############################################################################
 # Building the binary
 ###############################################################################
 BUILDTIME   =   `date +%FT%T%z`
-VERSION     :=  `git rev-parse HEAD`
-VERSION     :=  "0.0.1"
+VERSION     ?= $(shell git describe --tags)
 LDFLAGS     =   -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILDTIME) -linkmode external -extldflags -static"
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
