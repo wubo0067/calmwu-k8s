@@ -1,10 +1,11 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-08-28 16:03:02
- * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-07 23:45:06
+ * @Last Modified by: CALM.WU
+ * @Last Modified time: 2019-11-23 14:08:11
  */
 
+// Package srv 服务的package
 package srv
 
 import (
@@ -54,7 +55,7 @@ func wbCreateIPPool(c *gin.Context) {
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
 		if req.K8SApiResourceReplicas <= 0 {
-			errInfo := fmt.Sprintf("ReqID:%s K8SApiResourceReplicas is invalid.", req.K8SApiResourceReplicas)
+			errInfo := fmt.Sprintf("ReqID:%s K8SApiResourceReplicas:%d is invalid.", req.ReqID, req.K8SApiResourceReplicas)
 			calm_utils.Error(errInfo)
 			res.Msg = errInfo
 			return
@@ -158,8 +159,6 @@ func wbCreateIPPool(c *gin.Context) {
 			calm_utils.Debugf("ReqID:%s SetJobNetInfo %s successed", req.ReqID, k8sResourceID)
 		}
 	}
-
-	return
 }
 
 func wbReleaseIPPool(c *gin.Context) {
@@ -203,7 +202,6 @@ func wbReleaseIPPool(c *gin.Context) {
 			calm_utils.Debugf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
 		}
 	}
-	return
 }
 
 func wbScaleIPPool(c *gin.Context) {
@@ -289,5 +287,4 @@ func wbScaleIPPool(c *gin.Context) {
 		res.Msg = err.Error()
 		calm_utils.Error(err.Error())
 	}
-	return
 }

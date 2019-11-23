@@ -49,7 +49,6 @@ func sendResponse(c *gin.Context, httpCode int, res interface{}) {
 	calm_utils.Debugf("send response to %s successed", c.Request.RemoteAddr)
 	// http.StatusOK, StatusBadRequest
 	c.Data(httpCode, "text/plain; charset=utf-8", resData)
-	return
 }
 
 func makeK8SResourceID(clusterID, k8sNamespace, k8sResourceName string) string {

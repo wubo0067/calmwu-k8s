@@ -1,8 +1,8 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-08-27 17:32:13
- * @Last Modified by: calm.wu
- * @Last Modified time: 2019-10-04 12:16:07
+ * @Last Modified by: CALM.WU
+ * @Last Modified time: 2019-11-23 14:07:14
  */
 
 package srv
@@ -46,27 +46,22 @@ func registerHandler(router *gin.Engine) {
 func preHookSigUsr1Reload() {
 	config.ReloadConfig()
 	k8s.DefaultK8SClient.LoadMultiClusterClient(config.GetK8SClusterCfgDataLst())
-	return
 }
 
 func preHookSigUsr2DumpStack() {
 	calm_utils.DumpStacks()
-	return
 }
 
 func preHookSigIntShutdown() {
 	calm_utils.Warnf("ipresmgr-srv receive SIGINT for shutdown")
-	return
 }
 
 func preHookSigTermShutdown() {
 	calm_utils.Warnf("ipresmgr-srv receive SIGTERM for shutdown")
-	return
 }
 
 func preHookSigHupRestart() {
 	calm_utils.Warnf("ipresmgr-srv receive SIGHUP for restart")
-	return
 }
 
 func startWebSrv(listenAddr string, listenPort int) error {

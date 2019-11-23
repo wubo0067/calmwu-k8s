@@ -117,8 +117,6 @@ func cniRequireIP(c *gin.Context) {
 	}
 
 	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
-
-	return
 }
 
 //  不明白，为什么bridge这个cni会重试4次，而且明确说明了不要返回error
@@ -177,5 +175,4 @@ func cniReleaseIP(c *gin.Context) {
 	}
 
 	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
-	return
 }
