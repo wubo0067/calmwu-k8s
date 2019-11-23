@@ -39,7 +39,7 @@ MAKE_SURE_BIN_EXIST := $(shell mkdir -p $(BIN))
 .PHONY: clean
 clean:
 	rm -rf $(BIN)
-        go get -u ./...
+	go get -u ./...
 
 ###############################################################################
 # Building the binary
