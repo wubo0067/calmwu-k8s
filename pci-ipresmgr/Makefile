@@ -45,8 +45,8 @@ clean:
 # Building the binary
 ###############################################################################
 BUILDTIME   =   `date +%FT%T%z`
-VERSION     ?= $(shell git describe --tags)
-LDFLAGS     =   -ldflags "-X main.Version=$(VERSION) -X main.BuildTime=$(BUILDTIME) -linkmode external -extldflags -static"
+VERSION     ?= $(shell git describe --always --dirty)
+LDFLAGS     =   -ldflags "-X git describe --always --dirty=$(VERSION) -X main.BuildTime=$(BUILDTIME) -linkmode external -extldflags -static"
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
 
