@@ -99,7 +99,7 @@ func GenerateRandomID() string {
 	return generateID(crand.Reader)
 }
 
-// GenerateRandomPrivateMacAddr 生成随机的mac地址
+// GenerateRandomPrivateMacAddr 生成mac地址
 func GenerateRandomPrivateMacAddr() (string, error) {
 	buf := make([]byte, 6)
 	_, err := crand.Read(buf)
