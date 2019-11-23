@@ -1,10 +1,10 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-09-13 10:49:47
- * @Last Modified by: calm.wu
- * @Last Modified time: 2019-09-13 16:02:25
+ * @Last Modified by: CALM.WU
+ * @Last Modified time: 2019-11-23 15:14:46
  */
-
+// Package k8s for
 package k8s
 
 import (
@@ -25,7 +25,7 @@ func kubeCfgLoadGetter(content []byte) clientcmd.KubeconfigGetter {
 
 // NewClientSetByKubeCfgContent 根据kubcfg内容构造Clientset对象
 func NewClientSetByKubeCfgContent(content []byte) (*kubernetes.Clientset, error) {
-	if content == nil || len(content) == 0 {
+	if len(content) == 0 {
 		return nil, errors.New("Content args is invalid")
 	}
 
