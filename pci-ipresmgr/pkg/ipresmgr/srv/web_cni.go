@@ -145,7 +145,6 @@ func cniReleaseIP(c *gin.Context) {
 	k8sResourceType := storeMgr.QueryK8SResourceKindByPodUniqueName(podUniqueName)
 
 	if k8sResourceType == proto.K8SApiResourceKindDeployment {
-
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
 			// TODO 告警
@@ -153,6 +152,7 @@ func cniReleaseIP(c *gin.Context) {
 			calm_utils.Errorf(err.Error())
 			//res.Code = proto.IPResMgrErrnoReleaseIPFailed
 			res.Msg = err.Error()
+			// 不能给cni返回错误，否则cni没完没了的调用
 			//httpCode = http.StatusBadRequest
 		} else {
 			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
@@ -163,8 +163,7 @@ func cniReleaseIP(c *gin.Context) {
 	} else if k8sResourceType == proto.K8SApiResourceKindCronJob ||
 		k8sResourceType == proto.K8SApiResourceKindJob {
 		// 处理job，cronjob
-		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
-		err = storeMgr.UnbindJobPodWithPortID(podUniqueName)
+		err = storeMgr.UnbindJobPodWithPodUniqueName(podUniqueName)
 		if err != nil {
 			calm_utils.Errorf(err.Error())
 			//res.Code = proto.IPResMgrErrnoReleaseIPFailed

@@ -90,8 +90,8 @@ func (msm *mysqlStoreMgr) BindJobPodWithPortID(k8sResourceID string, k8sResource
 	return nil
 }
 
-// UnbindJobPodWithPortID 解绑job、cronjob的podid和网络地址
-func (msm *mysqlStoreMgr) UnbindJobPodWithPortID(podUniqueName string) error {
+// UnbindJobPodWithPodUniqueName 解绑job、cronjob的podid和网络地址
+func (msm *mysqlStoreMgr) UnbindJobPodWithPodUniqueName(podUniqueName string) error {
 	var k8sJobIPBind table.TblK8SJobIPBindS
 
 	err := msm.dbMgr.Get(&k8sJobIPBind, `SELECT * FROM tbl_K8SJobIPBind WHERE bind_poduniquename=? LIMIT 1`, podUniqueName)
