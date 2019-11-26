@@ -29,7 +29,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20191123144613-a2f92d5d3ae6
+	github.com/wubo0067/calmwu-go v0.0.0-20191124101506-c2be42037435
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/multierr v1.4.0 // indirect

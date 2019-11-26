@@ -73,7 +73,7 @@ github.com/spaolacci/murmur3
 github.com/spf13/pflag
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20191123144613-a2f92d5d3ae6
+# github.com/wubo0067/calmwu-go v0.0.0-20191124101506-c2be42037435
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic
