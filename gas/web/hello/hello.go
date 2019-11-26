@@ -186,6 +186,7 @@ func Main() {
 		server.Wait(nil),
 	)
 	if err != nil {
+
 		log.Fatal(err.Error())
 	}
 

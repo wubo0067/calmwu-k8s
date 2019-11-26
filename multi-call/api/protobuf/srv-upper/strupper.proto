@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package sci.v1.svr.strupper;
+
+service StrUpperProcess {
+    rpc ToUpper(StrUpperReq) returns (StrUpperRes) {}
+}
+
+message StrUpperReq {
+    string originalString = 1;
+}
+
+message StrUpperRes {
+    string originalString = 1;
+}

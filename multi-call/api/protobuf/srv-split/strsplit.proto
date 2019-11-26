@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package sci.v1.svr.strsplit;
+
+service StrSplitProcess {
+    rpc Split(StrSplitReq) returns (StrSplitRes) {}
+}
+
+message StrSplitReq {
+    string originalString = 1;
+}
+
+message StrSplitRes {
+    repeated string splitStrs = 1;
+}
