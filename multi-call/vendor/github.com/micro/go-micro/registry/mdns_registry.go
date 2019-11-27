@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/micro/mdns"
-	hash "github.com/mitchellh/hashstructure"
 )
 
 var (
@@ -27,7 +27,6 @@ type mdnsTxt struct {
 }
 
 type mdnsEntry struct {
-	hash uint64
 	id   string
 	node *mdns.Server
 }
@@ -39,6 +38,14 @@ type mdnsRegistry struct {
 
 	sync.Mutex
 	services map[string][]*mdnsEntry
+
+	mtx sync.RWMutex
+
+	// watchers
+	watchers map[string]*mdnsWatcher
+
+	// listener
+	listener chan *mdns.ServiceEntry
 }
 
 func newRegistry(opts ...Option) Registry {
@@ -63,6 +70,7 @@ func newRegistry(opts ...Option) Registry {
 		opts:     options,
 		domain:   domain,
 		services: make(map[string][]*mdnsEntry),
+		watchers: make(map[string]*mdnsWatcher),
 	}
 }
 
@@ -109,13 +117,6 @@ func (m *mdnsRegistry) Register(service *Service, opts ...RegisterOption) error 
 	var gerr error
 
 	for _, node := range service.Nodes {
-		// create hash of service; uint64
-		h, err := hash.Hash(node, nil)
-		if err != nil {
-			gerr = err
-			continue
-		}
-
 		var seen bool
 		var e *mdnsEntry
 
@@ -128,14 +129,11 @@ func (m *mdnsRegistry) Register(service *Service, opts ...RegisterOption) error 
 		}
 
 		// already registered, continue
-		if seen && e.hash == h {
+		if seen {
 			continue
-			// hash doesn't match, shutdown
-		} else if seen {
-			e.node.Shutdown()
 			// doesn't exist
 		} else {
-			e = &mdnsEntry{hash: h}
+			e = &mdnsEntry{}
 		}
 
 		txt, err := encode(&mdnsTxt{
@@ -358,15 +356,88 @@ func (m *mdnsRegistry) Watch(opts ...WatchOption) (Watcher, error) {
 	}
 
 	md := &mdnsWatcher{
-		wo:     wo,
-		ch:     make(chan *mdns.ServiceEntry, 32),
-		exit:   make(chan struct{}),
-		domain: m.domain,
+		id:       uuid.New().String(),
+		wo:       wo,
+		ch:       make(chan *mdns.ServiceEntry, 32),
+		exit:     make(chan struct{}),
+		domain:   m.domain,
+		registry: m,
 	}
 
+	m.mtx.Lock()
+	defer m.mtx.Unlock()
+
+	// save the watcher
+	m.watchers[md.id] = md
+
+	// check of the listener exists
+	if m.listener != nil {
+		return md, nil
+	}
+
+	// start the listener
 	go func() {
-		if err := mdns.Listen(md.ch, md.exit); err != nil {
-			md.Stop()
+		// go to infinity
+		for {
+			m.mtx.Lock()
+
+			// just return if there are no watchers
+			if len(m.watchers) == 0 {
+				m.listener = nil
+				m.mtx.Unlock()
+				return
+			}
+
+			// check existing listener
+			if m.listener != nil {
+				m.mtx.Unlock()
+				return
+			}
+
+			// reset the listener
+			exit := make(chan struct{})
+			ch := make(chan *mdns.ServiceEntry, 32)
+			m.listener = ch
+
+			m.mtx.Unlock()
+
+			// send messages to the watchers
+			go func() {
+				send := func(w *mdnsWatcher, e *mdns.ServiceEntry) {
+					select {
+					case w.ch <- e:
+					default:
+					}
+				}
+
+				for {
+					select {
+					case <-exit:
+						return
+					case e, ok := <-ch:
+						if !ok {
+							return
+						}
+						m.mtx.RLock()
+						// send service entry to all watchers
+						for _, w := range m.watchers {
+							send(w, e)
+						}
+						m.mtx.RUnlock()
+					}
+				}
+
+			}()
+
+			// start listening, blocking call
+			mdns.Listen(ch, exit)
+
+			// mdns.Listen has unblocked
+			// kill the saved listener
+			m.mtx.Lock()
+			m.listener = nil
+			close(ch)
+			m.mtx.Unlock()
 		}
 	}()
 

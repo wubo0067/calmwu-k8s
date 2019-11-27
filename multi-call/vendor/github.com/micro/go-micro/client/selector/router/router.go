@@ -43,9 +43,9 @@ type routerKey struct{}
 func (r *routerSelector) getRoutes(service string) ([]router.Route, error) {
 	if !r.remote {
 		// lookup router for routes for the service
-		return r.r.Lookup(router.NewQuery(
+		return r.r.Lookup(
 			router.QueryService(service),
-		))
+		)
 	}
 
 	// lookup the remote router
@@ -101,7 +101,7 @@ func (r *routerSelector) getRoutes(service string) ([]router.Route, error) {
 		return nil, selector.ErrNoneAvailable
 	}
 
-	var routes []router.Route
+	routes := make([]router.Route, 0, len(pbRoutes.Routes))
 
 	// convert from pb to []*router.Route
 	for _, r := range pbRoutes.Routes {
@@ -111,7 +111,7 @@ func (r *routerSelector) getRoutes(service string) ([]router.Route, error) {
 			Gateway: r.Gateway,
 			Network: r.Network,
 			Link:    r.Link,
-			Metric:  int(r.Metric),
+			Metric:  r.Metric,
 		})
 	}
 

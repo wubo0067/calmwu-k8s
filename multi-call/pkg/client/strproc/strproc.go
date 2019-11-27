@@ -17,7 +17,7 @@ import (
 	micro "github.com/micro/go-micro"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/registry/consul"
+	"github.com/micro/go-plugins/registry/consul"
 )
 
 func Main() {

@@ -324,15 +324,21 @@ func (h *httpBroker) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	p := &httpEvent{m: m, t: topic}
 	id := req.Form.Get("id")
 
+	var subs []Handler
+
 	h.RLock()
 	for _, subscriber := range h.subscribers[topic] {
-		if id == subscriber.id {
-			// sub is sync; crufty rate limiting
-			// so we don't hose the cpu
-			subscriber.fn(p)
+		if id != subscriber.id {
+			continue
 		}
+		subs = append(subs, subscriber.fn)
 	}
 	h.RUnlock()
+
+	// execute the handler
+	for _, fn := range subs {
+		fn(p)
+	}
 }
 
 func (h *httpBroker) Address() string {
@@ -420,7 +426,6 @@ func (h *httpBroker) Connect() error {
 }
 
 func (h *httpBroker) Disconnect() error {
-
 	h.RLock()
 	if !h.running {
 		h.RUnlock()
@@ -522,7 +527,7 @@ func (h *httpBroker) Publish(topic string, msg *Message, opts ...PublishOption) 
 
 	// now attempt to get the service
 	h.RLock()
-	s, err := h.r.GetService("topic:" + topic)
+	s, err := h.r.GetService(topic)
 	if err != nil {
 		h.RUnlock()
 		// ignore error
@@ -555,8 +560,24 @@ func (h *httpBroker) Publish(topic string, msg *Message, opts ...PublishOption) 
 
 	srv := func(s []*registry.Service, b []byte) {
 		for _, service := range s {
+			var nodes []*registry.Node
+
+			for _, node := range service.Nodes {
+				// only use nodes tagged with broker http
+				if node.Metadata["broker"] != "http" {
+					continue
+				}
+
+				// look for nodes for the topic
+				if node.Metadata["topic"] != topic {
+					continue
+				}
+
+				nodes = append(nodes, node)
+			}
+
 			// only process if we have nodes
-			if len(service.Nodes) == 0 {
+			if len(nodes) == 0 {
 				continue
 			}
 
@@ -566,7 +587,7 @@ func (h *httpBroker) Publish(topic string, msg *Message, opts ...PublishOption) 
 				var success bool
 
 				// publish to all nodes
-				for _, node := range service.Nodes {
+				for _, node := range nodes {
 					// publish async
 					if err := pub(node, topic, b); err == nil {
 						success = true
@@ -579,7 +600,7 @@ func (h *httpBroker) Publish(topic string, msg *Message, opts ...PublishOption) 
 				}
 			default:
 				// select node to publish to
-				node := service.Nodes[rand.Int()%len(service.Nodes)]
+				node := nodes[rand.Int()%len(nodes)]
 
 				// publish async to one node
 				if err := pub(node, topic, b); err != nil {
@@ -642,6 +663,8 @@ func (h *httpBroker) Subscribe(topic string, handler Handler, opts ...SubscribeO
 		Address: mnet.HostPort(addr, port),
 		Metadata: map[string]string{
 			"secure": fmt.Sprintf("%t", secure),
+			"broker": "http",
+			"topic":  topic,
 		},
 	}
 
@@ -652,7 +675,7 @@ func (h *httpBroker) Subscribe(topic string, handler Handler, opts ...SubscribeO
 	}
 
 	service := &registry.Service{
-		Name:    "topic:" + topic,
+		Name:    topic,
 		Version: version,
 		Nodes:   []*registry.Node{node},
 	}

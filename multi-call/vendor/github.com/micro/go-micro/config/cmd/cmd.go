@@ -23,13 +23,14 @@ import (
 	"github.com/micro/go-micro/broker/http"
 	"github.com/micro/go-micro/broker/memory"
 	"github.com/micro/go-micro/broker/nats"
+	brokerSrv "github.com/micro/go-micro/broker/service"
 
 	// registries
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/registry/consul"
-	"github.com/micro/go-micro/registry/gossip"
+	"github.com/micro/go-micro/registry/etcd"
 	"github.com/micro/go-micro/registry/mdns"
 	rmem "github.com/micro/go-micro/registry/memory"
+	regSrv "github.com/micro/go-micro/registry/service"
 
 	// selectors
 	"github.com/micro/go-micro/client/selector"
@@ -43,6 +44,10 @@ import (
 	thttp "github.com/micro/go-micro/transport/http"
 	tmem "github.com/micro/go-micro/transport/memory"
 	"github.com/micro/go-micro/transport/quic"
+
+	// runtimes
+	"github.com/micro/go-micro/runtime"
+	"github.com/micro/go-micro/runtime/kubernetes"
 )
 
 type Cmd interface {
@@ -95,11 +100,13 @@ var (
 		cli.IntFlag{
 			Name:   "register_ttl",
 			EnvVar: "MICRO_REGISTER_TTL",
+			Value:  60,
 			Usage:  "Register TTL in seconds",
 		},
 		cli.IntFlag{
 			Name:   "register_interval",
 			EnvVar: "MICRO_REGISTER_INTERVAL",
+			Value:  30,
 			Usage:  "Register interval in seconds",
 		},
 		cli.StringFlag{
@@ -149,14 +156,25 @@ var (
 			Usage:  "Comma-separated list of broker addresses",
 		},
 		cli.StringFlag{
+			Name:   "profile",
+			Usage:  "Debug profiler for cpu and memory stats",
+			EnvVar: "MICRO_DEBUG_PROFILE",
+		},
+		cli.StringFlag{
 			Name:   "registry",
 			EnvVar: "MICRO_REGISTRY",
-			Usage:  "Registry for discovery. consul, mdns",
+			Usage:  "Registry for discovery. etcd, mdns",
 		},
 		cli.StringFlag{
 			Name:   "registry_address",
 			EnvVar: "MICRO_REGISTRY_ADDRESS",
 			Usage:  "Comma-separated list of registry addresses",
+		},
+		cli.StringFlag{
+			Name:   "runtime",
+			Usage:  "Runtime for building and running services e.g local, kubernetes",
+			EnvVar: "MICRO_RUNTIME",
+			Value:  "local",
 		},
 		cli.StringFlag{
 			Name:   "selector",
@@ -176,9 +194,11 @@ var (
 	}
 
 	DefaultBrokers = map[string]func(...broker.Option) broker.Broker{
-		"http":   http.NewBroker,
-		"memory": memory.NewBroker,
-		"nats":   nats.NewBroker,
+		"go.micro.broker": brokerSrv.NewBroker,
+		"service":         brokerSrv.NewBroker,
+		"http":            http.NewBroker,
+		"memory":          memory.NewBroker,
+		"nats":            nats.NewBroker,
 	}
 
 	DefaultClients = map[string]func(...client.Option) client.Client{
@@ -188,10 +208,11 @@ var (
 	}
 
 	DefaultRegistries = map[string]func(...registry.Option) registry.Registry{
-		"consul": consul.NewRegistry,
-		"gossip": gossip.NewRegistry,
-		"mdns":   mdns.NewRegistry,
-		"memory": rmem.NewRegistry,
+		"go.micro.registry": regSrv.NewRegistry,
+		"service":           regSrv.NewRegistry,
+		"etcd":              etcd.NewRegistry,
+		"mdns":              mdns.NewRegistry,
+		"memory":            rmem.NewRegistry,
 	}
 
 	DefaultSelectors = map[string]func(...selector.Option) selector.Selector{
@@ -215,6 +236,11 @@ var (
 		"quic":   quic.NewTransport,
 	}
 
+	DefaultRuntimes = map[string]func(...runtime.Option) runtime.Runtime{
+		"local":      runtime.NewRuntime,
+		"kubernetes": kubernetes.NewRuntime,
+	}
+
 	// used for default selection as the fall back
 	defaultClient    = "rpc"
 	defaultServer    = "rpc"
@@ -222,6 +248,7 @@ var (
 	defaultRegistry  = "mdns"
 	defaultSelector  = "registry"
 	defaultTransport = "http"
+	defaultRuntime   = "local"
 )
 
 func init() {
@@ -241,6 +268,7 @@ func newCmd(opts ...Option) Cmd {
 		Server:    &server.DefaultServer,
 		Selector:  &selector.DefaultSelector,
 		Transport: &transport.DefaultTransport,
+		Runtime:   &runtime.DefaultRuntime,
 
 		Brokers:    DefaultBrokers,
 		Clients:    DefaultClients,
@@ -248,6 +276,7 @@ func newCmd(opts ...Option) Cmd {
 		Selectors:  DefaultSelectors,
 		Servers:    DefaultServers,
 		Transports: DefaultTransports,
+		Runtimes:   DefaultRuntimes,
 	}
 
 	for _, o := range opts {
@@ -287,6 +316,16 @@ func (c *cmd) Before(ctx *cli.Context) error {
 	// If flags are set then use them otherwise do nothing
 	var serverOpts []server.Option
 	var clientOpts []client.Option
+
+	// Set the runtime
+	if name := ctx.String("runtime"); len(name) > 0 {
+		r, ok := c.opts.Runtimes[name]
+		if !ok {
+			return fmt.Errorf("Unsupported runtime: %s", name)
+		}
+
+		*c.opts.Runtime = r()
+	}
 
 	// Set the client
 	if name := ctx.String("client"); len(name) > 0 {
@@ -417,11 +456,11 @@ func (c *cmd) Before(ctx *cli.Context) error {
 		serverOpts = append(serverOpts, server.Advertise(ctx.String("server_advertise")))
 	}
 
-	if ttl := time.Duration(ctx.GlobalInt("register_ttl")); ttl > 0 {
+	if ttl := time.Duration(ctx.GlobalInt("register_ttl")); ttl >= 0 {
 		serverOpts = append(serverOpts, server.RegisterTTL(ttl*time.Second))
 	}
 
-	if val := time.Duration(ctx.GlobalInt("register_interval")); val > 0 {
+	if val := time.Duration(ctx.GlobalInt("register_interval")); val >= 0 {
 		serverOpts = append(serverOpts, server.RegisterInterval(val*time.Second))
 	}
 

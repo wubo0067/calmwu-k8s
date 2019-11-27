@@ -20,7 +20,7 @@ import (
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/registry/consul"
+	"github.com/micro/go-plugins/registry/consul"
 	"github.com/pkg/errors"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"reflect"
+	"runtime/debug"
 	"sort"
 	"strconv"
 	"strings"
@@ -338,6 +339,12 @@ func (g *grpcServer) processRequest(stream grpc.ServerStream, service *service, 
 
 		// define the handler func
 		fn := func(ctx context.Context, req server.Request, rsp interface{}) error {
+			defer func() {
+				if r := recover(); r != nil {
+					log.Log("panic recovered: ", r)
+					log.Logf(string(debug.Stack()))
+				}
+			}()
 			returnValues = function.Call([]reflect.Value{service.rcvr, mtype.prepareContext(ctx), reflect.ValueOf(argv.Interface()), reflect.ValueOf(rsp)})
 
 			// The return value for the method is an error.
@@ -616,7 +623,7 @@ func (g *grpcServer) Register() error {
 
 	g.registered = true
 
-	for sb, _ := range g.subscribers {
+	for sb := range g.subscribers {
 		handler := g.createSubHandler(sb, g.opts)
 		var opts []broker.SubscribeOption
 		if queue := sb.Options().Queue; len(queue) > 0 {

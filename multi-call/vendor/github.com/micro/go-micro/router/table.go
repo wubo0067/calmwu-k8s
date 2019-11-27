@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/micro/go-micro/util/log"
 )
 
 var (
@@ -56,14 +57,12 @@ func (t *table) Create(r Route) error {
 	// check if there are any routes in the table for the route destination
 	if _, ok := t.routes[service]; !ok {
 		t.routes[service] = make(map[uint64]Route)
-		t.routes[service][sum] = r
-		go t.sendEvent(&Event{Type: Create, Timestamp: time.Now(), Route: r})
-		return nil
 	}
 
 	// add new route to the table for the route destination
 	if _, ok := t.routes[service][sum]; !ok {
 		t.routes[service][sum] = r
+		log.Debugf("Router emitting %s for route: %s", Create, r.Address)
 		go t.sendEvent(&Event{Type: Create, Timestamp: time.Now(), Route: r})
 		return nil
 	}
@@ -83,10 +82,13 @@ func (t *table) Delete(r Route) error {
 		return ErrRouteNotFound
 	}
 
-	if _, ok := t.routes[service][sum]; ok {
-		delete(t.routes[service], sum)
-		go t.sendEvent(&Event{Type: Delete, Timestamp: time.Now(), Route: r})
+	if _, ok := t.routes[service][sum]; !ok {
+		return ErrRouteNotFound
 	}
+
+	delete(t.routes[service], sum)
+	log.Debugf("Router emitting %s for route: %s", Delete, r.Address)
+	go t.sendEvent(&Event{Type: Delete, Timestamp: time.Now(), Route: r})
 
 	return nil
 }
@@ -102,15 +104,17 @@ func (t *table) Update(r Route) error {
 	// check if the route destination has any routes in the table
 	if _, ok := t.routes[service]; !ok {
 		t.routes[service] = make(map[uint64]Route)
-		t.routes[service][sum] = r
-		go t.sendEvent(&Event{Type: Create, Timestamp: time.Now(), Route: r})
-		return nil
 	}
 
 	if _, ok := t.routes[service][sum]; !ok {
 		t.routes[service][sum] = r
+		log.Debugf("Router emitting %s for route: %s", Update, r.Address)
 		go t.sendEvent(&Event{Type: Update, Timestamp: time.Now(), Route: r})
+		return nil
 	}
+
+	// just update the route, but dont emit Update event
+	t.routes[service][sum] = r
 
 	return nil
 }
@@ -131,22 +135,44 @@ func (t *table) List() ([]Route, error) {
 }
 
 // isMatch checks if the route matches given query options
-func isMatch(route Route, gateway, network, router string) bool {
-	if gateway == "*" || gateway == route.Gateway {
-		if network == "*" || network == route.Network {
-			if router == "*" || router == route.Router {
-				return true
-			}
+func isMatch(route Route, address, gateway, network, router string) bool {
+	// matches the values provided
+	match := func(a, b string) bool {
+		if a == "*" || a == b {
+			return true
+		}
+		return false
+	}
+
+	// a simple struct to hold our values
+	type compare struct {
+		a string
+		b string
+	}
+
+	// compare the following values
+	values := []compare{
+		{gateway, route.Gateway},
+		{network, route.Network},
+		{router, route.Router},
+		{address, route.Address},
+	}
+
+	for _, v := range values {
+		// attempt to match each value
+		if !match(v.a, v.b) {
+			return false
 		}
 	}
-	return false
+
+	return true
 }
 
 // findRoutes finds all the routes for given network and router and returns them
-func findRoutes(routes map[uint64]Route, gateway, network, router string) []Route {
+func findRoutes(routes map[uint64]Route, address, gateway, network, router string) []Route {
 	var results []Route
 	for _, route := range routes {
-		if isMatch(route, gateway, network, router) {
+		if isMatch(route, address, gateway, network, router) {
 			results = append(results, route)
 		}
 	}
@@ -154,21 +180,24 @@ func findRoutes(routes map[uint64]Route, gateway, network, router string) []Rout
 }
 
 // Lookup queries routing table and returns all routes that match the lookup query
-func (t *table) Query(q Query) ([]Route, error) {
+func (t *table) Query(q ...QueryOption) ([]Route, error) {
 	t.RLock()
 	defer t.RUnlock()
 
-	if q.Options().Service != "*" {
-		if _, ok := t.routes[q.Options().Service]; !ok {
+	// create new query options
+	opts := NewQuery(q...)
+
+	if opts.Service != "*" {
+		if _, ok := t.routes[opts.Service]; !ok {
 			return nil, ErrRouteNotFound
 		}
-		return findRoutes(t.routes[q.Options().Service], q.Options().Gateway, q.Options().Network, q.Options().Router), nil
+		return findRoutes(t.routes[opts.Service], opts.Address, opts.Gateway, opts.Network, opts.Router), nil
 	}
 
-	var results []Route
+	results := make([]Route, 0, len(t.routes))
 	// search through all destinations
 	for _, routes := range t.routes {
-		results = append(results, findRoutes(routes, q.Options().Gateway, q.Options().Network, q.Options().Router)...)
+		results = append(results, findRoutes(routes, opts.Address, opts.Gateway, opts.Network, opts.Router)...)
 	}
 
 	return results, nil

@@ -10,6 +10,8 @@ import (
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/config/cmd"
 	"github.com/micro/go-micro/debug/handler"
+	"github.com/micro/go-micro/debug/profile"
+	"github.com/micro/go-micro/debug/profile/pprof"
 	"github.com/micro/go-micro/metadata"
 	"github.com/micro/go-micro/plugin"
 	"github.com/micro/go-micro/server"
@@ -35,6 +37,10 @@ func newService(opts ...Option) Service {
 	return &service{
 		opts: options,
 	}
+}
+
+func (s *service) Name() string {
+	return s.opts.Server.Options().Name
 }
 
 // Init initialises options. Additionally it calls cmd.Init
@@ -142,6 +148,21 @@ func (s *service) Run() error {
 			server.InternalHandler(true),
 		),
 	)
+
+	// start the profiler
+	// TODO: set as an option to the service, don't just use pprof
+	if prof := os.Getenv("MICRO_DEBUG_PROFILE"); len(prof) > 0 {
+		service := s.opts.Server.Options().Name
+		version := s.opts.Server.Options().Version
+		id := s.opts.Server.Options().Id
+		profiler := pprof.NewProfile(
+			profile.Name(service + "." + version + "." + id),
+		)
+		if err := profiler.Start(); err != nil {
+			return err
+		}
+		defer profiler.Stop()
+	}
 
 	if err := s.Start(); err != nil {
 		return err

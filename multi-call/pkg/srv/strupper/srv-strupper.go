@@ -18,7 +18,7 @@ import (
 
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/registry"
-	"github.com/micro/go-micro/registry/consul"
+	"github.com/micro/go-plugins/registry/consul"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
