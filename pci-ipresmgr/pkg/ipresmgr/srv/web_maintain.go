@@ -99,13 +99,22 @@ func maintainForceReleaseK8SResourceIPPool(c *gin.Context) {
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
-
+		err = storeMgr.ForceReleaseK8SResourceIPPool(k8sResourceID, proto.K8SApiResourceKindDeployment)
+		if err != nil {
+			err = errors.Wrapf(err, "Force Release K8SResource:%s Type:%s IPPool failed.", k8sResourceID, req.K8SApiResourceKind.String())
+			res.Msg = err.Error()
+			calm_utils.Error(err.Error())
+			res.Code = proto.IPResMgrErrnoMaintainForceReleaseK8SResourceIPPoolFailed
+		} else {
+			calm_utils.Debugf("Force Release K8SResource:%s Type:%s IPPool successed.", k8sResourceID, req.K8SApiResourceKind.String())
+		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob ||
 		req.K8SApiResourceKind == proto.K8SApiResourceKindJob {
 
 	}
+	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
 }
 
 func maintainForceReleasePodIP(c *gin.Context) {
