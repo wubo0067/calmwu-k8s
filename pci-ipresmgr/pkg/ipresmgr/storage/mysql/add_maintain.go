@@ -1,8 +1,8 @@
 /*
  * @Author: calm.wu
  * @Date: 2019-11-29 11:03:09
- * @Last Modified by: calm.wu
- * @Last Modified time: 2019-11-29 11:04:05
+ * @Last Modified by: calmwu
+ * @Last Modified time: 2019-11-30 14:48:51
  */
 
 package mysql
@@ -79,8 +79,30 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 		}
 
 		// 删除tbl_K8SResourceIPRecycle表中对应记录
+		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?",
+			k8sResourceID)
+		if err != nil {
+			err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=%s failed.",
+				k8sResourceID)
+			calm_utils.Error(err)
+		} else {
+			delRowCount, _ := delRes.RowsAffected()
+			calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id= successed. delRowCount:%d",
+				k8sResourceID, k8sResourceType.String(), delRowCount)
+		}
 
 		// 删除tbl_K8SScaleDownMark表中对应记录
+		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?",
+			k8sResourceID)
+		if err != nil {
+			err = errors.Wrapf(err, "DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s failed.",
+				k8sResourceID)
+			calm_utils.Error(err)
+		} else {
+			delRowCount, _ := delRes.RowsAffected()
+			calm_utils.Debugf("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id= successed. delRowCount:%d",
+				k8sResourceID, k8sResourceType.String(), delRowCount)
+		}
 
 		return nil
 	})
