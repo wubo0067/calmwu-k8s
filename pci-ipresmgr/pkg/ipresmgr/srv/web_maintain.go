@@ -60,7 +60,7 @@ func maintainForceUnbindIP(c *gin.Context) {
 		res.Msg = err.Error()
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindJob ||
 		req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob {
-		// 解绑Job Cronjob pod
+		// 解绑Job Cronjob pod，这个会直接释放ip给nsp
 		err = storeMgr.UnbindJobPodWithPodUniqueName(podUniqueName)
 		if err != nil {
 			err = errors.Wrapf(err, "ReqID:%s %s podName:%s unBind failed", req.ReqID, req.K8SApiResourceKind.String(), req.K8SPodName)

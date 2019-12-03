@@ -54,7 +54,7 @@ type StoreMgr interface {
 	// BindJobPodWithPortID 绑定job、cronjob的podid和网络地址
 	BindJobPodWithPortID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, podIP string, portID string, podUniqueName string) error
 
-	// UnbindJobPodWithPodUniqueName 解绑job、cronjob的podid和网络地址
+	// UnbindJobPodWithPodUniqueName 解绑job、cronjob的podid与网络地址，同时归还地址资源给nsp
 	UnbindJobPodWithPodUniqueName(podUniqueName string) error
 
 	// ReduceK8SResourceAddrs 给k8s资源地址数量进行缩容
