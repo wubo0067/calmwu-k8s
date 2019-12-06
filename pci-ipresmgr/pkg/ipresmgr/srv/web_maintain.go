@@ -17,7 +17,7 @@ import (
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
-// 解绑ip和pod
+// 解绑ip和pod，job和cronjob会直接归还ip给nsp
 func maintainForceUnbindIP(c *gin.Context) {
 	var req proto.Maintain2IPResMgrForceUnbindIPReq
 	var res proto.IPResMgr2MaintainRes

@@ -44,11 +44,11 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 		}(&transactionFlag)
 
 		// 对tbl_K8SResourceIPBind加gap lock，找出要释放的地址资源
-		selRows, err := tx.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? FOR UPDATE",
+		selRows, err := tx.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
 			k8sResourceID, k8sResourceType)
 		if err != nil {
 			err = errors.Wrapf(err, "SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s failed",
-				k8sResourceID, k8sResourceType)
+				k8sResourceID, k8sResourceType.String())
 			calm_utils.Error(err.Error())
 			transactionFlag = -1
 			return err
@@ -65,6 +65,8 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 		}
 		selRows.Close()
 
+		calm_utils.Debug("---------------------------------------")
+
 		// 删除tbl_K8SResourceIPBind表中对应记录
 		delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
 			k8sResourceID, k8sResourceType)
@@ -78,6 +80,8 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 				k8sResourceID, k8sResourceType.String(), delRowCount)
 		}
 
+		calm_utils.Debug("---------------------------------------")
+
 		// 删除tbl_K8SResourceIPRecycle表中对应记录
 		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?",
 			k8sResourceID)
@@ -87,9 +91,11 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 			calm_utils.Error(err)
 		} else {
 			delRowCount, _ := delRes.RowsAffected()
-			calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id= successed. delRowCount:%d",
-				k8sResourceID, k8sResourceType.String(), delRowCount)
+			calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=%s successed. delRowCount:%d",
+				k8sResourceID, delRowCount)
 		}
+
+		calm_utils.Debug("---------------------------------------")
 
 		// 删除tbl_K8SScaleDownMark表中对应记录
 		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?",
@@ -100,9 +106,11 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 			calm_utils.Error(err)
 		} else {
 			delRowCount, _ := delRes.RowsAffected()
-			calm_utils.Debugf("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id= successed. delRowCount:%d",
-				k8sResourceID, k8sResourceType.String(), delRowCount)
+			calm_utils.Debugf("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s successed. delRowCount:%d",
+				k8sResourceID, delRowCount)
 		}
+
+		calm_utils.Debug("---------------------------------------")
 
 		return nil
 	})

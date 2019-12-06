@@ -66,7 +66,7 @@ type StoreMgr interface {
 	// QueryK8SResourceKindByPodUniqueName 在表tbl_K8SResourceIPBind查询pod对应的k8s类型，查不到就是job和cronjob
 	QueryK8SResourceKindByPodUniqueName(podUniqueName string) proto.K8SApiResourceKindType
 
-	// ForceReleaseK8SResourceIPPool 强制释放deployment、statefulset的资源池
+	// ForceReleaseK8SResourceIPPool 强制释放deployment、statefulset的资源池，删除对应数据，回收IP
 	ForceReleaseK8SResourceIPPool(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error
 }
 
