@@ -10,6 +10,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	proto "pci-ipresmgr/api/proto_json"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 
@@ -17,7 +18,7 @@ import (
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
-func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error {
+func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) error {
 
 	err := msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 
@@ -114,4 +115,22 @@ func (msm *mysqlStoreMgr) ForceReleaseK8SResourceIPPool(k8sResourceID string, k8
 		return nil
 	})
 	return err
+}
+
+// MaintainDelCronjobNetInfos cronjob的网络信息释放
+func (msm *mysqlStoreMgr) MaintainDelCronjobNetInfos(k8sResourceID string) error {
+	cronjobJobLikeName := fmt.Sprintf("%s-%%", k8sResourceID)
+	delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SJobNetInfo WHERE k8sresource_id=? OR (k8sresource_id LIKE ? AND k8sresource_type=2)",
+		k8sResourceID, cronjobJobLikeName)
+	if err != nil {
+		err = errors.Wrapf(err, "DELETE FROM tbl_K8SJobNetInfo WHERE k8sresource_id=%s OR (k8sresource_id LIKE %s AND k8sresource_type=2) failed.",
+			k8sResourceID, cronjobJobLikeName)
+		calm_utils.Error(err)
+		return err
+	} else {
+		delRowCount, _ := delRes.RowsAffected()
+		calm_utils.Debugf("DELETE FROM tbl_K8SJobNetInfo WHERE k8sresource_id=%s OR (k8sresource_id LIKE %s AND k8sresource_type=2) successed. delRowCount:%d",
+			k8sResourceID, cronjobJobLikeName, delRowCount)
+	}
+	return nil
 }

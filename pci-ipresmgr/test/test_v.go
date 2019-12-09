@@ -110,6 +110,9 @@ func main() {
 
 	testDefer(1)
 	testDefer(0)
+
+	dumpStr = fmt.Sprintf("%s-%%", "k8sResourceID")
+	fmt.Println(dumpStr)
 }
 
 // CGO_ENABLED=1 go build  -ldflags="-X 'main.time=`date`' -X main.version=1.0.2 -linkmode external -extldflags -static" test_v.go

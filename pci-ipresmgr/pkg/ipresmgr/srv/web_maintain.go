@@ -99,7 +99,7 @@ func maintainForceReleaseK8SResourceIPPool(c *gin.Context) {
 	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
 
 	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
-		err = storeMgr.ForceReleaseK8SResourceIPPool(k8sResourceID, proto.K8SApiResourceKindDeployment)
+		err = storeMgr.MaintainForceReleaseK8SResourceIPPool(k8sResourceID, proto.K8SApiResourceKindDeployment)
 		if err != nil {
 			err = errors.Wrapf(err, "Force Release K8SResource:%s Type:%s IPPool failed.", k8sResourceID, req.K8SApiResourceKind.String())
 			res.Msg = err.Error()
@@ -110,9 +110,20 @@ func maintainForceReleaseK8SResourceIPPool(c *gin.Context) {
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 
-	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob ||
-		req.K8SApiResourceKind == proto.K8SApiResourceKindJob {
-
+	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob {
+		err = storeMgr.MaintainDelCronjobNetInfos(k8sResourceID)
+		if err != nil {
+			calm_utils.Errorf("Req:%s MaintainDelCronjobNetInfos %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
+		} else {
+			calm_utils.Debugf("Req:%s MaintainDelCronjobNetInfos %s successed.", req.ReqID, k8sResourceID)
+		}
+	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindJob {
+		err = storeMgr.DelJobNetInfo(k8sResourceID)
+		if err != nil {
+			calm_utils.Errorf("Req:%s DelJobNetInfo %s failed. err:%s", req.ReqID, k8sResourceID, err.Error())
+		} else {
+			calm_utils.Debugf("Req:%s DelJobNetInfo %s successed.", req.ReqID, k8sResourceID)
+		}
 	}
 	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
 }

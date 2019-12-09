@@ -26,11 +26,12 @@ import (
 
 var (
 	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
-	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP")
+	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP, 6: MaintainUnbindIP, 7: ReleaseIPPool")
 	unBindPodName   = flag.String("unbindpodname", "", "Unbind podName")
 	oldReplicas     = flag.Int("oldreplicas", 0, "old replicas")
 	newReplicas     = flag.Int("newreplicas", 1, "new replicas")
 	parallel        = flag.Int("parallel", 1, "parallel requests")
+	resourceName    = flag.String("resourcename", "", "deployment/statefulset name")
 	logger          *log.Logger
 )
 
@@ -185,6 +186,60 @@ func testReleaseIP() {
 	logger.Printf("releaseIPRes:%s\n", litter.Sdump(&releaseIPRes))
 }
 
+func testMaintainForceUnbindIP() {
+	var maintainForceUnbindIPReq proto.Maintain2IPResMgrForceUnbindIPReq
+	maintainForceUnbindIPReq.ReqID = ksuid.New().String()
+	maintainForceUnbindIPReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	maintainForceUnbindIPReq.K8SClusterID = "cluster-1"
+	maintainForceUnbindIPReq.K8SNamespace = "default"
+	maintainForceUnbindIPReq.K8SPodName = *unBindPodName
+
+	var maintainForceUnbindIPRes proto.IPResMgr2MaintainRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&maintainForceUnbindIPReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/maintain/").Post("unbindip").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&maintainForceUnbindIPRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/maintain/unbindip failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		logger.Fatalf("post %sv1/maintain/unbindip failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("maintainForceUnbindIPRes:%s\n", litter.Sdump(&maintainForceUnbindIPRes))
+}
+
+func testMaintainForceReleaseIPPool() {
+	var maintainForceReleaseIPPoolReq proto.Maintain2IPResMgrForceReleaseK8SResourceIPPoolReq
+	maintainForceReleaseIPPoolReq.ReqID = ksuid.New().String()
+	maintainForceReleaseIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	maintainForceReleaseIPPoolReq.K8SClusterID = "cluster-1"
+	maintainForceReleaseIPPoolReq.K8SNamespace = "default"
+	maintainForceReleaseIPPoolReq.K8SApiResourceName = *resourceName
+
+	var maintainForceReleaseIPPoolRes proto.IPResMgr2MaintainRes
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	jsonData, _ := json.Marshal(&maintainForceReleaseIPPoolReq)
+
+	scli := sling.New().Base(*srvIPResMgrAddr).Set("Content-Type", "text/plain; charset=utf-8")
+
+	res, err := scli.Path("v1/maintain/").Post("release/ippool").Body(strings.NewReader(calm_utils.Bytes2String(jsonData))).Receive(&maintainForceReleaseIPPoolRes, nil)
+	if err != nil {
+		logger.Fatalf("post %sv1/maintain/release/ippool failed. err:%s", *srvIPResMgrAddr, err.Error())
+	}
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		logger.Fatalf("post %sv1/maintain/release/ippool failed. res.StatusCode:%d", *srvIPResMgrAddr, res.StatusCode)
+	}
+
+	logger.Printf("maintainForceUnbindIPRes:%s\n", litter.Sdump(&maintainForceReleaseIPPoolRes))
+}
+
 func main() {
 	flag.Parse()
 
@@ -208,6 +263,10 @@ func main() {
 		}
 	case 5:
 		testReleaseIP()
+	case 6:
+		testMaintainForceUnbindIP()
+	case 7:
+		testMaintainForceReleaseIPPool()
 	default:
 		logger.Fatalf("Not support type:%d\n", *testType)
 	}
