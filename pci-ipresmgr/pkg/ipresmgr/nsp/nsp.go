@@ -96,10 +96,9 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 			return nil, err
 		}
 		// 发送请求
-		allocPortsURL := fmt.Sprintf("%s", ni.nspURL)
-		resData, httpCode, err := calm_utils.PostRequest(allocPortsURL, serialData)
+		resData, httpCode, err := calm_utils.PostRequest(ni.nspURL, serialData)
 		if err != nil {
-			err = errors.Wrapf(err, "Post k8sResourceID:[%s] allocPortsURL:[%s] failed.", k8sResourceID, allocPortsURL)
+			err = errors.Wrapf(err, "Post k8sResourceID:[%s] allocPortsURL:[%s] failed.", k8sResourceID, ni.nspURL)
 			calm_utils.Error(err)
 			rollBackFlag = 1
 			return nil, err
@@ -131,7 +130,7 @@ func (ni *nspMgrImpl) AllocAddrResources(k8sResourceID string, replicas int, net
 			}
 			replicas -= batchCount
 		} else {
-			err = errors.Errorf("Post to %s, httpCode is not 2xx", allocPortsURL)
+			err = errors.Errorf("Post to %s, httpCode is not 2xx", ni.nspURL)
 			calm_utils.Errorf(err.Error())
 			return nil, err
 		}

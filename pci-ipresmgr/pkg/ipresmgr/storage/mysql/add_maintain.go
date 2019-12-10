@@ -134,3 +134,8 @@ func (msm *mysqlStoreMgr) MaintainDelCronjobNetInfos(k8sResourceID string) error
 	}
 	return nil
 }
+
+// MaintainForceReleasePodIP 强制释放pod的ip，归还给nsp，同时删除该记录
+func (msm *mysqlStoreMgr) MaintainForceReleasePodIP(k8sResourceID string, bindPodUniqueName string) error {
+	return nil
+}

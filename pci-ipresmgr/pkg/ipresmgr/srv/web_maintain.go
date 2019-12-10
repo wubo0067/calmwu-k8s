@@ -8,6 +8,7 @@
 package srv
 
 import (
+	"fmt"
 	"net/http"
 	proto "pci-ipresmgr/api/proto_json"
 
@@ -109,7 +110,10 @@ func maintainForceReleaseK8SResourceIPPool(c *gin.Context) {
 			calm_utils.Debugf("Force Release K8SResource:%s Type:%s IPPool successed.", k8sResourceID, req.K8SApiResourceKind.String())
 		}
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
-
+		err = errors.Errorf("Force Release K8SResource:%s Type:%s IPPool is not yet support", k8sResourceID, req.K8SApiResourceKind.String())
+		calm_utils.Error(err.Error())
+		res.Msg = err.Error()
+		res.Code = proto.IPResMgrErrnoMaintainForceReleaseK8SResourceIPPoolFailed
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob {
 		err = storeMgr.MaintainDelCronjobNetInfos(k8sResourceID)
 		if err != nil {
@@ -148,4 +152,29 @@ func maintainForceReleasePodIP(c *gin.Context) {
 	defer func(status *int, resMgr *proto.IPResMgr2MaintainRes) {
 		sendResponse(c, *status, resMgr)
 	}(&httpCode, &res)
+
+	k8sResourceID := makeK8SResourceID(req.K8SClusterID, req.K8SNamespace, req.K8SApiResourceName)
+
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
+		bindPodUniqueName := fmt.Sprintf("%s:%s:%s", req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
+		err = storeMgr.MaintainForceReleasePodIP(k8sResourceID, bindPodUniqueName)
+		if err != nil {
+			err = errors.Wrapf(err, "Force Release K8SResource:%s Type:%s bindPodUniqueName:%s PodIP failed.", k8sResourceID,
+				req.K8SApiResourceKind.String(), bindPodUniqueName)
+			res.Msg = err.Error()
+			calm_utils.Error(err.Error())
+			res.Code = proto.IPResMgrErrnoMaintainForceReleasePodIPFailed
+		} else {
+			calm_utils.Debugf("Force Release K8SResource:%s Type:%s bindPodUniqueName:%s PodIP successed.",
+				k8sResourceID, req.K8SApiResourceKind.String(), bindPodUniqueName)
+		}
+	} else {
+		err = errors.Errorf("Force Release K8SResource:%s Type:%s PodName:%s PodIP is not support",
+			k8sResourceID, req.K8SApiResourceKind.String(), req.K8SPodName)
+		calm_utils.Error(err.Error())
+		res.Msg = err.Error()
+		res.Code = proto.IPResMgrErrnoMaintainForceReleasePodIPFailed
+	}
+	calm_utils.Debugf("ReqID:%s Res:%s", req.ReqID, litter.Sdump(&res))
 }

@@ -71,6 +71,9 @@ type StoreMgr interface {
 
 	// MaintainDelCronjobNetInfos 运维接口释放Cronjob所有网络信息，Cronjob--->Job--->Pod，这里删除要讲Cronjob和Job的都删除掉
 	MaintainDelCronjobNetInfos(k8sResourceID string) error
+
+	// MaintainForceReleasePodIP 强制释放pod的ip，归还给nsp，同时删除该记录
+	MaintainForceReleasePodIP(k8sResourceID string, bindPodUniqueName string) error
 }
 
 // StoreOptions 存储的参数
