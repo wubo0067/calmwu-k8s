@@ -39,24 +39,26 @@ clean:
 # Building the binary
 ###############################################################################
 BUILDTIME   =   `date +%FT%T%z`
-LDFLAGS     =   -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}" 
+LDFLAGS     =   -ldflags "-X main.version=${VERSION} -X main.buildtime=${BUILDTIME}"
 LDFLAGS    +=   -ldflags '-linkmode "external" -extldflags "-static"'
 GCFLAGS     =   -gcflags "-N -l -m"
 GOTAGS      :=  -tags static -tags deadlock
 
 build: proto $(BIN)/multi-call
 
-proto: 
+proto:
 	make -C api/protobuf
+	protoc --proto_path=.:/home/calm/Program/go_space/src:../ --go_out=. --micro_out=. api/protobuf/common/sci_error/error.proto
+	protoc --proto_path=.:/home/calm/Program/go_space/src:../ --go_out=. --micro_out=. api/protobuf/sci_auth/sci_openapiauth.proto
 
 srv-strsplit:
 	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-strsplit ./cmd/srv/strsplit
 
 srv-strupper:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-strupper ./cmd/srv/strupper	
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/srv/srv-strupper ./cmd/srv/strupper
 
 cli-strproc:
-	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/client/cli-strproc ./cmd/client/strproc			
+	CGO_ENABLED=1 go build -race -mod vendor $(GOTAGS) -v -x $(GCFLAGS) $(LDFLAGS) -o $(BIN)/client/cli-strproc ./cmd/client/strproc
 
 $(BIN)/multi-call : $(SRCFILES)
 	gofmt -l -w $(SRCFILES)
