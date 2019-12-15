@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package sci.v1.srv.opanapiauth;
+
+import "multi-call/api/protobuf/common/sci_error/error.proto";
+
+service OpenPlatformAuthenticationSrv {
+    // 授权
+    rpc AuthorizeToken(AuthTokenReq) returns (AuthTokenRes) {}
+
+    // 验证
+    rpc VerifyToken(VerifyTokenReq) returns (VerifyTokenRes) {}
+}
+
+// AuthTokenReq
+message AuthTokenReq {
+    string reqID = 1;
+    string userID = 2;
+    string userPwd = 3;
+}
+
+message AuthTokenRes {
+    string reqID = 1;
+    string userID = 2;
+    string token = 3;
+    sci.v1.sci_error.Error error = 4;
+}
+
+message VerifyTokenReq {
+    string reqID = 1;
+    string jtwToken = 2;
+}
+
+message VerifyTokenRes {
+    string reqID = 1;
+    sci.v1.sci_error.Error error = 4;
+}
