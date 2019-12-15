@@ -232,6 +232,7 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 			// 	replicas--
 			// }
 		} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
+			calm_utils.Warn("K8SApiResourceKindStatefulSet not support!")
 		}
 		return nil
 	})

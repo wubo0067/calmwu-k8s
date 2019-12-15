@@ -19,7 +19,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/urfave/cli"
 	batchv1 "k8s.io/api/batch/v1"
-	apiv1 "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -36,7 +36,7 @@ func listPod(clientSet *kubernetes.Clientset) {
 		logger.Fatal(err)
 	}
 	for i, pod := range pods.Items {
-		if pod.Status.Phase == apiv1.PodPending {
+		if pod.Status.Phase == corev1.PodPending {
 			color.New(color.FgBlue).Printf("\t{%d}: pod:%s status:%s PodIP:%s\n", i, pod.Name, pod.Status.Phase, pod.Status.PodIP)
 		} else {
 			logger.Printf("\t{%d}: pod:%s status:%s PodIP:%s\n", i, pod.Name, pod.Status.Phase, pod.Status.PodIP)
@@ -46,8 +46,8 @@ func listPod(clientSet *kubernetes.Clientset) {
 
 func listDeployment(clientSet *kubernetes.Clientset) {
 	// 由于我的yam文件中写的是apiVersion: extensions/v1beta1，所以这里使用ExtensionsV1beta1来查询，这点很重要
-	deploymentsClient := clientSet.ExtensionsV1beta1().Deployments(apiv1.NamespaceDefault)
-	//deploymentsClient := clientSet.AppsV1().Deployments(apiv1.NamespaceDefault)
+	deploymentsClient := clientSet.ExtensionsV1beta1().Deployments(corev1.NamespaceDefault)
+	//deploymentsClient := clientSet.AppsV1().Deployments(corev1.NamespaceDefault)
 
 	deployments, err := deploymentsClient.List(metav1.ListOptions{})
 	if err != nil {
@@ -61,7 +61,7 @@ func listDeployment(clientSet *kubernetes.Clientset) {
 
 func listServices(clientSet *kubernetes.Clientset) {
 	var kubeClient kubernetes.Interface = clientSet
-	servicesClient := kubeClient.CoreV1().Services(apiv1.NamespaceDefault)
+	servicesClient := kubeClient.CoreV1().Services(corev1.NamespaceDefault)
 
 	services, err := servicesClient.List(metav1.ListOptions{})
 	if err != nil {
@@ -89,16 +89,16 @@ func createJob(clientSet *kubernetes.Clientset) {
 		},
 		Spec: batchv1.JobSpec{
 			Parallelism: &parallelism,
-			Template: apiv1.PodTemplateSpec{
-				Spec: apiv1.PodSpec{
-					Containers: []apiv1.Container{
+			Template: corev1.PodTemplateSpec{
+				Spec: corev1.PodSpec{
+					Containers: []corev1.Container{
 						{
 							Name:    "sleep-job",
 							Image:   "busybox",
 							Command: []string{"sleep", "30"},
 						},
 					},
-					RestartPolicy: apiv1.RestartPolicyNever,
+					RestartPolicy: corev1.RestartPolicyNever,
 				},
 			},
 			ActiveDeadlineSeconds:   &activeDeadlineSecs, // 如果job运行完毕，这个是没有作用的
@@ -155,6 +155,11 @@ func createJob(clientSet *kubernetes.Clientset) {
 			}
 		}
 	}
+}
+
+func testServiceSpec() {
+	svcSpec := corev1.ServiceSpec{}
+	logger.Printf("svcSpec:#v\n", svcSpec)
 }
 
 func main() {

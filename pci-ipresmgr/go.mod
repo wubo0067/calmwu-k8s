@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/dghubble/sling v1.3.0
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-contrib/sse v0.1.0 // indirect
@@ -29,7 +30,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20191124101506-c2be42037435
+	github.com/wubo0067/calmwu-go v0.0.0-20191212053606-d55e0c97e2cd
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/multierr v1.4.0 // indirect

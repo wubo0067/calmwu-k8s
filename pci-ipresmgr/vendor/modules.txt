@@ -4,6 +4,8 @@ github.com/BurntSushi/toml
 github.com/DeanThompson/ginpprof
 # github.com/Pallinder/go-randomdata v1.2.0
 github.com/Pallinder/go-randomdata
+# github.com/cheekybits/genny v1.0.0
+github.com/cheekybits/genny/generic
 # github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/dghubble/sling v1.3.0
@@ -73,7 +75,7 @@ github.com/spaolacci/murmur3
 github.com/spf13/pflag
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20191124101506-c2be42037435
+# github.com/wubo0067/calmwu-go v0.0.0-20191212053606-d55e0c97e2cd
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic
