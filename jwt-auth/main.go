@@ -13,6 +13,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -63,6 +64,8 @@ func parseJWTToken(jwtToken string) {
 		// 认为过期了，应该返回false
 		bExpired = claims.VerifyExpiresAt(time.Now().Unix(), true)
 		calm_utils.Debugf("bExpired must false = [%v]", bExpired)
+
+		// 判断用户是否有效，去数据库查询，如果存在获取用户加密SecretKey。
 	} else {
 		calm_utils.Error(err.Error())
 	}
@@ -101,11 +104,27 @@ func sendReqAuth(jwtToken string) {
 	calm_utils.Debug(resp)
 }
 
+func checkJwtToken(jwtToken string) bool {
+	signingString := jwtToken[:strings.LastIndex(jwtToken, ".")]
+	signature := jwtToken[strings.LastIndex(jwtToken, ".")+1:]
+	calm_utils.Debugf("signingString: %s", signingString)
+	calm_utils.Debugf("signature: %s", signature)
+
+	err := jwt.SigningMethodHS256.Verify(signingString, signature, calm_utils.String2Bytes(SecretKey))
+	if err != nil {
+		calm_utils.Error(err.Error())
+		return false
+	}
+	calm_utils.Debugf("jwtToken Verify ok!!")
+	return true
+}
+
 func main() {
 	ginRun()
 	token := buildJWTToken("ShengBin", "123456789")
 	calm_utils.Debug(token)
 	parseJWTToken(token)
+	checkJwtToken(token)
 	sendReqAuth(token)
 	time.Sleep(3 * time.Second)
 }
