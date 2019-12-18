@@ -35,8 +35,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 			calm_utils.Debugf("%d k8sResourceID[%s] k8sResourceType[%s] k8sAddrInfo:%+v", index, k8sResourceID,
 				k8sResourceType.String(), k8sAddrInfo)
 
-			insRes := tx.MustExec(`INSERT INTO tbl_K8SResourceIPBind 
-			(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
+			insRes := tx.MustExec(`INSERT INTO tbl_K8SResourceIPBind
+			(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES
 			(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				k8sResourceID,
 				int(k8sResourceType),
@@ -369,8 +369,8 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 	k8sResourceIPRecycleRecord.NSPResourceReleaseTime = k8sResourceIPRecycleRecord.CreateTime.Add(config.GetK8SResourceAddrLeasePeriodSecs() * time.Second)
 	k8sResourceIPRecycleRecord.RecycleObjectID = uuid.New().String()
 
-	_, err = msm.dbMgr.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
-	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time, recycle_object_id) VALUES 
+	_, err = msm.dbMgr.Exec(`INSERT INTO tbl_K8SResourceIPRecycle
+	(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time, recycle_object_id) VALUES
 	(?, ?, ?, ?, ?, ?, ?)`,
 		k8sResourceIPRecycleRecord.SrvInstanceName,
 		k8sResourceIPRecycleRecord.K8SResourceID,
@@ -465,7 +465,7 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 			if err != nil {
 				if strings.Contains(err.Error(), "for key 'PRIMARY'") {
 					// 直接更新数量
-					calm_utils.Infof("k8sResourceID:%s already in tbl_K8SScaleDownMark, so add scaledown_count", scaleDownSize)
+					calm_utils.Infof("k8sResourceID:%s already in tbl_K8SScaleDownMark, so add scaledown_count:%d", k8sResourceID, scaleDownSize)
 					updateRes, err := msm.dbMgr.Exec("UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+? WHERE k8sresource_id=?", scaleDownSize, k8sResourceID)
 					if err != nil {
 						err = errors.Wrapf(err, "UPDATE tbl_K8SScaleDownMark SET scaledown_count=scaledown_count+%d WHERE k8sresource_id=%s failed.",

@@ -36,10 +36,10 @@ func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID st
 		var transactionFlag int
 		defer func(flag *int) {
 			if *flag == 0 {
-				calm_utils.Debugf("k8sResourceID:%s ResourceType:%s SELECT FOR UPDATE Commit", k8sResourceID, k8sResourceType.String())
+				calm_utils.Debugf("k8sResourceID:%s ResourceType:%s Commit", k8sResourceID, k8sResourceType.String())
 				tx.Commit()
 			} else {
-				calm_utils.Warnf("k8sResourceID:%s ResourceType:%s SELECT FOR UPDATE Rollback", k8sResourceID, k8sResourceType.String())
+				calm_utils.Warnf("k8sResourceID:%s ResourceType:%s Rollback", k8sResourceID, k8sResourceType.String())
 				tx.Rollback()
 			}
 		}(&transactionFlag)
