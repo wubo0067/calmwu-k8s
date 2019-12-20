@@ -23,6 +23,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/helm/pkg/helm"
 	//"k8s.io/apimachinery/pkg/labels"
 )
 
@@ -124,37 +125,36 @@ func createJob(clientSet *kubernetes.Clientset) {
 		// LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
 	})
 
-	for {
-		select {
-		case e, ok := <-jobWatcher.ResultChan():
-			if ok {
-				logger.Printf("event type[%s] object-type:[%s:%T]\n",
-					e.Type, reflect.TypeOf(e.Object).String(), e.Object)
-				job, ok := e.Object.(*batchv1.Job)
-				if ok {
-					logger.Printf("job:%s status:%s", job.Name, job.Status.String())
-					if len(job.Status.Conditions) > 0 {
-						jobCond := job.Status.Conditions[0]
-						if jobCond.Type == batchv1.JobFailed {
-							logger.Printf("---job:%s failed, so delete----\n", job.Name)
-							// 删除job，job下的pod会被删除
-							// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
-							// if err != nil {
-							// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
-							// }
-						} else if jobCond.Type == batchv1.JobComplete {
-							logger.Printf("---job:%s completed, so delete----\n", job.Name)
-							// 这里只会删除job，job下的pod不会被删除
-							// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
-							// if err != nil {
-							// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
-							// }
-						}
-					}
+	for e := range jobWatcher.ResultChan() {
+		logger.Printf("event type[%s] object-type:[%s:%T]\n",
+			e.Type, reflect.TypeOf(e.Object).String(), e.Object)
+		job, ok := e.Object.(*batchv1.Job)
+		if ok {
+			logger.Printf("job:%s status:%s", job.Name, job.Status.String())
+			if len(job.Status.Conditions) > 0 {
+				jobCond := job.Status.Conditions[0]
+				if jobCond.Type == batchv1.JobFailed {
+					logger.Printf("---job:%s failed, so delete----\n", job.Name)
+					// 删除job，job下的pod会被删除
+					// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
+					// if err != nil {
+					// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
+					// }
+				} else if jobCond.Type == batchv1.JobComplete {
+					logger.Printf("---job:%s completed, so delete----\n", job.Name)
+					// 这里只会删除job，job下的pod不会被删除
+					// err := jobClient.Delete(job.Name, &metav1.DeleteOptions{})
+					// if err != nil {
+					// 	logger.Fatalf("delete job:%s failed:%s\n", job.Name, err.Error())
+					// }
 				}
 			}
 		}
 	}
+}
+
+func createHelmClient(tillerHost string) {
+	helm.NewClient(helm.Host(tillerHost))
 }
 
 func testServiceSpec() {
