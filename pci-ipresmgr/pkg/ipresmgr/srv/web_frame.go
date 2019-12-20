@@ -71,7 +71,7 @@ func startWebSrv(listenAddr string, listenPort int) error {
 	ginRouter.Use(calm_utils.GinRecovery())
 
 	// 注册健康检查接口
-	ginRouter.GET("/ping", func(c *gin.Context) {
+	ginRouter.Any("/ping", func(c *gin.Context) {
 		c.String(http.StatusOK, "pong")
 	})
 

@@ -5,6 +5,7 @@
  * @Last Modified time: 2019-11-26 14:47:54
  */
 
+// Package strproc for strproc
 package strproc
 
 import (

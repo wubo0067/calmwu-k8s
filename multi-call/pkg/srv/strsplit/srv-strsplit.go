@@ -5,6 +5,7 @@
  * @Last Modified time: 2019-11-26 14:50:15
  */
 
+// Package strsplit for strsplit
 package strsplit
 
 import (
