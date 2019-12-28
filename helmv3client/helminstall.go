@@ -12,18 +12,25 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/kube"
 
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
-	"k8s.io/client-go/rest"
+	"k8s.io/client-go/discovery"
+	diskcached "k8s.io/client-go/discovery/cached/disk"
+	restclient "k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"k8s.io/client-go/util/homedir"
 
 	"helm.sh/helm/v3/pkg/storage"
 	"helm.sh/helm/v3/pkg/storage/driver"
@@ -33,23 +40,105 @@ const (
 	kubeCfgFile = "/root/.kube/config_bak"
 )
 
+type HelmClientConfigGetter struct {
+	kubeconfigGetter clientcmd.KubeconfigGetter
+}
+
+func (g *HelmClientConfigGetter) Load() (*clientcmdapi.Config, error) {
+	return g.kubeconfigGetter()
+}
+
+func (g *HelmClientConfigGetter) GetLoadingPrecedence() []string {
+	return nil
+}
+func (g *HelmClientConfigGetter) GetStartingConfig() (*clientcmdapi.Config, error) {
+	return g.kubeconfigGetter()
+}
+func (g *HelmClientConfigGetter) GetDefaultFilename() string {
+	return ""
+}
+func (g *HelmClientConfigGetter) IsExplicitFile() bool {
+	return false
+}
+func (g *HelmClientConfigGetter) GetExplicitFile() string {
+	return ""
+}
+func (g *HelmClientConfigGetter) IsDefaultConfig(config *restclient.Config) bool {
+	return false
+}
+
+var _ clientcmd.ClientConfigLoader = &HelmClientConfigGetter{}
+
 type HelmConfigFlags struct {
 	KubeCfgContent []byte
-	genericclioptions.ConfigFlags
+	//genericclioptions.ConfigFlags
 }
 
 func (f *HelmConfigFlags) ToRawKubeConfigLoader() clientcmd.ClientConfig {
-	config, err := clientcmd.NewClientConfigFromBytes(f.KubeCfgContent)
-	if err != nil {
-		calm_utils.Fatalf("NewClientConfigFromBytes failed. err:%s", err.Error())
-	}
-	calm_utils.Debugf("ToRawKubeConfigLoader config: %#v", config)
+	// config, err := clientcmd.NewClientConfigFromBytes(f.KubeCfgContent)
+	// if err != nil {
+	// 	calm_utils.Fatalf("NewClientConfigFromBytes failed. err:%s", err.Error())
+	// }
+	// calm_utils.Debugf("ToRawKubeConfigLoader config: %#v", config)
+
+	config := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&HelmClientConfigGetter{
+			kubeconfigGetter: func() (*clientcmdapi.Config, error) {
+				return clientcmd.Load(f.KubeCfgContent)
+			},
+		},
+		// &clientcmd.ConfigOverrides{ClusterDefaults: clientcmdapi.Cluster{Server: "https://192.168.2.128:6443"},
+		// 	ClusterInfo: clientcmdapi.Cluster{Server: "https://192.168.2.128:6443"}},
+		&clientcmd.ConfigOverrides{ClusterDefaults: clientcmdapi.Cluster{Server: ""}},
+	)
+	//rawConfig, _ := config.RawConfig()
+	clientConfig, _ := config.ClientConfig()
+	calm_utils.Debugf("-----ToRawKubeConfigLoader-----, ClientConfig.Host:%s", clientConfig.Host)
 	return config
 }
 
-func (f *HelmConfigFlags) ToRESTConfig() (*rest.Config, error) {
+func (f *HelmConfigFlags) ToRESTConfig() (*restclient.Config, error) {
 	return f.ToRawKubeConfigLoader().ClientConfig()
 }
+
+func (f *HelmConfigFlags) ToDiscoveryClient() (discovery.CachedDiscoveryInterface, error) {
+	config, err := f.ToRESTConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	// The more groups you have, the more discovery requests you need to make.
+	// given 25 groups (our groups + a few custom resources) with one-ish version each, discovery needs to make 50 requests
+	// double it just so we don't end up here again for a while.  This config is only used for discovery.
+	config.Burst = 100
+
+	// retrieve a user-provided value for the "cache-dir"
+	// defaulting to ~/.kube/http-cache if no user-value is given.
+	httpCacheDir := filepath.Join(homedir.HomeDir(), ".kube", "http-cache")
+	// if f.CacheDir != nil {
+	// 	httpCacheDir = *f.CacheDir
+	// }
+
+	schemelessHost := strings.Replace(strings.Replace(config.Host, "https://", "", 1), "http://", "", 1)
+	// now do a simple collapse of non-AZ09 characters.  Collisions are possible but unlikely.  Even if we do collide the problem is short lived
+	discoveryCacheDir := filepath.Join(filepath.Join(homedir.HomeDir(), ".kube", "cache", "discovery"), schemelessHost)
+	// discoveryCacheDir := computeDiscoverCacheDir(filepath.Join(homedir.HomeDir(), ".kube", "cache", "discovery"), config.Host)
+	calm_utils.Debugf("-----ToDiscoveryClient-----, discoveryCacheDir:%s", discoveryCacheDir)
+	return diskcached.NewCachedDiscoveryClientForConfig(config, discoveryCacheDir, httpCacheDir, time.Duration(10*time.Minute))
+}
+
+func (f *HelmConfigFlags) ToRESTMapper() (meta.RESTMapper, error) {
+	discoveryClient, err := f.ToDiscoveryClient()
+	if err != nil {
+		return nil, err
+	}
+
+	mapper := restmapper.NewDeferredDiscoveryRESTMapper(discoveryClient)
+	expander := restmapper.NewShortcutExpander(mapper, discoveryClient)
+	return expander, nil
+}
+
+var _ genericclioptions.RESTClientGetter = &HelmConfigFlags{}
 
 func debug(format string, v ...interface{}) {
 	calm_utils.Debug(fmt.Sprintf(format, v...))
@@ -78,7 +167,7 @@ func patchSciAnnotation(fileName string, fileContent []byte) ([]byte, error) {
 		lineContent := scanner.Bytes()
 		newTemplateBuf.Write(lineContent)
 		newTemplateBuf.WriteByte('\n')
-		calm_utils.Debugf("%d\t%s", lineNum, lineContent)
+		//calm_utils.Debugf("%d\t%s", lineNum, lineContent)
 		lineContentStr := calm_utils.Bytes2String(lineContent)
 		if strings.Compare(lineContentStr, "kind: Deployment") == 0 {
 			//calm_utils.Debug("this is a deployment yaml file")
@@ -126,8 +215,8 @@ func replaceDefaultClientConfig() {
 	}
 
 	clientcmd.DefaultClientConfig = *(clientcmd.NewDefaultClientConfig(*apiCfg, &clientcmd.ConfigOverrides{
-		ClusterInfo: clientcmdapi.Cluster{Server: ""},
-	}).(*clientcmd.DirectClientConfig))
+		ClusterDefaults: clientcmdapi.Cluster{Server: "https://192.168.2.128:6443"},
+		ClusterInfo:     clientcmdapi.Cluster{Server: "https://192.168.2.128:6443"}}).(*clientcmd.DirectClientConfig))
 }
 
 func helmInstall() {
@@ -141,9 +230,9 @@ func helmInstall() {
 	getter := &HelmConfigFlags{
 		KubeCfgContent: kubeCfgContent,
 	}
-	getter.ConfigFlags = *genericclioptions.NewConfigFlags(true)
-	namespace := "default"
-	getter.Namespace = &namespace
+	//getter.ConfigFlags = *genericclioptions.NewConfigFlags(true)
+	//namespace := "default"
+	//getter.Namespace = &namespace
 
 	actionConfig := new(action.Configuration)
 	//getter := kube.GetConfig(kubeCfgFile, "", "default")
@@ -154,11 +243,15 @@ func helmInstall() {
 		calm_utils.Fatalf("KubernetesClientSet failed. err:%s", err.Error())
 	}
 
-	_, err = clientset.CoreV1().Nodes().List(metav1.ListOptions{
+	nodeList, err := clientset.CoreV1().Nodes().List(metav1.ListOptions{
 		ResourceVersion: "0",
 	})
 	if err != nil {
 		calm_utils.Fatalf("node list failed. err:%s", err.Error())
+	}
+
+	for index := range nodeList.Items {
+		calm_utils.Debugf("node[%d]: %v", index, nodeList.Items[index])
 	}
 
 	// 使用configmap
