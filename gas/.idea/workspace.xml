@@ -2,7 +2,161 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4d27c132-b367-4bd1-8050-916ba74cff98" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/web/hello/hello.go" beforeDir="false" afterPath="$PROJECT_DIR$/web/hello/hello.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/fields.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/fields.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/yaml.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/ghodss/yaml/yaml.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/encode.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/encode.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/lib.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/lib.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/properties.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/properties.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_marshal.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_marshal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_merge.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_merge.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_unmarshal.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/table_unmarshal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/text.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/gogo/protobuf/proto/text.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/OpenAPIv2/OpenAPIv2.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/OpenAPIv2/OpenAPIv2.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/OpenAPIv2/OpenAPIv2.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/OpenAPIv2/OpenAPIv2.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/compiler/reader.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/compiler/reader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/extensions/COMPILE-EXTENSION.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/extensions/extension.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/googleapis/gnostic/extensions/extension.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/imdario/mergo/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/imdario/mergo/.travis.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/imdario/mergo/merge.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/imdario/mergo/merge.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/.travis.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/.travis.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/bool_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/bool_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/count.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/count.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/duration_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/duration_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/flag.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/flag.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/int_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/int_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/ip_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/ip_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/string_array.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/string_array.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/string_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/string_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/uint_slice.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/github.com/spf13/pflag/uint_slice.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/crypto/scrypt/scrypt.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/crypto/scrypt/scrypt.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/crypto/ssh/terminal/terminal.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/crypto/ssh/terminal/terminal.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/oauth2/oauth2.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/oauth2/oauth2.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/time/rate/rate.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/golang.org/x/time/rate/rate.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/google.golang.org/appengine/internal/net.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/google.golang.org/appengine/internal/net.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/decode.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/decode.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/resolve.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/resolve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/scannerc.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/gopkg.in/yaml.v2/scannerc.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/admissionregistration/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta2/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/apps/v1beta2/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/autoscaling/v2beta2/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/batch/v2alpha1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/coordination/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/generated.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/generated.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/well_known_labels.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/well_known_labels.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/zz_generated.deepcopy.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/core/v1/zz_generated.deepcopy.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/events/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/extensions/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/networking/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1alpha1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/node/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/policy/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/scheduling/v1alpha1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1alpha1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/generated.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/generated.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/zz_generated.deepcopy.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/api/storage/v1beta1/zz_generated.deepcopy.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/errors/errors.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/errors/errors.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/resource/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/resource/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/resource/quantity.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/api/resource/quantity.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/fields_proto.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/generated.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/generated.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/generated.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/helpers.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/helpers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types_swagger_doc_generated.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/types_swagger_doc_generated.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/helpers.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/unstructured/helpers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/zz_generated.deepcopy.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/apis/meta/v1/zz_generated.deepcopy.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/runtime/serializer/json/json.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/runtime/serializer/json/json.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/runtime/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/runtime/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/clock/clock.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/clock/clock.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/json/json.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/json/json.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/net/http.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/net/http.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/net/util.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/net/util.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/runtime/runtime.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/runtime/runtime.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/validation/field/errors.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/apimachinery/pkg/util/validation/field/errors.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/discovery/doc.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/discovery/doc.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/clientset.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/clientset.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/scheme/register.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/scheme/register.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/typed/core/v1/pod.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/kubernetes/typed/core/v1/pod.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/plugin.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/plugin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/request.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/request.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/transport.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/transport.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/zz_generated.deepcopy.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/rest/zz_generated.deepcopy.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/clientcmd/loader.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/clientcmd/loader.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/clientcmd/validation.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/clientcmd/validation.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/reference/ref.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/tools/reference/ref.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/cache.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/cache.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/round_trippers.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/round_trippers.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/token_source.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/token_source.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/transport.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/transport/transport.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/flowcontrol/backoff.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/flowcontrol/backoff.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/flowcontrol/throttle.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/flowcontrol/throttle.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/homedir/homedir.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/client-go/util/homedir/homedir.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/klog/klog.go" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/k8s.io/klog/klog.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../k8sclient/vendor/modules.txt" beforeDir="false" afterPath="$PROJECT_DIR$/../k8sclient/vendor/modules.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../pci-ipresmgr/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../pci-ipresmgr/go.sum" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -139,7 +293,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -221,6 +374,7 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -230,7 +384,7 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.vendoring.notification.had.been.shown" value="true" />
-    <property name="last_opened_file_path" value="$USER_HOME$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../gopath/src/chan_counter" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
     <property name="settings.editor.selected.configurable" value="preferences.lookFeel" />
@@ -249,9 +403,8 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="1912" y="-8" width="1936" height="1056" extended-state="6" />
-    <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4988662" visible="true" weight="0.16595289" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.4988662" visible="true" weight="0.16809422" />
       <window_info id="Structure" order="1" sideWeight="0.5011338" side_tool="true" weight="0.16417113" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="0" />
@@ -337,6 +490,13 @@
     <entry file="file://$PROJECT_DIR$/api/protobuf/srv/stringprocess/stringprocess.proto">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
+    <entry file="file://$PROJECT_DIR$/api/protobuf/web/hello/hello.proto">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="144">
+          <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/vendor/github.com/micro/go-micro/server/options.go">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2556">
@@ -348,13 +508,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1242">
           <caret line="78" column="5" selection-start-line="78" selection-start-column="5" selection-end-line="78" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/api/protobuf/web/hello/hello.proto">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="8" column="1" selection-start-line="8" selection-start-column="1" selection-end-line="8" selection-end-column="1" />
         </state>
       </provider>
     </entry>
