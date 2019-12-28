@@ -55,6 +55,14 @@ func debug(format string, v ...interface{}) {
 	calm_utils.Debug(fmt.Sprintf(format, v...))
 }
 
+func checkDeploymentTemplateFile(fileContent []byte) bool {
+	return false
+}
+
+func checkServiceTemplateFile(fileContent []byte) bool {
+	return false
+}
+
 func patchSciAnnotation(fileName string, fileContent []byte) ([]byte, error) {
 	lineKindTag := -1
 	lineSpecTag := -1
@@ -93,7 +101,7 @@ func patchSciAnnotation(fileName string, fileContent []byte) ([]byte, error) {
 		}
 
 		if lineMetadataTag > lineTemplateTag && lineTemplateTag > lineSpecTag && lineSpecTag > lineKindTag {
-			calm_utils.Debug("--->deployment template now will add sci annotation<---")
+			//calm_utils.Debug("--->deployment template now will add sci annotation<---")
 			lineKindTag = -1
 			lineSpecTag = -1
 			lineTemplateTag = -1
@@ -123,6 +131,8 @@ func replaceDefaultClientConfig() {
 }
 
 func helmInstall() {
+	calm_utils.Debugf("\n----------------helmInstall----------------")
+
 	//replaceDefaultClientConfig()
 	kubeCfgContent, err := ioutil.ReadFile(kubeCfgFile)
 	if err != nil {
@@ -178,12 +188,17 @@ func helmInstall() {
 		calm_utils.Fatalf("load chart:%s failed. err:%s", guestBookChartDir, err.Error())
 	}
 
+	//calm_utils.Debugf("chart.Templates:%v", chart.Templates)
+
 	// 修改某一个chart文件内容
-	for index := range chart.Files {
-		if chart.Files[index].Name == "guestbook-deployment.yaml" {
+	for index := range chart.Templates {
+		calm_utils.Debugf("template file name:%s", chart.Templates[index].Name)
+		if chart.Templates[index].Name == "templates/guestbook-deployment.yaml" ||
+			chart.Templates[index].Name == "templates/redis-master-deployment.yaml" {
 			//
-			chart.Files[index].Data, _ = patchSciAnnotation(chart.Files[index].Name, chart.Files[index].Data)
-			calm_utils.Debugf("%s", calm_utils.Bytes2String(chart.Files[index].Data))
+			chart.Templates[index].Data, _ = patchSciAnnotation(chart.Templates[index].Name, chart.Templates[index].Data)
+			calm_utils.Debugf("patchSciAnnotation[%s] %s", chart.Templates[index].Name,
+				calm_utils.Bytes2String(chart.Templates[index].Data))
 		}
 	}
 

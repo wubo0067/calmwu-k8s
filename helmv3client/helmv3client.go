@@ -167,11 +167,11 @@ func main() {
 	calm_utils.Debug("helmV3 client start")
 	loadChartFromDir(guestBookChartDir)
 
-	loadYamlFile(yamlFilePath)
+	//loadYamlFile(yamlFilePath)
 
 	loadChartFile(chartFilePath)
 	loadValuesFile(valuesFilePath)
-	externTemplateFile(templateFilePath)
-	externTemplateFile(templateFilePath1)
+	//externTemplateFile(templateFilePath)
+	//externTemplateFile(templateFilePath1)
 	helmInstall()
 }
