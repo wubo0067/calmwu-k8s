@@ -71,7 +71,7 @@ var _ clientcmd.ClientConfigLoader = &HelmClientConfigGetter{}
 
 type HelmConfigFlags struct {
 	KubeCfgContent []byte
-	//genericclioptions.ConfigFlags
+	genericclioptions.ConfigFlags
 }
 
 func (f *HelmConfigFlags) ToRawKubeConfigLoader() clientcmd.ClientConfig {
@@ -229,10 +229,11 @@ func helmInstall() {
 	}
 	getter := &HelmConfigFlags{
 		KubeCfgContent: kubeCfgContent,
+		ConfigFlags:    *genericclioptions.NewConfigFlags(true),
 	}
 	//getter.ConfigFlags = *genericclioptions.NewConfigFlags(true)
-	//namespace := "default"
-	//getter.Namespace = &namespace
+	namespace := "myguest"
+	getter.ConfigFlags.Namespace = &namespace
 
 	actionConfig := new(action.Configuration)
 	//getter := kube.GetConfig(kubeCfgFile, "", "default")
@@ -254,9 +255,9 @@ func helmInstall() {
 		calm_utils.Debugf("node[%d]: %v", index, nodeList.Items[index])
 	}
 
-	// 使用configmap
+	// 使用secret，这里要保证namespace一致
 	var store *storage.Storage
-	d := driver.NewSecrets(clientset.CoreV1().Secrets("default"))
+	d := driver.NewSecrets(clientset.CoreV1().Secrets(namespace))
 	d.Log = debug
 	store = storage.Init(d)
 
@@ -266,7 +267,8 @@ func helmInstall() {
 	actionConfig.Log = debug
 
 	installAction := action.NewInstall(actionConfig)
-	installAction.Namespace = "default"
+	// 在这里设置namespace
+	installAction.Namespace = namespace
 	installAction.ReleaseName = "myguestbook"
 
 	sciVals := map[string]interface{}{
