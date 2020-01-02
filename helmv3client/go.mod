@@ -24,12 +24,15 @@ replace (
 require (
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
+	github.com/fatih/color v1.7.0 // indirect
 	github.com/gin-gonic/gin v1.5.0 // indirect
+	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/sanity-io/litter v1.2.0
 	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20191218040136-dd29b73e5c17
+	github.com/wubo0067/calmwu-go v0.0.0-20191231073022-8cf6b9680e47
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	golang.org/x/tools v0.0.0-20191224055732-dd894d0a8a40 // indirect
 	golang.org/x/tools/gopls v0.1.8-0.20191224055732-dd894d0a8a40 // indirect

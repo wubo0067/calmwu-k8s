@@ -20,6 +20,8 @@ import (
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/kube"
 
+	"github.com/snwfdhmp/errlog"
+
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -38,6 +40,22 @@ import (
 
 const (
 	kubeCfgFile = "/root/.kube/config_bak"
+)
+
+var (
+	errJudgement = errlog.NewLogger(&errlog.Config{
+		// PrintFunc is of type `func (format string, data ...interface{})`
+		// so you can easily implement your own logger func.
+		// In this example, logrus is used, but any other logger can be used.
+		// Beware that you should add '\n' at the end of format string when printing.
+		PrintFunc:          calm_utils.Debugf,
+		PrintSource:        true,  //Print the failing source code
+		LinesBefore:        2,     //Print 2 lines before failing line
+		LinesAfter:         1,     //Print 1 line after failing line
+		PrintError:         true,  //Print the error
+		PrintStack:         false, //Don't print the stack trace
+		ExitOnDebugSuccess: false, //Exit if err
+	})
 )
 
 type HelmClientConfigGetter struct {
@@ -220,12 +238,13 @@ func replaceDefaultClientConfig() {
 }
 
 func helmInstall() {
-	calm_utils.Debugf("\n----------------helmInstall----------------")
+	calm_utils.Debug("\n----------------helmInstall----------------")
 
 	//replaceDefaultClientConfig()
 	kubeCfgContent, err := ioutil.ReadFile(kubeCfgFile)
-	if err != nil {
-		calm_utils.Fatalf("readfile:%s failed. err:%s", err.Error())
+	//if err != nil {
+	if errJudgement.Debug(err) {
+		calm_utils.Fatalf("readfile:%s failed. err:%s", kubeCfgFile, err.Error())
 	}
 	getter := &HelmConfigFlags{
 		KubeCfgContent: kubeCfgContent,
@@ -298,7 +317,7 @@ func helmInstall() {
 	}
 
 	res, err := installAction.Run(chart, sciVals)
-	if err != nil {
+	if errJudgement.Debug(err) {
 		calm_utils.Fatalf("run installAction failed. err:%s", err.Error())
 	}
 
