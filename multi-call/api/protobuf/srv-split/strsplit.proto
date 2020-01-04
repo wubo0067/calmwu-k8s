@@ -2,8 +2,13 @@ syntax = "proto3";
 
 package sci.v1.svr.strsplit;
 
+import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
 service StrSplitProcess {
     rpc Split(StrSplitReq) returns (StrSplitRes) {}
+
+    rpc SayHelloWorld(HelloWorldRequest) returns (HelloWorldResponse){}
 }
 
 message StrSplitReq {
@@ -13,3 +18,13 @@ message StrSplitReq {
 message StrSplitRes {
     repeated string splitStrs = 1;
 }
+
+message HelloWorldRequest {
+    string greeting = 1;
+    google.protobuf.Struct values  = 2;
+  }
+
+  message HelloWorldResponse {
+    string reply = 1;
+    google.protobuf.Any detail = 2;
+  }

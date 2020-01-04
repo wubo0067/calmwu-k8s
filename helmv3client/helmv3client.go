@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-12-24 10:42:23
  * @Last Modified by: calm.wu
- * @Last Modified time: 2019-12-27 11:51:37
+ * @Last Modified time: 2020-01-04 20:48:07
  */
 
 package main
@@ -165,13 +165,15 @@ func externTemplateFile(templateFilePath string) {
 
 func main() {
 	calm_utils.Debug("helmV3 client start")
-	loadChartFromDir(guestBookChartDir)
+	//loadChartFromDir(guestBookChartDir)
 
 	//loadYamlFile(yamlFilePath)
 
-	loadChartFile(chartFilePath)
-	loadValuesFile(valuesFilePath)
+	//loadChartFile(chartFilePath)
+	//loadValuesFile(valuesFilePath)
 	//externTemplateFile(templateFilePath)
 	//externTemplateFile(templateFilePath1)
-	helmInstall()
+	//helmInstall()
+	patchTemplateFileWithSCISpecific("./template_yaml/calico_etcd.yaml")
+	patchTemplateFileWithSCISpecific("./template_yaml/metrics-deployment.yaml")
 }

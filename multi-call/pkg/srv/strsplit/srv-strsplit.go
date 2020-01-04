@@ -18,6 +18,8 @@ import (
 	proto_split "multi-call/api/protobuf/srv-split"
 	proto_upper "multi-call/api/protobuf/srv-upper"
 
+	"github.com/golang/protobuf/proto"
+	"github.com/golang/protobuf/ptypes"
 	"github.com/micro/go-micro"
 	"github.com/micro/go-micro/client"
 	"github.com/micro/go-micro/registry"
@@ -59,6 +61,22 @@ func (ssi *StrSplitImpl) Split(ctx context.Context, in *proto_split.StrSplitReq,
 
 	out.SplitStrs = strings.Split(upperRsp.OriginalString, "-")
 	logger.Println("Split call completed")
+	return nil
+}
+
+func (ssi *StrSplitImpl) SayHelloWorld(ctx context.Context, in *proto_split.HelloWorldRequest, out *proto_split.HelloWorldResponse) error {
+	logger.Println("------------receive SayHelloWorld call------------")
+
+	ctxDeadlineTime, ctxDeadlineOK := ctx.Deadline()
+	logger.Printf("ctx deadline time:%s ok:%v\n", ctxDeadlineTime.String(), ctxDeadlineOK)
+
+	for key, val := range in.Infos {
+		logger.Printf("key:%s val typeUrl:%s, val:%v", key, val.GetTypeUrl())
+	}
+
+	out.Reply = in.Greeting
+	out.Detail, _ = ptypes.MarshalAny(proto.String("SayHelloWorld response"))
+
 	return nil
 }
 
