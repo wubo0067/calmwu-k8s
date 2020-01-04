@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-12-24 10:42:23
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-04 22:58:08
+ * @Last Modified time: 2020-01-04 23:00:26
  */
 
 package main
@@ -174,7 +174,7 @@ func main() {
 	//externTemplateFile(templateFilePath)
 	//externTemplateFile(templateFilePath1)
 	//helmInstall()
-	patchTemplateFileWithSCISpecific("./template_yaml/calico_etcd.yaml")
-	patchTemplateFileWithSCISpecific("./template_yaml/metrics-deployment.yaml")
-	patchTemplateFileWithSCISpecific("./template_yaml/cerebro-deployment.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/calico_etcd.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/metrics-deployment.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/cerebro-deployment.yaml")
 }
