@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2020-01-04 15:17:45
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-04 22:42:52
+ * @Last Modified time: 2020-01-04 22:55:37
  */
 
 package main
@@ -106,7 +106,6 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 	calm_utils.Debugf("---patchDeploymentTemplateFile---")
 	lineNum := 0
 	tagKind := tagKindNone
-	findAnnotation := false
 	lineSpecTag := -1
 	lineTemplateTag := -1
 	lineMetadataTag := -1
@@ -136,18 +135,84 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			continue
 		}
 
-		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataStr) == 0 && lineSpecTag > -1 && lineTemplateTag > lineSpecTag {
+		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataStr) == 0 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
 			lineMetadataTag = lineNum
-			calm_utils.Debugf("--->find metadata yaml node, lineMetadataTag:%d", lineMetadataTag)
-			lineNum++
+			if lineSpecTag > -1 && lineTemplateTag > lineSpecTag && lineMetadataTag > lineTemplateTag {
+				calm_utils.Debugf("--->find metadata yaml node, lineMetadataTag:%d", lineMetadataTag)
+				incLineCount := patchAnnotationInMetaDataRegion(scanner, newTemplateBuf)
+				lineNum += incLineCount
+			} else {
+				lineNum++
+			}
 			continue
 		}
 
+		// // 找到metadata的annotation
+		// if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataAnnotationStr) == 0 &&
+		// 	lineSpecTag > -1 && lineTemplateTag > lineSpecTag && lineMetadataTag > lineTemplateTag {
+		// 	newTemplateBuf.Write(lineContent)
+		// 	newTemplateBuf.WriteByte('\n')
+
+		// 	// 加上sci的annotation
+		// 	for _, sciAnno := range sciAnnotations {
+		// 		newTemplateBuf.WriteString(sciAnno)
+		// 		newTemplateBuf.WriteByte('\n')
+		// 	}
+		// 	findAnnotation = true
+		// 	continue
+		// }
+
+		// // 判断是不是metadata已经结束
+		// if lineSpecTag != -1 &&
+		// 	lineMetadataTag > lineTemplateTag &&
+		// 	lineTemplateTag > lineSpecTag &&
+		// 	len(lineContentStr) >= 5 &&
+		// 	strings.HasPrefix(lineContentStr, "    ") &&
+		// 	lineContentStr[4] != ' ' {
+		// 	calm_utils.Debug("--->find metadata end")
+		// 	if !findAnnotation {
+		// 		// 要加上annotation
+		// 		newTemplateBuf.WriteString(tagDeploymentTemplateMetadataAnnotationStr)
+		// 		newTemplateBuf.WriteByte('\n')
+		// 		for _, sciAnno := range sciAnnotations {
+		// 			newTemplateBuf.WriteString(sciAnno)
+		// 			newTemplateBuf.WriteByte('\n')
+		// 		}
+		// 		findAnnotation = true
+		// 	}
+		// }
+
+		lineNum++
+		newTemplateBuf.Write(lineContent)
+		newTemplateBuf.WriteByte('\n')
+
+		tagKind = isKindTag(calm_utils.Bytes2String(lineContent))
+		if tagKind != tagKindNone {
+			// 解析结束
+			calm_utils.Debug("--->deployment patch completed")
+			break
+		}
+	}
+
+	return lineNum, tagKind, nil
+}
+
+func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
+	calm_utils.Debugf("---patchAnnotation---")
+	lineNum := 0
+	findAnnotation := false
+
+	for scanner.Scan() {
+		lineContent := scanner.Bytes()
+
+		// 先找到spec---template---metadata
+		lineContentStr := calm_utils.Bytes2String(lineContent)
+		calm_utils.Debugf("%s", lineContentStr)
+
 		// 找到metadata的annotation
-		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataAnnotationStr) == 0 &&
-			lineSpecTag > -1 && lineTemplateTag > lineSpecTag && lineMetadataTag > lineTemplateTag {
+		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataAnnotationStr) == 0 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
 
@@ -161,10 +226,7 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 		}
 
 		// 判断是不是metadata已经结束
-		if lineSpecTag != -1 &&
-			lineMetadataTag > lineTemplateTag &&
-			lineTemplateTag > lineSpecTag &&
-			len(lineContentStr) >= 5 &&
+		if len(lineContentStr) >= 5 &&
 			strings.HasPrefix(lineContentStr, "    ") &&
 			lineContentStr[4] != ' ' {
 			calm_utils.Debug("--->find metadata end")
@@ -183,24 +245,7 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 		lineNum++
 		newTemplateBuf.Write(lineContent)
 		newTemplateBuf.WriteByte('\n')
-
-		tagKind = isKindTag(calm_utils.Bytes2String(lineContent))
-		if tagKind != tagKindNone {
-			// 解析结束
-			calm_utils.Debug("--->deployment patch completed")
-			break
-		}
 	}
-
-	if !findAnnotation {
-		calm_utils.Fatal("not find annotataion in template file")
-	}
-	return lineNum, tagKind, nil
-}
-
-func patchAnnotation(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
-	calm_utils.Debugf("---patchAnnotation---")
-	lineNum := 0
 
 	return lineNum
 }
