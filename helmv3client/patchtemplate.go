@@ -35,19 +35,31 @@ const (
 )
 
 const (
-	tagKindStr                                 = "kind: "
-	tagDeploymentKindStr                       = "kind: Deployment"
-	tagServiceKindStr                          = "kind: Service"
-	tagDeploymentSpecStr                       = "spec:"
-	tagDeploymentTemplateStr                   = "  template:"
-	tagDeploymentTemplateMetadataStr           = "    metadata:"
-	tagDeploymentTemplateMetadataAnnotationStr = "      annotations:"
+	tagKindStr                                     = "kind: "
+	tagDeploymentKindStr                           = "kind: Deployment"
+	tagServiceKindStr                              = "kind: Service"
+	tagDeploymentSpecStr                           = "spec:"
+	tagDeploymentSpecTemplateStr                   = "  template:"
+	tagDeploymentSpecTemplateMetadataStr           = "    metadata:"
+	tagDeploymentSpecTemplateMetadataAnnotationStr = "      annotations:"
+
+	tagDeploymentMetadataLabelsStr             = "  labels"
+	tagDeploymentSpecSelectorStr               = "  selector"
+	tagDeploymentSpecSelectorMatchlabelsStr    = "    matchLabels"
+	tagDeploymentSpecTemplateMetadataLablesStr = "      labels"
 )
 
 var (
 	sciAnnotations = []string{
 		"        io.kubernetes-network.region-id: {{ .Values.Network.RegionID }}",
 		"        io.kubernetes.cri.untrusted-workload: \"true\"",
+	}
+
+	sciLabes = []string{
+		"pci-clusterid: {{ .Values.Label.ClusterID }}",
+		"pic-username: {{ .Values.Lable.UserName }}",
+		"pic.workload.name: {{ .Values.Lable.WorkloadName }}",
+		"pic-workload.type: WORKLOAD_DEPLOYMENT",
 	}
 )
 
@@ -107,8 +119,8 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 	lineNum := 0
 	tagKind := tagKindNone
 	lineSpecTag := -1
-	lineTemplateTag := -1
-	lineMetadataTag := -1
+	lineSpecTemplateTag := -1
+	lineSpecTemplateMetadataTag := -1
 
 	for scanner.Scan() {
 		lineContent := scanner.Bytes()
@@ -126,21 +138,22 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			continue
 		}
 
-		if strings.Compare(lineContentStr, tagDeploymentTemplateStr) == 0 && lineSpecTag > -1 {
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateStr) == 0 && lineSpecTag > -1 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
-			lineTemplateTag = lineNum
-			calm_utils.Debugf("--->find template yaml node, lineTemplateTag:%d", lineTemplateTag)
+			lineSpecTemplateTag = lineNum
+			calm_utils.Debugf("--->find template yaml node, lineSpecTemplateTag:%d", lineSpecTemplateTag)
 			lineNum++
 			continue
 		}
 
-		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataStr) == 0 {
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataStr) == 0 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
-			lineMetadataTag = lineNum
-			if lineSpecTag > -1 && lineTemplateTag > lineSpecTag && lineMetadataTag > lineTemplateTag {
-				calm_utils.Debugf("--->find metadata yaml node, lineMetadataTag:%d", lineMetadataTag)
+			lineSpecTemplateMetadataTag = lineNum
+			// 找到sepc---template---metadata节点，开始插入annotation
+			if lineSpecTag > -1 && lineSpecTemplateTag > lineSpecTag && lineSpecTemplateMetadataTag > lineSpecTemplateTag {
+				calm_utils.Debugf("--->find metadata yaml node, lineSpecTemplateMetadataTag:%d", lineSpecTemplateMetadataTag)
 				incLineCount := patchAnnotationInMetaDataRegion(scanner, newTemplateBuf)
 				lineNum += incLineCount
 			} else {
@@ -148,41 +161,6 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			}
 			continue
 		}
-
-		// // 找到metadata的annotation
-		// if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataAnnotationStr) == 0 &&
-		// 	lineSpecTag > -1 && lineTemplateTag > lineSpecTag && lineMetadataTag > lineTemplateTag {
-		// 	newTemplateBuf.Write(lineContent)
-		// 	newTemplateBuf.WriteByte('\n')
-
-		// 	// 加上sci的annotation
-		// 	for _, sciAnno := range sciAnnotations {
-		// 		newTemplateBuf.WriteString(sciAnno)
-		// 		newTemplateBuf.WriteByte('\n')
-		// 	}
-		// 	findAnnotation = true
-		// 	continue
-		// }
-
-		// // 判断是不是metadata已经结束
-		// if lineSpecTag != -1 &&
-		// 	lineMetadataTag > lineTemplateTag &&
-		// 	lineTemplateTag > lineSpecTag &&
-		// 	len(lineContentStr) >= 5 &&
-		// 	strings.HasPrefix(lineContentStr, "    ") &&
-		// 	lineContentStr[4] != ' ' {
-		// 	calm_utils.Debug("--->find metadata end")
-		// 	if !findAnnotation {
-		// 		// 要加上annotation
-		// 		newTemplateBuf.WriteString(tagDeploymentTemplateMetadataAnnotationStr)
-		// 		newTemplateBuf.WriteByte('\n')
-		// 		for _, sciAnno := range sciAnnotations {
-		// 			newTemplateBuf.WriteString(sciAnno)
-		// 			newTemplateBuf.WriteByte('\n')
-		// 		}
-		// 		findAnnotation = true
-		// 	}
-		// }
 
 		lineNum++
 		newTemplateBuf.Write(lineContent)
@@ -212,7 +190,7 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 		calm_utils.Debugf("%s", lineContentStr)
 
 		// 找到metadata的annotation
-		if strings.Compare(lineContentStr, tagDeploymentTemplateMetadataAnnotationStr) == 0 {
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataAnnotationStr) == 0 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
 
@@ -232,7 +210,7 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 			calm_utils.Debug("--->find metadata end")
 			if !findAnnotation {
 				// 要加上annotation
-				newTemplateBuf.WriteString(tagDeploymentTemplateMetadataAnnotationStr)
+				newTemplateBuf.WriteString(tagDeploymentSpecTemplateMetadataAnnotationStr)
 				newTemplateBuf.WriteByte('\n')
 				for _, sciAnno := range sciAnnotations {
 					newTemplateBuf.WriteString(sciAnno)
