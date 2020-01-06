@@ -146,7 +146,7 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
 			calm_utils.Debugf("--->find deployment.metadata yaml node, tagDeploymentMetadataStr:%d", lineNum)
-			incLineCount := patchLabelsInMetaDataRegion(scanner, newTemplateBuf)
+			incLineCount := patchLabelsInDeploymentMetaDataRegion(scanner, newTemplateBuf)
 			lineNum += incLineCount
 			continue
 		}
@@ -196,6 +196,14 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			break
 		}
 	}
+
+	return lineNum, tagKind, nil
+}
+
+func patchInDeploymentSpecRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, templateTagKind, error) {
+	calm_utils.Debugf("---patchInDeploymentSpecRegion---")
+	lineNum := 0
+	tagKind := tagKindNone
 
 	return lineNum, tagKind, nil
 }
@@ -255,8 +263,8 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 	return lineNum
 }
 
-func patchLabelsInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
-	calm_utils.Debugf("---patchLabelsInMetaDataRegion---")
+func patchLabelsInDeploymentMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
+	calm_utils.Debugf("---patchLabelsInDeploymentMetaDataRegion---")
 	lineNum := 0
 	findLabels := false
 
