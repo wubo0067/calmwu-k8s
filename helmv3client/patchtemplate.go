@@ -43,10 +43,11 @@ const (
 	tagDeploymentSpecTemplateMetadataStr           = "    metadata:"
 	tagDeploymentSpecTemplateMetadataAnnotationStr = "      annotations:"
 
-	tagDeploymentMetadataLabelsStr             = "  labels"
-	tagDeploymentSpecSelectorStr               = "  selector"
-	tagDeploymentSpecSelectorMatchlabelsStr    = "    matchLabels"
-	tagDeploymentSpecTemplateMetadataLablesStr = "      labels"
+	tagDeploymentMetadataStr                   = "metadata:"
+	tagDeploymentMetadataLabelsStr             = "  labels:"
+	tagDeploymentSpecSelectorStr               = "  selector:"
+	tagDeploymentSpecSelectorMatchlabelsStr    = "    matchLabels:"
+	tagDeploymentSpecTemplateMetadataLablesStr = "      labels:"
 )
 
 var (
@@ -55,7 +56,7 @@ var (
 		"        io.kubernetes.cri.untrusted-workload: \"true\"",
 	}
 
-	sciLabes = []string{
+	sciLabels = []string{
 		"pci-clusterid: {{ .Values.Label.ClusterID }}",
 		"pic-username: {{ .Values.Lable.UserName }}",
 		"pic.workload.name: {{ .Values.Lable.WorkloadName }}",
@@ -70,8 +71,9 @@ func patchTemplateFileWithSCISpecific(fileName string) {
 		calm_utils.Fatalf("read file:%s failed. err:%s", fileName, err.Error())
 	}
 
+	//currTagKind := tagKindNone
+	//currPatchKind := patchKindOthers
 	currTagKind := tagKindNone
-	currPatchKind := patchKindOthers
 	newTemplateBuf := &bytes.Buffer{}
 
 	lineNum := 0
@@ -85,29 +87,41 @@ func patchTemplateFileWithSCISpecific(fileName string) {
 		newTemplateBuf.Write(lineContent)
 		newTemplateBuf.WriteByte('\n')
 
-		switch currPatchKind {
-		case patchKindDeployment:
+		currTagKind = isKindTag(calm_utils.Bytes2String(lineContent))
+		switch currTagKind {
+		case tagKindDeployment:
 			incLineCount, currTagKind, _ = patchDeploymentTemplateFile(scanner, newTemplateBuf)
-
+			calm_utils.Debugf("---->currTagKind:%d<----", currTagKind)
 			lineNum += incLineCount
-			if currTagKind == tagKindDeployment {
-				currPatchKind = patchKindDeployment
-			} else if currTagKind == tagKindService {
-				currPatchKind = patchKindService
-			} else {
-				currPatchKind = patchKindOthers
-			}
-		case patchKindService:
+		case tagKindService:
 			fallthrough
-		case patchKindOthers:
-			currTagKind = isKindTag(calm_utils.Bytes2String(lineContent))
-			if currTagKind == tagKindDeployment {
-				currPatchKind = patchKindDeployment
-			} else if currTagKind == tagKindService {
-				currPatchKind = patchKindService
-			}
+		default:
 			lineNum++
 		}
+
+		// switch currPatchKind {
+		// case patchKindDeployment:
+		// 	incLineCount, currTagKind, _ = patchDeploymentTemplateFile(scanner, newTemplateBuf)
+
+		// 	lineNum += incLineCount
+		// 	if currTagKind == tagKindDeployment {
+		// 		currPatchKind = patchKindDeployment
+		// 	} else if currTagKind == tagKindService {
+		// 		currPatchKind = patchKindService
+		// 	} else {
+		// 		currPatchKind = patchKindOthers
+		// 	}
+		// case patchKindService:
+		// 	fallthrough
+		// case patchKindOthers:
+		// 	currTagKind = isKindTag(calm_utils.Bytes2String(lineContent))
+		// 	if currTagKind == tagKindDeployment {
+		// 		currPatchKind = patchKindDeployment
+		// 	} else if currTagKind == tagKindService {
+		// 		currPatchKind = patchKindService
+		// 	}
+		// 	lineNum++
+		// }
 	}
 
 	ioutil.WriteFile(fmt.Sprintf("%s.patch", fileName), newTemplateBuf.Bytes(), 0755)
@@ -120,7 +134,6 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 	tagKind := tagKindNone
 	lineSpecTag := -1
 	lineSpecTemplateTag := -1
-	lineSpecTemplateMetadataTag := -1
 
 	for scanner.Scan() {
 		lineContent := scanner.Bytes()
@@ -128,6 +141,15 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 		// 先找到spec---template---metadata
 		lineContentStr := calm_utils.Bytes2String(lineContent)
 		calm_utils.Debugf("%s", lineContentStr)
+
+		if strings.Compare(lineContentStr, tagDeploymentMetadataStr) == 0 {
+			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteByte('\n')
+			calm_utils.Debugf("--->find deployment.metadata yaml node, tagDeploymentMetadataStr:%d", lineNum)
+			incLineCount := patchLabelsInMetaDataRegion(scanner, newTemplateBuf)
+			lineNum += incLineCount
+			continue
+		}
 
 		if strings.Compare(lineContentStr, tagDeploymentSpecStr) == 0 {
 			newTemplateBuf.Write(lineContent)
@@ -147,13 +169,14 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 			continue
 		}
 
-		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataStr) == 0 {
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataStr) == 0 &&
+			lineSpecTemplateTag > lineSpecTag &&
+			lineSpecTag > -1 {
 			newTemplateBuf.Write(lineContent)
 			newTemplateBuf.WriteByte('\n')
-			lineSpecTemplateMetadataTag = lineNum
 			// 找到sepc---template---metadata节点，开始插入annotation
-			if lineSpecTag > -1 && lineSpecTemplateTag > lineSpecTag && lineSpecTemplateMetadataTag > lineSpecTemplateTag {
-				calm_utils.Debugf("--->find metadata yaml node, lineSpecTemplateMetadataTag:%d", lineSpecTemplateMetadataTag)
+			if lineNum > lineSpecTemplateTag {
+				calm_utils.Debugf("--->find deployment.spec.template.metadata yaml node, lineSpecTemplateMetadataTag:%d", lineNum)
 				incLineCount := patchAnnotationInMetaDataRegion(scanner, newTemplateBuf)
 				lineNum += incLineCount
 			} else {
@@ -178,7 +201,7 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 }
 
 func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
-	calm_utils.Debugf("---patchAnnotation---")
+	calm_utils.Debugf("---patchAnnotationInMetaDataRegion---")
 	lineNum := 0
 	findAnnotation := false
 
@@ -223,6 +246,62 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 		lineNum++
 		newTemplateBuf.Write(lineContent)
 		newTemplateBuf.WriteByte('\n')
+
+		if findAnnotation {
+			break
+		}
+	}
+
+	return lineNum
+}
+
+func patchLabelsInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
+	calm_utils.Debugf("---patchLabelsInMetaDataRegion---")
+	lineNum := 0
+	findLabels := false
+
+	for scanner.Scan() {
+		lineContent := scanner.Bytes()
+
+		lineContentStr := calm_utils.Bytes2String(lineContent)
+		calm_utils.Debugf("%s", lineContentStr)
+
+		// 找到metadata的labels
+		if strings.Compare(lineContentStr, tagDeploymentMetadataLabelsStr) == 0 {
+			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteByte('\n')
+
+			// 加上sci的metadata---labels
+			for _, sciLabel := range sciLabels {
+				newTemplateBuf.Write([]byte{' ', ' ', ' ', ' '})
+				newTemplateBuf.WriteString(sciLabel)
+				newTemplateBuf.WriteByte('\n')
+			}
+			findLabels = true
+			continue
+		}
+
+		if len(lineContent) > 0 && lineContent[0] != ' ' {
+			calm_utils.Debug("--->find metadata end")
+			if !findLabels {
+				// 要加上labels
+				newTemplateBuf.WriteString(tagDeploymentMetadataLabelsStr)
+				newTemplateBuf.WriteByte('\n')
+				for _, sciLabel := range sciLabels {
+					newTemplateBuf.WriteString(sciLabel)
+					newTemplateBuf.WriteByte('\n')
+				}
+				findLabels = true
+			}
+		}
+
+		lineNum++
+		newTemplateBuf.Write(lineContent)
+		newTemplateBuf.WriteByte('\n')
+
+		if findLabels {
+			break
+		}
 	}
 
 	return lineNum

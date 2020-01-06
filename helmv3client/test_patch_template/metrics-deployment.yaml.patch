@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   name: {{ template "redis.fullname" . }}-metrics
   labels:
+    pci-clusterid: {{ .Values.Label.ClusterID }}
+    pic-username: {{ .Values.Lable.UserName }}
+    pic.workload.name: {{ .Values.Lable.WorkloadName }}
+    pic-workload.type: WORKLOAD_DEPLOYMENT
     app: {{ template "redis.name" . }}
     chart: {{ template "redis.chart" . }}
     release: "{{ .Release.Name }}"
