@@ -8,10 +8,6 @@ metadata:
     pic-username: {{ .Values.Lable.UserName }}
     pic.workload.name: {{ .Values.Lable.WorkloadName }}
     pic-workload.type: WORKLOAD_DEPLOYMENT
-    app: {{ template "redis.name" . }}
-    chart: {{ template "redis.chart" . }}
-    release: "{{ .Release.Name }}"
-    heritage: "{{ .Release.Service }}"
 spec:
   selector:
     matchLabels:
@@ -26,11 +22,12 @@ spec:
         role: metrics
         app: {{ template "redis.name" . }}
       {{- if .Values.metrics.podLabels }}
-{{ toYaml .Values.metrics.podLabels | indent 8 }}
-      {{- end }}
       annotations:
         io.kubernetes-network.region-id: {{ .Values.Network.RegionID }}
         io.kubernetes.cri.untrusted-workload: "true"
+{{ toYaml .Values.metrics.podLabels | indent 8 }}
+      {{- end }}
+      annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.metrics.podAnnotations }}
 {{ toYaml .Values.metrics.podAnnotations | indent 8 }}

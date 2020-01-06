@@ -128,40 +128,41 @@ func patchTemplateFileWithSCISpecific(fileName string) {
 	//calm_utils.Debugf("after patch:\n%s", newTemplateBuf.String())
 }
 
+// 解析deployment template 文件，加上sci相关信息
 func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, templateTagKind, error) {
 	calm_utils.Debugf("---patchDeploymentTemplateFile---")
 	lineNum := 0
 	tagKind := tagKindNone
 	lineSpecTag := -1
 	lineSpecTemplateTag := -1
+	lineContentStr := ""
+	incLineCount := 0
 
 	for scanner.Scan() {
-		lineContent := scanner.Bytes()
+		lineContentStr = scanner.Text()
 
 		// 先找到spec---template---metadata
-		lineContentStr := calm_utils.Bytes2String(lineContent)
 		calm_utils.Debugf("%s", lineContentStr)
 
 		if strings.Compare(lineContentStr, tagDeploymentMetadataStr) == 0 {
-			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 			calm_utils.Debugf("--->find deployment.metadata yaml node, tagDeploymentMetadataStr:%d", lineNum)
-			incLineCount := patchLabelsInDeploymentMetaDataRegion(scanner, newTemplateBuf)
+			incLineCount, lineContentStr = patchLabelsInDeploymentMetaDataRegion(scanner, newTemplateBuf)
 			lineNum += incLineCount
-			continue
 		}
 
 		if strings.Compare(lineContentStr, tagDeploymentSpecStr) == 0 {
-			newTemplateBuf.Write(lineContent)
-			newTemplateBuf.WriteByte('\n')
+			//newTemplateBuf.WriteString(lineContentStr)
+			//newTemplateBuf.WriteByte('\n')
 			lineSpecTag = lineNum
 			calm_utils.Debugf("--->find spec yaml node, lineSpecTag:%d", lineSpecTag)
-			lineNum++
+			//lineNum++
 			continue
 		}
 
 		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateStr) == 0 && lineSpecTag > -1 {
-			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 			lineSpecTemplateTag = lineNum
 			calm_utils.Debugf("--->find template yaml node, lineSpecTemplateTag:%d", lineSpecTemplateTag)
@@ -172,7 +173,7 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataStr) == 0 &&
 			lineSpecTemplateTag > lineSpecTag &&
 			lineSpecTag > -1 {
-			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 			// 找到sepc---template---metadata节点，开始插入annotation
 			if lineNum > lineSpecTemplateTag {
@@ -186,10 +187,10 @@ func patchDeploymentTemplateFile(scanner *bufio.Scanner, newTemplateBuf *bytes.B
 		}
 
 		lineNum++
-		newTemplateBuf.Write(lineContent)
+		newTemplateBuf.WriteString(lineContentStr)
 		newTemplateBuf.WriteByte('\n')
 
-		tagKind = isKindTag(calm_utils.Bytes2String(lineContent))
+		tagKind = isKindTag(lineContentStr)
 		if tagKind != tagKindNone {
 			// 解析结束
 			calm_utils.Debug("--->deployment patch completed")
@@ -235,9 +236,10 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 		}
 
 		// 判断是不是metadata已经结束
-		if len(lineContentStr) >= 5 &&
-			strings.HasPrefix(lineContentStr, "    ") &&
-			lineContentStr[4] != ' ' {
+		// if len(lineContentStr) >= 5 &&
+		// 	strings.HasPrefix(lineContentStr, "    ") &&
+		// 	lineContentStr[4] != ' ' {
+		if isRegionEnd(lineContentStr, 4) {
 			calm_utils.Debug("--->find metadata end")
 			if !findAnnotation {
 				// 要加上annotation
@@ -263,25 +265,26 @@ func patchAnnotationInMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *byt
 	return lineNum
 }
 
-func patchLabelsInDeploymentMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) int {
+func patchLabelsInDeploymentMetaDataRegion(scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string) {
 	calm_utils.Debugf("---patchLabelsInDeploymentMetaDataRegion---")
 	lineNum := 0
 	findLabels := false
+	lineContentStr := ""
+	bRegionEnd := false
 
 	for scanner.Scan() {
-		lineContent := scanner.Bytes()
+		lineContentStr = scanner.Text()
 
-		lineContentStr := calm_utils.Bytes2String(lineContent)
 		calm_utils.Debugf("%s", lineContentStr)
 
 		// 找到metadata的labels
 		if strings.Compare(lineContentStr, tagDeploymentMetadataLabelsStr) == 0 {
-			newTemplateBuf.Write(lineContent)
+			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 
 			// 加上sci的metadata---labels
 			for _, sciLabel := range sciLabels {
-				newTemplateBuf.Write([]byte{' ', ' ', ' ', ' '})
+				newTemplateBuf.WriteString("    ")
 				newTemplateBuf.WriteString(sciLabel)
 				newTemplateBuf.WriteByte('\n')
 			}
@@ -289,32 +292,49 @@ func patchLabelsInDeploymentMetaDataRegion(scanner *bufio.Scanner, newTemplateBu
 			continue
 		}
 
-		if len(lineContent) > 0 && lineContent[0] != ' ' {
+		///f len(lineContent) > 0 && lineContent[0] != ' ' {
+		bRegionEnd = isRegionEnd(lineContentStr, 0)
+
+		if bRegionEnd {
 			calm_utils.Debug("--->find metadata end")
 			if !findLabels {
 				// 要加上labels
 				newTemplateBuf.WriteString(tagDeploymentMetadataLabelsStr)
 				newTemplateBuf.WriteByte('\n')
 				for _, sciLabel := range sciLabels {
+					newTemplateBuf.WriteString("    ")
 					newTemplateBuf.WriteString(sciLabel)
 					newTemplateBuf.WriteByte('\n')
 				}
-				findLabels = true
 			}
 		}
 
 		lineNum++
-		newTemplateBuf.Write(lineContent)
+		newTemplateBuf.WriteString(lineContentStr)
 		newTemplateBuf.WriteByte('\n')
 
-		if findLabels {
+		if bRegionEnd {
 			break
 		}
 	}
 
-	return lineNum
+	return lineNum, lineContentStr
 }
 
+// 判断是否是一块区域的结束
+func isRegionEnd(lineContent string, spaceCount int) bool {
+	// 首先进行替换
+	if len(lineContent) > 0 {
+		for index := 0; index <= spaceCount; index += 2 {
+			if lineContent[index] != ' ' && lineContent[index] != '{' {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// 判断是不是一个类型的开始
 func isKindTag(lineContent string) templateTagKind {
 	if strings.Compare(lineContent, tagDeploymentKindStr) == 0 {
 		return tagKindDeployment

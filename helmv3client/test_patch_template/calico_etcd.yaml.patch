@@ -409,6 +409,7 @@ metadata:
     pic.workload.name: {{ .Values.Lable.WorkloadName }}
     pic-workload.type: WORKLOAD_DEPLOYMENT
     k8s-app: calico-kube-controllers
+    k8s-app: calico-kube-controllers-1
   annotations:
     scheduler.alpha.kubernetes.io/critical-pod: ''
 spec:

@@ -176,5 +176,5 @@ func main() {
 	//helmInstall()
 	patchTemplateFileWithSCISpecific("./test_patch_template/calico_etcd.yaml")
 	patchTemplateFileWithSCISpecific("./test_patch_template/metrics-deployment.yaml")
-	//patchTemplateFileWithSCISpecific("./test_patch_template/cerebro-deployment.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/cerebro-deployment.yaml")
 }

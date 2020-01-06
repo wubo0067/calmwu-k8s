@@ -3,6 +3,10 @@ kind: Deployment
 metadata:
   name: {{ template "cerebro.fullname" . }}
   labels:
+    pci-clusterid: {{ .Values.Label.ClusterID }}
+    pic-username: {{ .Values.Lable.UserName }}
+    pic.workload.name: {{ .Values.Lable.WorkloadName }}
+    pic-workload.type: WORKLOAD_DEPLOYMENT
     app: {{ template "cerebro.name" . }}
     chart: {{ template "cerebro.chart" . }}
     release: {{ .Release.Name }}
