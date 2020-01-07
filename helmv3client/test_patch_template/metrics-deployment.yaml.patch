@@ -22,12 +22,11 @@ spec:
         role: metrics
         app: {{ template "redis.name" . }}
       {{- if .Values.metrics.podLabels }}
-      annotations:
-        io.kubernetes-network.region-id: {{ .Values.Network.RegionID }}
-        io.kubernetes.cri.untrusted-workload: "true"
 {{ toYaml .Values.metrics.podLabels | indent 8 }}
       {{- end }}
       annotations:
+        io.kubernetes-network.region-id: {{ .Values.Network.RegionID }}
+        io.kubernetes.cri.untrusted-workload: "true"
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
       {{- if .Values.metrics.podAnnotations }}
 {{ toYaml .Values.metrics.podAnnotations | indent 8 }}

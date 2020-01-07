@@ -488,7 +488,6 @@ spec:
             defaultMode: 0400
 
 ---
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
