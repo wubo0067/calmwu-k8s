@@ -174,7 +174,9 @@ func main() {
 	//externTemplateFile(templateFilePath)
 	//externTemplateFile(templateFilePath1)
 	//helmInstall()
-	//patchTemplateFileWithSCISpecific("./test_patch_template/calico_etcd.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/calico_etcd.yaml")
 	patchTemplateFileWithSCISpecific("./test_patch_template/metrics-deployment.yaml")
 	patchTemplateFileWithSCISpecific("./test_patch_template/cerebro-deployment.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/kibana_deployment.yaml")
+	patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_deployment.yaml")
 }

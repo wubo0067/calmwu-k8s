@@ -211,6 +211,10 @@ func patchInDeploymentSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplat
 			}
 		}
 
+		if isYamlSplitLine(lineContentStr) {
+			return lineNum, lineContentStr, false, bCanRead
+		}
+
 		if !bAlreadyRead {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
@@ -274,14 +278,14 @@ func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, ne
 	bAlreadyRead := false
 	bCanRead := scanner.Scan()
 
-	// 现在开始解析deployment---spec---template里面的节点
+	// 现在开始解析deployment.spec.template里面的节点
 	for ; bCanRead; bCanRead = scanner.Scan() {
 		lineContentStr = scanner.Text()
 		calm_utils.Debug(lineContentStr)
 
 		lineNum++
 
-		// 找到deployment---spec---template---metadata
+		// 找到deployment.spec.template.metadata
 		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataStr) == 0 {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
@@ -289,15 +293,19 @@ func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, ne
 			calm_utils.Debugf("--->completed deployment.spec.template.metadata node, deployment.spec.template.metadata end line:%d", lineNum-1)
 		}
 
+		if isYamlSplitLine(lineContentStr) {
+			return lineNum, lineContentStr, false, bCanRead
+		}
+
+		bRegionEnd = isRegionEnd(lineContentStr, 0)
+
 		// 如果有判断才能这样写
 		if !bAlreadyRead {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 		}
-
 		bAlreadyRead = false
 
-		bRegionEnd = isRegionEnd(lineContentStr, 0)
 		if bRegionEnd {
 			calm_utils.Debug("--->find deployment.spec.template end")
 			break
@@ -455,10 +463,6 @@ func isRegionEnd(lineContent string, spaceCount int) bool {
 			return false
 		}
 
-		if strings.Compare(lineContent, "---") == 0 {
-			return true
-		}
-
 		for index := 0; index <= spaceCount; index += 2 {
 			if lineContent[index] != ' ' {
 				return true
@@ -466,6 +470,11 @@ func isRegionEnd(lineContent string, spaceCount int) bool {
 		}
 	}
 	return false
+}
+
+// 判断是否是yaml分给符
+func isYamlSplitLine(lineContent string) bool {
+	return strings.Compare(lineContent, "---") == 0
 }
 
 // 判断是不是一个类型的开始
