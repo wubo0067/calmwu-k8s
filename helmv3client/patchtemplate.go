@@ -472,7 +472,7 @@ func isRegionEnd(lineContent string, spaceCount int) bool {
 	return false
 }
 
-// 判断是否是yaml分给符
+// 判断是否是yaml分割符
 func isYamlSplitLine(lineContent string) bool {
 	return strings.Compare(lineContent, "---") == 0
 }
