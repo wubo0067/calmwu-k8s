@@ -169,7 +169,7 @@ func patchInDeploymentSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplat
 			newTemplateBuf.WriteByte('\n')
 			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecTemplateRegion(lineNum, scanner, newTemplateBuf)
 			calm_utils.Debugf("--->completed deployment.spec.template node, deployment.spec.template end line:%d", lineNum-1)
-			continue
+			//continue
 		}
 
 		if !bAlreadyRead {
@@ -208,19 +208,20 @@ func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, ne
 			newTemplateBuf.WriteByte('\n')
 			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecTemplateMetadataRegion(lineNum, scanner, newTemplateBuf)
 			calm_utils.Debugf("--->completed deployment.spec.template.metadata node, deployment.spec.template.metadata end line:%d", lineNum-1)
-			continue
+			//continue
 		}
 
 		// 如果有判断才能这样写
 		if !bAlreadyRead {
+			newTemplateBuf.WriteString(lineContentStr)
+			newTemplateBuf.WriteByte('\n')
 		}
-		newTemplateBuf.WriteString(lineContentStr)
-		newTemplateBuf.WriteByte('\n')
+
 		bAlreadyRead = false
 
 		bRegionEnd = isRegionEnd(lineContentStr, 0)
 		if bRegionEnd {
-			calm_utils.Debug("--->find deployment.spec end")
+			calm_utils.Debug("--->find deployment.spec.template end")
 			break
 		}
 	}
