@@ -488,6 +488,12 @@ spec:
             defaultMode: 0400
 
 ---
+  selector:
+    matchLabels:
+      pci-clusterid: {{ .Values.Label.ClusterID }}
+      pic-username: {{ .Values.Lable.UserName }}
+      pic.workload.name: {{ .Values.Lable.WorkloadName }}
+      pic-workload.type: WORKLOAD_DEPLOYMENT
 
 apiVersion: v1
 kind: ServiceAccount

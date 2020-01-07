@@ -6,9 +6,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-        release: "{{ .Release.Name }}"
-        role: metrics
-        app: {{ template "redis.name" . }}
+      release: "{{ .Release.Name }}"
+      role: metrics
+      app: {{ template "redis.name" . }}
   template:
     metadata:
       labels:

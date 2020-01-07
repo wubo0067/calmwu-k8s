@@ -47,7 +47,7 @@ const (
 	tagDeploymentMetadataLabelsStr             = "  labels:"
 	tagDeploymentSpecSelectorStr               = "  selector:"
 	tagDeploymentSpecSelectorMatchlabelsStr    = "    matchLabels:"
-	tagDeploymentSpecTemplateMetadataLablesStr = "      labels:"
+	tagDeploymentSpecTemplateMetadataLabelsStr = "      labels:"
 )
 
 var (
@@ -107,13 +107,14 @@ func patchDeploymentTemplateFile(lineNum int, scanner *bufio.Scanner, newTemplat
 	tagKind := tagKindNone
 	lineContentStr := ""
 	bAlreadyRead := false
+	bCanRead := scanner.Scan()
 
-	for scanner.Scan() {
+	for ; bCanRead; bCanRead = scanner.Scan() {
 		lineContentStr = scanner.Text()
 		calm_utils.Debug(lineContentStr)
 		lineNum++
 
-		// 找到deployment---metadata节点
+		// 找到deployment.metadata节点
 		if strings.Compare(lineContentStr, tagDeploymentMetadataStr) == 0 {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
@@ -121,7 +122,7 @@ func patchDeploymentTemplateFile(lineNum int, scanner *bufio.Scanner, newTemplat
 			calm_utils.Debugf("--->completed deployment.metadata tag node, deployment.metadata end line:%d", lineNum-1)
 		}
 
-		// 找到deployment---spec节点，metadata的下一个节点就是
+		// 找到deployment.spec节点，metadata的下一个节点就是
 		if strings.Compare(lineContentStr, tagDeploymentSpecStr) == 0 {
 			if !bAlreadyRead {
 				newTemplateBuf.WriteString(lineContentStr)
@@ -129,8 +130,12 @@ func patchDeploymentTemplateFile(lineNum int, scanner *bufio.Scanner, newTemplat
 				lineNum++
 			}
 			bAlreadyRead = false
-			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecRegion(lineNum, scanner, newTemplateBuf)
-			calm_utils.Debugf("--->completed deployment.spec tag node, deployment.spec end line:%d", lineNum-1)
+			lineNum, lineContentStr, bAlreadyRead, bCanRead = patchInDeploymentSpecRegion(lineNum, scanner, newTemplateBuf)
+			if !bCanRead {
+				calm_utils.Debugf("--->completed deployment.spec node, deployment.spec end line:%d", lineNum)
+			} else {
+				calm_utils.Debugf("--->completed deployment.spec node, deployment.spec end line:%d", lineNum-1)
+			}
 		}
 
 		if !bAlreadyRead {
@@ -150,38 +155,111 @@ func patchDeploymentTemplateFile(lineNum int, scanner *bufio.Scanner, newTemplat
 	return lineNum, tagKind, nil
 }
 
-func patchInDeploymentSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool) {
+func patchInDeploymentSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool, bool) {
 	calm_utils.Debugf("---deployment.spec start line:%d---", lineNum)
 	lineContentStr := ""
 	bRegionEnd := false
 	bAlreadyRead := false
+	bfindSelector := false
+	bCanRead := scanner.Scan()
 
 	// 现在开始解析deployment---spec里面的节点
-	for scanner.Scan() {
+	for ; bCanRead; bCanRead = scanner.Scan() {
 		lineContentStr = scanner.Text()
 		calm_utils.Debug(lineContentStr)
 
 		lineNum++
 
-		// 找到deployment---spec---template
-		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateStr) == 0 {
+		// 找到了deployment.spec.selector
+		if strings.Compare(lineContentStr, tagDeploymentSpecSelectorStr) == 0 {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
-			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecTemplateRegion(lineNum, scanner, newTemplateBuf)
-			calm_utils.Debugf("--->completed deployment.spec.template node, deployment.spec.template end line:%d", lineNum-1)
-			//continue
+			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecSelectorRegion(lineNum, scanner, newTemplateBuf)
+			calm_utils.Debugf("--->completed deployment.spec.selector node, deployment.spec.selector end line:%d", lineNum-1)
+			bfindSelector = true
+		}
+
+		// 找到deployment.spec.template
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateStr) == 0 {
+			if !bAlreadyRead {
+				newTemplateBuf.WriteString(lineContentStr)
+				newTemplateBuf.WriteByte('\n')
+			}
+			lineNum, lineContentStr, bAlreadyRead, bCanRead = patchInDeploymentSpecTemplateRegion(lineNum, scanner, newTemplateBuf)
+			if !bCanRead {
+				calm_utils.Debugf("--->completed deployment.spec.template node, deployment.spec.template end line:-(%d)", lineNum)
+			} else {
+				calm_utils.Debugf("--->completed deployment.spec.template node, deployment.spec.template end line:+(%d)", lineNum-1)
+			}
+		}
+
+		bRegionEnd = isRegionEnd(lineContentStr, 0)
+		if bRegionEnd || !bCanRead {
+			if !bfindSelector {
+				// 没有找到deployment.spec.selector
+				calm_utils.Debug("--->not find selector in deployment.spec so add")
+				newTemplateBuf.WriteString(tagDeploymentSpecSelectorStr)
+				newTemplateBuf.WriteByte('\n')
+				newTemplateBuf.WriteString(tagDeploymentSpecSelectorMatchlabelsStr)
+				newTemplateBuf.WriteByte('\n')
+				for _, sciLabel := range sciLabels {
+					newTemplateBuf.WriteString("      ")
+					newTemplateBuf.WriteString(sciLabel)
+					newTemplateBuf.WriteByte('\n')
+				}
+				bfindSelector = true
+			}
 		}
 
 		if !bAlreadyRead {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
 		}
-
 		bAlreadyRead = false
 
-		bRegionEnd = isRegionEnd(lineContentStr, 0)
 		if bRegionEnd {
 			calm_utils.Debug("--->find deployment.spec end")
+			break
+		}
+	}
+
+	return lineNum, lineContentStr, true, bCanRead
+}
+
+func patchInDeploymentSpecSelectorRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool) {
+	calm_utils.Debugf("---deployment.spec.selector start line:%d---", lineNum)
+	lineContentStr := ""
+	bRegionEnd := false
+	bCanRead := scanner.Scan()
+
+	// 现在开始解析deployment.spec.selector里面的节点
+	for ; bCanRead; bCanRead = scanner.Scan() {
+		lineContentStr = scanner.Text()
+		calm_utils.Debug(lineContentStr)
+
+		lineNum++
+
+		// 找到deployment.spec.selector.matchLables
+		if strings.Compare(lineContentStr, tagDeploymentSpecSelectorMatchlabelsStr) == 0 {
+			calm_utils.Debug("--->find matchLables in deployment.spec.selector so patch")
+			newTemplateBuf.WriteString(lineContentStr)
+			newTemplateBuf.WriteByte('\n')
+
+			for _, sciLabel := range sciLabels {
+				newTemplateBuf.WriteString("      ")
+				newTemplateBuf.WriteString(sciLabel)
+				newTemplateBuf.WriteByte('\n')
+			}
+			continue
+		}
+
+		// 不可能没有matchLabels
+		newTemplateBuf.WriteString(lineContentStr)
+		newTemplateBuf.WriteByte('\n')
+
+		bRegionEnd = isRegionEnd(lineContentStr, 4)
+		if bRegionEnd {
+			calm_utils.Debug("--->find deployment.spec.selector.matchLables end")
 			break
 		}
 	}
@@ -189,14 +267,15 @@ func patchInDeploymentSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplat
 	return lineNum, lineContentStr, true
 }
 
-func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool) {
+func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool, bool) {
 	calm_utils.Debugf("---deployment.spec.template start line:%d---", lineNum)
 	lineContentStr := ""
 	bRegionEnd := false
 	bAlreadyRead := false
+	bCanRead := scanner.Scan()
 
 	// 现在开始解析deployment---spec---template里面的节点
-	for scanner.Scan() {
+	for ; bCanRead; bCanRead = scanner.Scan() {
 		lineContentStr = scanner.Text()
 		calm_utils.Debug(lineContentStr)
 
@@ -208,7 +287,6 @@ func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, ne
 			newTemplateBuf.WriteByte('\n')
 			lineNum, lineContentStr, bAlreadyRead = patchInDeploymentSpecTemplateMetadataRegion(lineNum, scanner, newTemplateBuf)
 			calm_utils.Debugf("--->completed deployment.spec.template.metadata node, deployment.spec.template.metadata end line:%d", lineNum-1)
-			//continue
 		}
 
 		// 如果有判断才能这样写
@@ -226,12 +304,13 @@ func patchInDeploymentSpecTemplateRegion(lineNum int, scanner *bufio.Scanner, ne
 		}
 	}
 
-	return lineNum, lineContentStr, true
+	return lineNum, lineContentStr, true, bCanRead
 }
 
 func patchInDeploymentSpecTemplateMetadataRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool) {
 	calm_utils.Debugf("---deployment.spec.template.metadata start line:%d---", lineNum)
 	findAnnotation := false
+	findLabels := false
 	lineContentStr := ""
 	bRegionEnd := false
 
@@ -241,7 +320,7 @@ func patchInDeploymentSpecTemplateMetadataRegion(lineNum int, scanner *bufio.Sca
 
 		lineNum++
 
-		// 找到metadata的annotation
+		// 找到deployment.spec.template.metadata
 		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataAnnotationStr) == 0 {
 			calm_utils.Debug("--->find annotation in deployment.spec.template.metadata so patch")
 			newTemplateBuf.WriteString(lineContentStr)
@@ -256,7 +335,22 @@ func patchInDeploymentSpecTemplateMetadataRegion(lineNum int, scanner *bufio.Sca
 			continue
 		}
 
-		// 判断是不是deployment---spec---template----metadata的区域结束
+		// 找到deployment.spec.template.labels
+		if strings.Compare(lineContentStr, tagDeploymentSpecTemplateMetadataLabelsStr) == 0 {
+			calm_utils.Debug("--->find annotation in deployment.spec.template.metadata so patch")
+			newTemplateBuf.WriteString(lineContentStr)
+			newTemplateBuf.WriteByte('\n')
+
+			for _, sciLabel := range sciLabels {
+				newTemplateBuf.WriteString("        ")
+				newTemplateBuf.WriteString(sciLabel)
+				newTemplateBuf.WriteByte('\n')
+			}
+			findLabels = true
+			continue
+		}
+
+		// 判断是不是deployment.spec.template.metadata的区域结束
 		bRegionEnd = isRegionEnd(lineContentStr, 4)
 		if bRegionEnd {
 			if !findAnnotation {
@@ -269,6 +363,18 @@ func patchInDeploymentSpecTemplateMetadataRegion(lineNum int, scanner *bufio.Sca
 					newTemplateBuf.WriteByte('\n')
 				}
 				findAnnotation = true
+			}
+
+			if !findLabels {
+				calm_utils.Debug("--->not find annotation in deployment.spec.template.labels so add")
+				newTemplateBuf.WriteString(tagDeploymentSpecTemplateMetadataLabelsStr)
+				newTemplateBuf.WriteByte('\n')
+				for _, sciLabel := range sciLabels {
+					newTemplateBuf.WriteString("        ")
+					newTemplateBuf.WriteString(sciLabel)
+					newTemplateBuf.WriteByte('\n')
+				}
+				findLabels = true
 			}
 		}
 
@@ -347,6 +453,10 @@ func isRegionEnd(lineContent string, spaceCount int) bool {
 		tempLineContent := strings.TrimSpace(lineContent)
 		if len(tempLineContent) > 0 && tempLineContent[0] == '{' {
 			return false
+		}
+
+		if strings.Compare(lineContent, "---") == 0 {
+			return true
 		}
 
 		for index := 0; index <= spaceCount; index += 2 {

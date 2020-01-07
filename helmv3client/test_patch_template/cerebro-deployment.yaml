@@ -14,10 +14,6 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
-  selector:
-    matchLabels:
-      app: {{ template "cerebro.name" . }}
-      release: {{ .Release.Name }}
   template:
     metadata:
       labels:

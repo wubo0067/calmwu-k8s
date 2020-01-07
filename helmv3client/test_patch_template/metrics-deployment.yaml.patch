@@ -11,12 +11,20 @@ metadata:
 spec:
   selector:
     matchLabels:
-        release: "{{ .Release.Name }}"
-        role: metrics
-        app: {{ template "redis.name" . }}
+      pci-clusterid: {{ .Values.Label.ClusterID }}
+      pic-username: {{ .Values.Lable.UserName }}
+      pic.workload.name: {{ .Values.Lable.WorkloadName }}
+      pic-workload.type: WORKLOAD_DEPLOYMENT
+      release: "{{ .Release.Name }}"
+      role: metrics
+      app: {{ template "redis.name" . }}
   template:
     metadata:
       labels:
+        pci-clusterid: {{ .Values.Label.ClusterID }}
+        pic-username: {{ .Values.Lable.UserName }}
+        pic.workload.name: {{ .Values.Lable.WorkloadName }}
+        pic-workload.type: WORKLOAD_DEPLOYMENT
         release: "{{ .Release.Name }}"
         chart: {{ template "redis.chart" . }}
         role: metrics
