@@ -3,9 +3,7 @@ kind: Deployment
 metadata:
   labels:
     pci-clusterid: {{ .Values.Label.ClusterID }}
-    pic-username: {{ .Values.Lable.UserName }}
-    pic.workload.name: {{ .Values.Lable.WorkloadName }}
-    pic-workload.type: WORKLOAD_DEPLOYMENT
+    pci-username: {{ .Values.Lable.UserName }}
     app: {{ template "kibana.name" . }}
     chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
     heritage: {{ .Release.Service }}
@@ -19,10 +17,6 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      pci-clusterid: {{ .Values.Label.ClusterID }}
-      pic-username: {{ .Values.Lable.UserName }}
-      pic.workload.name: {{ .Values.Lable.WorkloadName }}
-      pic-workload.type: WORKLOAD_DEPLOYMENT
       app: {{ template "kibana.name" . }}
       release: {{ .Release.Name }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
@@ -37,9 +31,7 @@ spec:
 {{- end }}
       labels:
         pci-clusterid: {{ .Values.Label.ClusterID }}
-        pic-username: {{ .Values.Lable.UserName }}
-        pic.workload.name: {{ .Values.Lable.WorkloadName }}
-        pic-workload.type: WORKLOAD_DEPLOYMENT
+        pci-username: {{ .Values.Lable.UserName }}
         app: {{ template "kibana.name" . }}
         release: "{{ .Release.Name }}"
 {{- if .Values.podLabels }}

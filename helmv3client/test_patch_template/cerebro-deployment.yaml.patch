@@ -4,9 +4,7 @@ metadata:
   name: {{ template "cerebro.fullname" . }}
   labels:
     pci-clusterid: {{ .Values.Label.ClusterID }}
-    pic-username: {{ .Values.Lable.UserName }}
-    pic.workload.name: {{ .Values.Lable.WorkloadName }}
-    pic-workload.type: WORKLOAD_DEPLOYMENT
+    pci-username: {{ .Values.Lable.UserName }}
     app: {{ template "cerebro.name" . }}
     chart: {{ template "cerebro.chart" . }}
     release: {{ .Release.Name }}
@@ -22,9 +20,7 @@ spec:
     metadata:
       labels:
         pci-clusterid: {{ .Values.Label.ClusterID }}
-        pic-username: {{ .Values.Lable.UserName }}
-        pic.workload.name: {{ .Values.Lable.WorkloadName }}
-        pic-workload.type: WORKLOAD_DEPLOYMENT
+        pci-username: {{ .Values.Lable.UserName }}
         app: {{ template "cerebro.name" . }}
         release: {{ .Release.Name }}
       annotations:
@@ -88,9 +84,3 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
-  selector:
-    matchLabels:
-      pci-clusterid: {{ .Values.Label.ClusterID }}
-      pic-username: {{ .Values.Lable.UserName }}
-      pic.workload.name: {{ .Values.Lable.WorkloadName }}
-      pic-workload.type: WORKLOAD_DEPLOYMENT

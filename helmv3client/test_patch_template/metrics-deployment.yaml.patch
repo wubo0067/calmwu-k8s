@@ -5,16 +5,10 @@ metadata:
   name: {{ template "redis.fullname" . }}-metrics
   labels:
     pci-clusterid: {{ .Values.Label.ClusterID }}
-    pic-username: {{ .Values.Lable.UserName }}
-    pic.workload.name: {{ .Values.Lable.WorkloadName }}
-    pic-workload.type: WORKLOAD_DEPLOYMENT
+    pci-username: {{ .Values.Lable.UserName }}
 spec:
   selector:
     matchLabels:
-      pci-clusterid: {{ .Values.Label.ClusterID }}
-      pic-username: {{ .Values.Lable.UserName }}
-      pic.workload.name: {{ .Values.Lable.WorkloadName }}
-      pic-workload.type: WORKLOAD_DEPLOYMENT
       release: "{{ .Release.Name }}"
       role: metrics
       app: {{ template "redis.name" . }}
@@ -22,9 +16,7 @@ spec:
     metadata:
       labels:
         pci-clusterid: {{ .Values.Label.ClusterID }}
-        pic-username: {{ .Values.Lable.UserName }}
-        pic.workload.name: {{ .Values.Lable.WorkloadName }}
-        pic-workload.type: WORKLOAD_DEPLOYMENT
+        pci-username: {{ .Values.Lable.UserName }}
         release: "{{ .Release.Name }}"
         chart: {{ template "redis.chart" . }}
         role: metrics

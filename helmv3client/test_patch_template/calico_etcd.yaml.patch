@@ -405,9 +405,7 @@ metadata:
   namespace: kube-system
   labels:
     pci-clusterid: {{ .Values.Label.ClusterID }}
-    pic-username: {{ .Values.Lable.UserName }}
-    pic.workload.name: {{ .Values.Lable.WorkloadName }}
-    pic-workload.type: WORKLOAD_DEPLOYMENT
+    pci-username: {{ .Values.Lable.UserName }}
     k8s-app: calico-kube-controllers
     k8s-app: calico-kube-controllers-1
   annotations:
@@ -423,9 +421,7 @@ spec:
       namespace: kube-system
       labels:
         pci-clusterid: {{ .Values.Label.ClusterID }}
-        pic-username: {{ .Values.Lable.UserName }}
-        pic.workload.name: {{ .Values.Lable.WorkloadName }}
-        pic-workload.type: WORKLOAD_DEPLOYMENT
+        pci-username: {{ .Values.Lable.UserName }}
         k8s-app: calico-kube-controllers
       annotations:
         io.kubernetes-network.region-id: {{ .Values.Network.RegionID }}
@@ -491,12 +487,6 @@ spec:
             secretName: calico-etcd-secrets
             defaultMode: 0400
 
-  selector:
-    matchLabels:
-      pci-clusterid: {{ .Values.Label.ClusterID }}
-      pic-username: {{ .Values.Lable.UserName }}
-      pic.workload.name: {{ .Values.Lable.WorkloadName }}
-      pic-workload.type: WORKLOAD_DEPLOYMENT
 ---
 
 apiVersion: v1
