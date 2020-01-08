@@ -9,6 +9,8 @@ metadata:
     chart: {{ template "ark.chart" . }}
     heritage: {{ .Release.Service }}
 spec:
+  clusterIP: None
+  type: ClusterIP
   ports:
     - name: monitoring
       port: 8085
@@ -17,5 +19,3 @@ spec:
     release: {{ .Release.Name }}
     app: {{ template "ark.name" . }}
 {{- end }}
-  clusterIP: None
-  type: ClusterIP

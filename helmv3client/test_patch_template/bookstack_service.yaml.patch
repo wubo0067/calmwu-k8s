@@ -8,6 +8,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
+  clusterIP: None
   type: ClusterIP
   ports:
     - port: {{ .Values.service.port }}
@@ -17,4 +18,3 @@ spec:
   selector:
     app: {{ template "bookstack.name" . }}
     release: {{ .Release.Name }}
-  clusterIP: None

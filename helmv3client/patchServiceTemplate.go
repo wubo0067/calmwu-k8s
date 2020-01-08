@@ -74,8 +74,14 @@ func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBu
 
 	lineContentStr := ""
 	bRegionEnd := false
-	bFindSpecClusterIPNode := false
-	bFindSpecTypeNode := false
+	//bFindSpecClusterIPNode := false
+	//bFindSpecTypeNode := false
+
+	newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
+	newTemplateBuf.WriteByte('\n')
+	newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
+	newTemplateBuf.WriteByte('\n')
+
 	bCanRead := scanner.Scan()
 
 	// 开始解析service.spec节点内容
@@ -88,38 +94,16 @@ func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBu
 		if strings.HasPrefix(lineContentStr, tagServiceSpecClusterIPPrefixStr) {
 			// 替换
 			calm_utils.Debug("--->find clusterIP in service.spec so replace")
-			bFindSpecClusterIPNode = true
-			newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
-			newTemplateBuf.WriteByte('\n')
 			continue
 		}
 
 		if strings.HasPrefix(lineContentStr, tagServiceSpecTypePrefixStr) {
 			// 替换
 			calm_utils.Debug("--->find type in service.spec so replace")
-			bFindSpecTypeNode = true
-			newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
-			newTemplateBuf.WriteByte('\n')
 			continue
 		}
 
 		bRegionEnd = isRegionEnd(lineContentStr, 0)
-
-		//
-		if bRegionEnd {
-			if !bFindSpecClusterIPNode {
-				calm_utils.Debug("--->not find clusterIP in service.spec so add")
-				newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
-				newTemplateBuf.WriteByte('\n')
-			}
-
-			if !bFindSpecTypeNode {
-				calm_utils.Debug("--->not find type in service.spec so add")
-				newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
-				newTemplateBuf.WriteByte('\n')
-			}
-		}
-
 		newTemplateBuf.WriteString(lineContentStr)
 		newTemplateBuf.WriteByte('\n')
 		if bRegionEnd {
@@ -128,18 +112,18 @@ func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBu
 		}
 	}
 
-	if !bCanRead {
-		if !bFindSpecClusterIPNode {
-			calm_utils.Debug("--->not find clusterIP in service.spec so add")
-			newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
-			newTemplateBuf.WriteByte('\n')
-		}
+	// if !bCanRead {
+	// 	if !bFindSpecClusterIPNode {
+	// 		calm_utils.Debug("--->not find clusterIP in service.spec so add")
+	// 		newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
+	// 		newTemplateBuf.WriteByte('\n')
+	// 	}
 
-		if !bFindSpecTypeNode {
-			calm_utils.Debug("--->not find type in service.spec so add")
-			newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
-			newTemplateBuf.WriteByte('\n')
-		}
-	}
+	// 	if !bFindSpecTypeNode {
+	// 		calm_utils.Debug("--->not find type in service.spec so add")
+	// 		newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
+	// 		newTemplateBuf.WriteByte('\n')
+	// 	}
+	// }
 	return lineNum, lineContentStr, true, bCanRead
 }
