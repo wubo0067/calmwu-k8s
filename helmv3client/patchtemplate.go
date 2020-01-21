@@ -25,13 +25,13 @@ const (
 	tagKindService
 )
 
-type patchKind int
+// type patchKind int
 
-const (
-	patchKindDeployment patchKind = iota + 1
-	patchKindService
-	patchKindOthers
-)
+// const (
+// 	patchKindDeployment patchKind = iota + 1
+// 	patchKindService
+// 	patchKindOthers
+// )
 
 func patchTemplateFileWithSCISpecific(fileName string) {
 	calm_utils.Debugf("\n----------------loadTemplateFile----------------")

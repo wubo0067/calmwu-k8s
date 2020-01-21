@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-12-24 10:42:23
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-04 23:00:26
+ * @Last Modified time: 2020-01-21 14:38:14
  */
 
 package main
@@ -179,6 +179,7 @@ func main() {
 	// patchTemplateFileWithSCISpecific("./test_patch_template/cerebro-deployment.yaml")
 	// patchTemplateFileWithSCISpecific("./test_patch_template/kibana_deployment.yaml")
 	// patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_deployment.yaml")
-	patchTemplateFileWithSCISpecific("./test_patch_template/ark_service.yaml")
-	patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_service.yaml")
+	//patchTemplateFileWithSCISpecific("./test_patch_template/ark_service.yaml")
+	//patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_service.yaml")
+	status("myguestbook-1", "guestbook")
 }

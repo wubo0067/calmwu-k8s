@@ -33,13 +33,15 @@ require (
 	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/wubo0067/calmwu-go v0.0.0-20191231073022-8cf6b9680e47
+	golang.org/x/mod v0.2.0 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
-	golang.org/x/tools v0.0.0-20191224055732-dd894d0a8a40 // indirect
-	golang.org/x/tools/gopls v0.1.8-0.20191224055732-dd894d0a8a40 // indirect
+	golang.org/x/tools v0.0.0-20200121042740-dbc83e6dc05e // indirect
+	golang.org/x/tools/gopls v0.1.8-0.20200121042740-dbc83e6dc05e // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
-	helm.sh/helm/v3 v3.0.2
+	helm.sh/helm/v3 v3.0.0-beta.5.0.20200119220513-a911600fc2d6
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/cli-runtime v0.0.0-20191016114015-74ad18325ed5
 	k8s.io/client-go v0.0.0-20191016111102-bec269661e48
+	k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
 	sigs.k8s.io/yaml v1.1.0
 )
