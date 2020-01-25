@@ -39,6 +39,7 @@ require (
 	golang.org/x/tools/gopls v0.1.8-0.20200121042740-dbc83e6dc05e // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	helm.sh/helm/v3 v3.0.0-beta.5.0.20200119220513-a911600fc2d6
+	k8s.io/api v0.0.0-20191016110408-35e52d86657a
 	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
 	k8s.io/cli-runtime v0.0.0-20191016114015-74ad18325ed5
 	k8s.io/client-go v0.0.0-20191016111102-bec269661e48
