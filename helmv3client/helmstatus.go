@@ -26,6 +26,10 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/kubectl/pkg/scheme"
+
+	appv1 "k8s.io/api/apps/v1"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func makeHelmConfiguration(namespace string) (*action.Configuration, error) {
@@ -93,9 +97,9 @@ func status(releaseName string, namespace string) {
 		yamlContentLen += len
 		if len <= 128 && err == nil {
 			// 读取完毕，ok这样就读取一个完整的yaml了
-			calm_utils.Debugf("read yaml total len:%d", yamlContentLen)
-			calm_utils.Debug(calm_utils.Bytes2String(yamlContent[:yamlContentLen]))
-			decodeFromYamlContent(yamlContent[:yamlContentLen])
+			//calm_utils.Debugf("read yaml total len:%d", yamlContentLen)
+			//calm_utils.Debug(calm_utils.Bytes2String(yamlContent[:yamlContentLen]))
+			decodeFromYamlContent(helmActionConfig.KubeClient.(*kube.Client), yamlContent[:yamlContentLen])
 			// 这样分配的空间还在，不用重复分配，可以利用，将长度设置为0，追加在后面
 			yamlContent = yamlContent[:0]
 			yamlContentLen = 0
@@ -103,7 +107,7 @@ func status(releaseName string, namespace string) {
 	}
 }
 
-func decodeFromYamlContent(yamlContent []byte) {
+func decodeFromYamlContent(client *kube.Client, yamlContent []byte) {
 	// parse from yaml
 	decode := scheme.Codecs.UniversalDeserializer().Decode
 	runtimeObj, gvk, err := decode(yamlContent, nil, nil)
@@ -112,5 +116,20 @@ func decodeFromYamlContent(yamlContent []byte) {
 	}
 
 	calm_utils.Debugf("gvk:%s", litter.Sdump(gvk))
-	calm_utils.Debugf("runtimeObj:%#v", runtimeObj.GetObjectKind())
+	//calm_utils.Debugf("runtimeObj:%#v， type:[%s]", runtimeObj, reflect.TypeOf(runtimeObj).Name())
+
+	clientSet, _ := client.Factory.KubernetesClientSet()
+
+	switch obj := runtimeObj.(type) {
+	case *v1.Service:
+		//calm_utils.Debugf("obj type:%s", reflect.TypeOf(obj).Name())
+		calm_utils.Debugf("service name:[%s]", obj.ObjectMeta.Name)
+	case *appv1.Deployment:
+		calm_utils.Debugf("deployment name:[%s]", obj.ObjectMeta.Name)
+		// 运行时的状态还是需要去获取
+		dp, _ := clientSet.AppsV1().Deployments("default").Get(obj.ObjectMeta.Name, metav1.GetOptions{ResourceVersion: "1"})
+		calm_utils.Debugf("obj is *appv1.Deployment name:[%s], namespace:[%s] Status: %#v", dp.ObjectMeta.Name, dp.ObjectMeta.Namespace, dp.Status)
+	default:
+		calm_utils.Debug("obj is unknown!")
+	}
 }
