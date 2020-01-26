@@ -2,10 +2,11 @@
  * @Author: calm.wu
  * @Date: 2020-01-21 14:20:31
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-21 16:13:54
+ * @Last Modified time: 2020-01-21 19:12:27
  */
 
-//https://github.com/kubernetes/apimachinery/blob/master/pkg/util/yaml/decoder.go
+// yaml编解码对象的相关文档
+// https://github.com/kubernetes/apimachinery/blob/master/pkg/util/yaml/decoder.go
 // https://github.com/kubernetes/client-go/issues/193
 // https://github.com/appscode/voyager/issues/964
 
