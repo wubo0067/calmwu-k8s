@@ -53,9 +53,12 @@ func wbCreateIPPool(c *gin.Context) {
 		return
 	}
 
-	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
+		// 处理Deployment地址创建请求
 		if req.K8SApiResourceReplicas <= 0 {
-			errInfo := fmt.Sprintf("ReqID:%s K8SApiResourceReplicas:%d is invalid.", req.ReqID, req.K8SApiResourceReplicas)
+			errInfo := fmt.Sprintf("ReqID:%s resourceKind:%s K8SApiResourceReplicas:%d is invalid.", req.ReqID,
+				req.K8SApiResourceKind.String(), req.K8SApiResourceReplicas)
 			calm_utils.Error(errInfo)
 			res.Msg = errInfo
 			return
@@ -64,42 +67,43 @@ func wbCreateIPPool(c *gin.Context) {
 		// 判断是否在租期内，以及当前副本数量
 		exists, replicas, err := storeMgr.CheckRecycledResources(k8sResourceID)
 		if err != nil {
-			err = errors.Wrapf(err, "ReqID:%s CheckRecycledResources failed.", req.ReqID)
+			err = errors.Wrapf(err, "ReqID:%s resourceKind:%s CheckRecycledResources failed.", req.ReqID, req.K8SApiResourceKind.String())
 			res.Msg = err.Error()
 			calm_utils.Error(err.Error())
 			return
 		}
 
-		calm_utils.Debugf("ReqID:%s k8sResourceID:%s exists:%v replicas:%d", req.ReqID, k8sResourceID, exists, replicas)
+		calm_utils.Debugf("ReqID:%s resourceKind:%s k8sResourceID:%s exists:%v replicas:%d", req.ReqID, req.K8SApiResourceKind.String(),
+			k8sResourceID, exists, replicas)
 
 		if !exists {
 			// 从nsp获取地址
 			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, req.K8SApiResourceReplicas, req.NetRegionalID,
 				req.SubnetID, req.SubnetGatewayAddr, netMask)
 			if err != nil {
-				err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources failed.", req.ReqID)
+				err = errors.Wrapf(err, "ReqID:%s resourceKind:%s NSP AllocAddrResources failed.", req.ReqID, req.K8SApiResourceKind.String())
 				res.Msg = err.Error()
 				calm_utils.Error(err.Error())
 				return
 			}
 
-			// 设置地址
-			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+			// 资源和地址绑定，deployment和Statefulset不同
+			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs, 0)
 			if err != nil {
 				// 设置对应关系失败，见IP归还给NSP
 				for _, k8sAddr := range k8sAddrs {
 					nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
 				}
-				err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
+				err = errors.Wrapf(err, "ReqID:%s resourceKind:%s SetAddrInfosToK8SResourceID failed.", req.ReqID, req.K8SApiResourceKind.String())
 				res.Msg = err.Error()
 				calm_utils.Error(err.Error())
 				return
 			}
 
 			res.Code = proto.IPResMgrErrnoSuccessed
-			calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
+			calm_utils.Infof("ReqID:%s resourceKind:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, req.K8SApiResourceKind.String(), k8sResourceID)
 		} else {
-			// 恢复的数据
+			// 恢复的数据，新建pod数量大于租期中pod数量
 			if req.K8SApiResourceReplicas > replicas {
 				// 新建副本数大于现有数量
 
@@ -107,32 +111,34 @@ func wbCreateIPPool(c *gin.Context) {
 				k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, scaleUpSize, req.NetRegionalID, req.SubnetID,
 					req.SubnetGatewayAddr, netMask)
 				if err != nil {
-					err = errors.Wrapf(err, "ReqID:%s NSP AllocAddrResources scaleUpSize:%d failed.", req.ReqID, scaleUpSize)
+					err = errors.Wrapf(err, "ReqID:%s resourceKind:%s NSP AllocAddrResources scaleUpSize:%d failed.", req.ReqID, req.K8SApiResourceKind.String(),
+						scaleUpSize)
 					res.Msg = err.Error()
 					calm_utils.Error(err.Error())
 					return
 				}
 
 				// 设置地址
-				err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+				err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs, replicas)
 				if err != nil {
 					// 设置对应关系失败，见IP归还给NSP
 					for _, k8sAddr := range k8sAddrs {
 						nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
 					}
-					err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
+					err = errors.Wrapf(err, "ReqID:%s resourceKind:%s SetAddrInfosToK8SResourceID failed.", req.ReqID, req.K8SApiResourceKind.String())
 					res.Msg = err.Error()
 					calm_utils.Error(err.Error())
 					return
 				}
 
 				res.Code = proto.IPResMgrErrnoSuccessed
-				calm_utils.Infof("ReqID:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, k8sResourceID)
+				calm_utils.Infof("ReqID:%s resourceKind:%s set Addrs to k8sResourceID:%s successed.", req.ReqID, req.K8SApiResourceKind.String(), k8sResourceID)
 			} else if req.K8SApiResourceReplicas < replicas {
 				// 新建副本数小于现有数量，减少IP
+				// deployment和statefulset不同，statefulset要按顺序从高到低的释放
 				err = storeMgr.ReduceK8SResourceAddrs(k8sResourceID, replicas-req.K8SApiResourceReplicas)
 				if err != nil {
-					err = errors.Wrapf(err, "ReqID:%s ReduceK8SResourceAddrs failed.", req.ReqID)
+					err = errors.Wrapf(err, "ReqID:%s resourceKind:%s ReduceK8SResourceAddrs failed.", req.ReqID, req.K8SApiResourceKind.String())
 					res.Msg = err.Error()
 					calm_utils.Error(err.Error())
 					return
@@ -144,9 +150,6 @@ func wbCreateIPPool(c *gin.Context) {
 				res.Code = proto.IPResMgrErrnoSuccessed
 			}
 		}
-	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
-		//
-		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else {
 		// 处理job、cronjob，直接插入网络信息
 		err = storeMgr.SetJobNetInfo(k8sResourceID, req.K8SApiResourceKind, req.NetRegionalID, req.SubnetID,
@@ -188,7 +191,8 @@ func wbReleaseIPPool(c *gin.Context) {
 		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		err = storeMgr.AddK8SResourceAddressToRecycle(k8sResourceID, req.K8SApiResourceKind)
 		if err != nil {
-			err = errors.Wrapf(err, "ReqID:%s AddK8SResourceAddressToRecycle failed.", req.ReqID)
+			err = errors.Wrapf(err, "ReqID:%s resourceKind:%s AddK8SResourceAddressToRecycle failed.", req.ReqID,
+				req.K8SApiResourceKind.String())
 			calm_utils.Error(err.Error())
 			res.Code = proto.IPResMgrErrnoReleaseIPPoolFailed
 			res.Msg = err.Error()
@@ -236,7 +240,8 @@ func wbScaleIPPool(c *gin.Context) {
 		return
 	}
 
-	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		if req.K8SApiResourceNewReplicas > req.K8SApiResourceOldReplicas {
 			// 需要增加地址
 			k8sAddrs, err := nsp.NSPMgr.AllocAddrResources(k8sResourceID, (req.K8SApiResourceNewReplicas - req.K8SApiResourceOldReplicas),
@@ -250,13 +255,14 @@ func wbScaleIPPool(c *gin.Context) {
 			}
 
 			// 设置地址
-			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs)
+			err = storeMgr.SetAddrInfosToK8SResourceID(k8sResourceID, req.K8SApiResourceKind, k8sAddrs, req.K8SApiResourceOldReplicas)
 			if err != nil {
 				// 设置对应关系失败，见IP归还给NSP
 				for _, k8sAddr := range k8sAddrs {
 					nsp.NSPMgr.ReleaseAddrResources(k8sAddr.PortID)
 				}
-				err = errors.Wrapf(err, "ReqID:%s SetAddrInfosToK8SResourceID failed.", req.ReqID)
+				err = errors.Wrapf(err, "ReqID:%s resourceKind:%s SetAddrInfosToK8SResourceID failed.", req.ReqID,
+					req.K8SApiResourceKind.String())
 				res.Msg = err.Error()
 				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
 				calm_utils.Error(err.Error())
@@ -271,7 +277,7 @@ func wbScaleIPPool(c *gin.Context) {
 			// 插入标记表，在cni真正释放的时候才回收给nsp
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleDown [%d<===%d]",
 				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceNewReplicas, req.K8SApiResourceOldReplicas)
-			err = storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceOldReplicas,
+			err = storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceNewReplicas,
 				(req.K8SApiResourceOldReplicas - req.K8SApiResourceNewReplicas))
 			if err != nil {
 				err = errors.Wrapf(err, "ReqID:%s AddScaleDownMarked failed.", req.ReqID)

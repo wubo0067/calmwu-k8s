@@ -30,7 +30,7 @@ type StoreMgr interface {
 	CheckRecycledResources(k8sResourceID string) (bool, int, error)
 
 	// SetAddrInfosToK8SResourceID 为k8s资源设置地址资源
-	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo) error
+	SetAddrInfosToK8SResourceID(K8SResourceID string, k8sResourceType proto.K8SApiResourceKindType, k8sAddrInfos []*proto.K8SAddrInfo, offset int) error
 
 	// BindAddrInfoWithK8SPodUniqueName 获取一个地址信息，和k8s资源绑定
 	BindAddrInfoWithK8SPodUniqueName(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, podUniqueName string) (*proto.K8SAddrInfo, error)
@@ -61,7 +61,7 @@ type StoreMgr interface {
 	ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error
 
 	// AddScaleDownMarked 添加缩减标记，每个一条记录
-	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, originalReplicas int, scaleDownSize int) error
+	AddScaleDownMarked(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, currReplicas int, scaleDownSize int) error
 
 	// QueryK8SResourceKindByPodUniqueName 在表tbl_K8SResourceIPBind查询pod对应的k8s类型，查不到就是job和cronjob
 	QueryK8SResourceKindByPodUniqueName(podUniqueName string) proto.K8SApiResourceKindType
