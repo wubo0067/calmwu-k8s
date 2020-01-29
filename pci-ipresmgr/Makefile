@@ -5,8 +5,8 @@ default: build
 all: build
 
 BUILDARCH ?= $(shell uname -m)
-OS ?= $(go env GOOS)
-ARCH ?= $(go env GOARCH)
+#OS ?= $(go env GOOS)
+#ARCH ?= $(go env GOARCH)
 
 # canonicalized names for host architecture
 ifeq ($(BUILDARCH),aarch64)

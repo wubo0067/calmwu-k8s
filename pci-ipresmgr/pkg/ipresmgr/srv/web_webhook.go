@@ -136,7 +136,7 @@ func wbCreateIPPool(c *gin.Context) {
 			} else if req.K8SApiResourceReplicas < replicas {
 				// 新建副本数小于现有数量，减少IP
 				// deployment和statefulset不同，statefulset要按顺序从高到低的释放
-				err = storeMgr.ReduceK8SResourceAddrs(k8sResourceID, replicas-req.K8SApiResourceReplicas)
+				err = storeMgr.ReduceK8SResourceAddrs(k8sResourceID, req.K8SApiResourceKind, replicas-req.K8SApiResourceReplicas)
 				if err != nil {
 					err = errors.Wrapf(err, "ReqID:%s resourceKind:%s ReduceK8SResourceAddrs failed.", req.ReqID, req.K8SApiResourceKind.String())
 					res.Msg = err.Error()

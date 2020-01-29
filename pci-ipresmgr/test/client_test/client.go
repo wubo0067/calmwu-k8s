@@ -25,7 +25,7 @@ import (
 )
 
 var (
-	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.6.134:30001/", "srv ipresmgr addr")
+	srvIPResMgrAddr = flag.String("svraddr", "http://192.168.2.104:30001/", "srv ipresmgr addr")
 	testType        = flag.Int("type", 1, "1: CreateIPPool, 2: ReleaseIPPool, 3: ScaleIPPool, 4: RequireIP, 5: ReleaseIP, 6: MaintainUnbindIP, 7: ReleaseIPPool")
 	unBindPodName   = flag.String("unbindpodname", "", "Unbind podName")
 	oldReplicas     = flag.Int("oldreplicas", 0, "old replicas")
@@ -43,10 +43,10 @@ type APIError struct {
 func testCreateIPPool() {
 	var createIPPoolReq proto.WB2IPResMgrCreateIPPoolReq
 	createIPPoolReq.ReqID = ksuid.New().String()
-	createIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindDeployment
+	createIPPoolReq.K8SApiResourceKind = proto.K8SApiResourceKindStatefulSet
 	createIPPoolReq.K8SClusterID = "cluster-1"
 	createIPPoolReq.K8SNamespace = "default"
-	createIPPoolReq.K8SApiResourceName = "kata-nginx-deployment"
+	createIPPoolReq.K8SApiResourceName = "kata-nginx-statefulset"
 	createIPPoolReq.K8SApiResourceReplicas = 3
 	createIPPoolReq.NetRegionalID = fmt.Sprintf("netregional-%s", ksuid.New().String())
 	createIPPoolReq.SubnetID = fmt.Sprintf("subnet-%s", ksuid.New().String())

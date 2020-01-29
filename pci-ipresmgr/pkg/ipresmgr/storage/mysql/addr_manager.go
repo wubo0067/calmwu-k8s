@@ -16,6 +16,7 @@ import (
 	"pci-ipresmgr/pkg/ipresmgr/k8s"
 	"pci-ipresmgr/pkg/ipresmgr/nsp"
 	"pci-ipresmgr/table"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -420,7 +421,7 @@ func (msm *mysqlStoreMgr) AddK8SResourceAddressToRecycle(k8sResourceID string, k
 
 // ReduceK8SResourceAddrs 租期恢复期间降低副本数量
 // TODO: statefulset的释放
-func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCount int) error {
+func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType, reduceCount int) error {
 	// 找出所有对应地址，见解绑中的地址进行回收，如果数量不够，就等待，等待超时就失败
 	reduceRows, err := msm.dbMgr.Queryx("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id=?", k8sResourceID)
 	if err != nil {
@@ -429,7 +430,7 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 		return err
 	}
 
-	reduceK8sBindAddrs := make([]*table.TblK8SResourceIPBindS, 0)
+	reduceK8SBindAddrs := make([]*table.TblK8SResourceIPBindS, 0)
 	unBindCount := 0
 	for reduceRows.Next() {
 		k8sBindAddr := new(table.TblK8SResourceIPBindS)
@@ -439,40 +440,71 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, reduceCou
 			calm_utils.Error(err.Error())
 			return err
 		}
-		reduceK8sBindAddrs = append(reduceK8sBindAddrs, k8sBindAddr)
+		reduceK8SBindAddrs = append(reduceK8SBindAddrs, k8sBindAddr)
 		if k8sBindAddr.IsBind == 0 {
 			unBindCount++
 		}
 	}
 
-	calm_utils.Infof("k8sResourceID:%s reduceCount:%d UnBind Addr count:%d", k8sResourceID, reduceCount, unBindCount)
+	redceK8SBindAddrsLen := len(reduceK8SBindAddrs)
+
+	calm_utils.Infof("k8sResourceID:%s reduceCount:%d UnBind Addr count:%d total count:%d", k8sResourceID, reduceCount, unBindCount, redceK8SBindAddrsLen)
+
+	if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
+		// 排序，序号大的在前
+		sort.Slice(reduceK8SBindAddrs, func(i, j int) bool {
+			return reduceK8SBindAddrs[i].BindPodUniqueName.String > reduceK8SBindAddrs[j].BindPodUniqueName.String
+		})
+
+		for index := range reduceK8SBindAddrs {
+			calm_utils.Debugf("%d %s", index, litter.Sdump(reduceK8SBindAddrs[index]))
+		}
+	}
 
 	if unBindCount < reduceCount {
-		// TODO: 告警
+		// TODO: 告警，已经解绑的pod数量小于缩容的数量
 		// 去查询还有哪些没有释放的pod状态，node状态
-		for _, k8sBindAddr := range reduceK8sBindAddrs {
+		for _, k8sBindAddr := range reduceK8SBindAddrs {
 			k8s.DefaultK8SClient.GetPodAndNodeStatus(k8sResourceID, k8sBindAddr.PortID)
 		}
 		err = errors.Errorf("k8sResourceID:%s Failure to reduce the number[%d] of IPs", k8sResourceID, reduceCount)
 		calm_utils.Error(err.Error())
 		return err
 	} else {
-		// 找到reduce count的unbind地址进行释放
-		for _, k8sBindAddr := range reduceK8sBindAddrs {
-			if k8sBindAddr.IsBind == 0 {
-				calm_utils.Infof("k8sResourceID:%s BindPodUniqueName:%s ip:%s portID:%s address will be recycled and returned to nsp",
+		if k8sResourceType == proto.K8SApiResourceKindDeployment {
+			// 找到reduce count的unbind地址进行释放
+			for _, k8sBindAddr := range reduceK8SBindAddrs {
+				if k8sBindAddr.IsBind == 0 {
+					calm_utils.Infof("Deployment POD k8sResourceID:%s BindPodUniqueName:%s ip:%s portID:%s address will be recycled and returned to nsp",
+						k8sResourceID, k8sBindAddr.BindPodUniqueName, k8sBindAddr.IP, k8sBindAddr.PortID)
+					// 删除该条记录
+					msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_poduniquename=? LIMIT 1",
+						k8sResourceID, k8sBindAddr.BindPodUniqueName)
+					// NSP回收
+					nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
+					reduceCount--
+					if reduceCount == 0 {
+						break
+					}
+				}
+			}
+		} else {
+			// statefulset，按排序释放
+			for index := 0; index < reduceCount; index++ {
+				k8sBindAddr := reduceK8SBindAddrs[index]
+				if k8sBindAddr.IsBind != 0 {
+					// TODO 告警
+				}
+				calm_utils.Infof("StatefulSet POD k8sResourceID:%s BindPodUniqueName:%s ip:%s portID:%s address will be recycled and returned to nsp",
 					k8sResourceID, k8sBindAddr.BindPodUniqueName, k8sBindAddr.IP, k8sBindAddr.PortID)
 				// 删除该条记录
 				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_poduniquename=? LIMIT 1",
 					k8sResourceID, k8sBindAddr.BindPodUniqueName)
 				// NSP回收
 				nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
-				reduceCount--
-				if reduceCount == 0 {
-					break
-				}
 			}
 		}
+
 	}
 	return nil
 }
