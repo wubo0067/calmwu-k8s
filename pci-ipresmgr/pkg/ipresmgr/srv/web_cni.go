@@ -35,18 +35,21 @@ func cniRequireIP(c *gin.Context) {
 	res.ReqID = req.ReqID
 	res.Code = proto.IPResMgrErrnoGetIPFailed
 
+	// 这里默认给的是失败
 	httpCode := http.StatusBadRequest
 	defer func(status *int, resMgr *proto.IPResMgr2IPAMRequireIPRes) {
 		calm_utils.Debugf("sendResponse httpCode:%d, res:%s", *status, litter.Sdump(resMgr))
 		sendResponse(c, *status, resMgr)
 	}(&httpCode, &res)
 
-	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment {
+	if req.K8SApiResourceKind == proto.K8SApiResourceKindDeployment ||
+		req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
 		podUniqueName := makePodUniqueName(req.K8SClusterID, req.K8SNamespace, req.K8SPodName)
 
-		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodUniqueName(k8sResourceID, proto.K8SApiResourceKindDeployment, podUniqueName)
+		k8sPodAddrInfo, err := storeMgr.BindAddrInfoWithK8SPodUniqueName(k8sResourceID, req.K8SApiResourceKind, podUniqueName)
 		if err != nil {
-			err := errors.Wrapf(err, "ReqID:%s get k8sPodAddrInfo by %s failed", req.ReqID, k8sResourceID)
+			err := errors.Wrapf(err, "ReqID:%s resourceKind:%s get k8sPodAddrInfo by %s failed", req.ReqID,
+				req.K8SApiResourceKind.String(), k8sResourceID)
 			calm_utils.Error(err.Error())
 			res.Msg = err.Error()
 		} else {
@@ -56,27 +59,26 @@ func cniRequireIP(c *gin.Context) {
 			res.PortID = k8sPodAddrInfo.PortID
 			res.Code = proto.IPResMgrErrnoSuccessed
 			res.NetRegionalID = k8sPodAddrInfo.NetRegionalID
-			calm_utils.Debugf("ReqID:%s k8sResourceID:%s podName:%s bind with addrInfo:%s successed.", req.ReqID,
-				k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
+			calm_utils.Debugf("ReqID:%s resourceKind:%s k8sResourceID:%s podName:%s bind with addrInfo:%s successed.", req.ReqID,
+				req.K8SApiResourceKind.String(), k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 
 			httpCode = http.StatusCreated
 		}
-	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindStatefulSet {
-		//
-		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else if req.K8SApiResourceKind == proto.K8SApiResourceKindCronJob ||
 		req.K8SApiResourceKind == proto.K8SApiResourceKindJob {
 		// 查询网络信息
 		netRegionID, subNetID, subNetGatewayAddr, subNetCIDR, err := storeMgr.GetJobNetInfo(k8sResourceID)
 		if err != nil {
-			err = errors.Wrapf(err, "ReqID:%s k8sResourceID:%s GetJobNetInfo failed.", req.ReqID, k8sResourceID)
+			err = errors.Wrapf(err, "ReqID:%s resourceKind:%s k8sResourceID:%s GetJobNetInfo failed.", req.ReqID,
+				req.K8SApiResourceKind.String(), k8sResourceID)
 			calm_utils.Error(err.Error())
 			res.Msg = err.Error()
 		} else {
 			// 直接从nsp获取地址
 			netMask, err := getsubNetMask(subNetCIDR)
 			if err != nil {
-				err = errors.Wrapf(err, "ReqID:%s k8sResourceID:%s getsubNetMask failed.", req.ReqID, k8sResourceID)
+				err = errors.Wrapf(err, "ReqID:%s resourceKind:%s k8sResourceID:%s getsubNetMask failed.", req.ReqID,
+					req.K8SApiResourceKind.String(), k8sResourceID)
 				calm_utils.Error(err.Error())
 				res.Msg = err.Error()
 			} else {
@@ -106,8 +108,8 @@ func cniRequireIP(c *gin.Context) {
 							res.SubnetGatewayAddr = k8sPodAddrInfo.SubNetGatewayAddr
 							res.Code = proto.IPResMgrErrnoSuccessed
 							res.NetRegionalID = netRegionID
-							calm_utils.Debugf("ReqID:%s k8sResourceID:%d podName:%s bind with addrInfo:%s successed.", req.ReqID,
-								k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
+							calm_utils.Debugf("ReqID:%s resourceKind:%s k8sResourceID:%d podName:%s bind with addrInfo:%s successed.", req.ReqID,
+								req.K8SApiResourceKind.String(), k8sResourceID, req.K8SPodName, litter.Sdump(k8sPodAddrInfo))
 							httpCode = http.StatusCreated
 						}
 					}
@@ -144,7 +146,8 @@ func cniReleaseIP(c *gin.Context) {
 	// 查询pod对应的类型
 	k8sResourceType := storeMgr.QueryK8SResourceKindByPodUniqueName(podUniqueName)
 
-	if k8sResourceType == proto.K8SApiResourceKindDeployment {
+	if k8sResourceType == proto.K8SApiResourceKindDeployment ||
+		k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
 		if err != nil {
 			// TODO 告警
@@ -157,9 +160,6 @@ func cniReleaseIP(c *gin.Context) {
 		} else {
 			calm_utils.Debugf("ReqID:%s podName:%s unBind successed.", req.ReqID, req.K8SPodName)
 		}
-	} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
-		//
-		calm_utils.Errorf("ReqID:%s not support K8SApiResourceKindStatefulSet", req.ReqID)
 	} else if k8sResourceType == proto.K8SApiResourceKindCronJob ||
 		k8sResourceType == proto.K8SApiResourceKindJob {
 		// 处理job，cronjob

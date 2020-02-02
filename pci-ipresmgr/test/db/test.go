@@ -38,17 +38,17 @@ type TblTestS struct {
 	CreateTime             time.Time      `db:"create_time"`
 	NSPResourceReleaseTime time.Time      `db:"nspresource_release_time"`
 	SubNetID               sql.NullString `db:"subnet_id"`
-	//SubNetID     string `db:"subnet_id"`
-	UseFlag      int    `db:"use_flag"`
-	NspResources []byte `db:"nsp_resources"`
+	BindPodUniqueName      sql.NullString `db:"bind_poduniquename"`
+	UseFlag                int            `db:"use_flag"`
+	NspResources           []byte         `db:"nsp_resources"`
 }
 
 func initDB() *sqlx.DB {
-	db, err := sqlx.Open("mysql", "root:root@tcp(192.168.6.134:3306)/db_ipresmgr?parseTime=true&loc=Local")
+	db, err := sqlx.Open("mysql", "root:root@tcp(192.168.2.104:3306)/db_ipresmgr?parseTime=true&loc=Local")
 	if err != nil {
-		log.Fatalf("root:root@tcp(192.168.6.134:3306)/db_ipresmgr failed. err:\n", err.Error())
+		log.Fatalf("root:root@tcp(192.168.2.104:3306)/db_ipresmgr failed. err:\n", err.Error())
 	}
-	log.Println("root:root@tcp(192.168.6.134:3306)/db_ipresmgr open successed")
+	log.Println("root:root@tcp(192.168.2.104:3306)/db_ipresmgr open successed")
 
 	// 缺省设置
 	db.SetMaxIdleConns(3)
@@ -57,9 +57,9 @@ func initDB() *sqlx.DB {
 
 	err = db.Ping()
 	if err != nil {
-		log.Fatalf("Connect root:root@tcp(192.168.6.134:3306)/db_ipresmgr failed. err:%s\n", err.Error())
+		log.Fatalf("Connect root:root@tcp(192.168.2.104:3306)/db_ipresmgr failed. err:%s\n", err.Error())
 	}
-	log.Println("root:root@tcp(192.168.6.134:3306)/db_ipresmgr connect successed")
+	log.Println("root:root@tcp(192.168.2.104:3306)/db_ipresmgr connect successed")
 	return db
 }
 
@@ -90,8 +90,8 @@ func insertTbltest(db *sqlx.DB) {
 		log.Fatal(err)
 	}
 
-	_, err = db.Exec(`INSERT INTO tbl_Test 
-	(k8sresource_id, nspresource_release_time, subnet_id, create_time, nsp_resources) VALUES 
+	_, err = db.Exec(`INSERT INTO tbl_Test
+	(k8sresource_id, nspresource_release_time, subnet_id, create_time, nsp_resources) VALUES
 	(?, ?, ?, ?, ?)`,
 		"test-1",
 		time.Now().Add(time.Hour),
@@ -165,8 +165,8 @@ func insertMultilRecored(db *sqlx.DB) {
 	test.UseFlag = 0
 
 	for i := 0; i < 10; i++ {
-		_, err = db.Exec(`INSERT INTO tbl_Test 
-		(k8sresource_id, nspresource_release_time, subnet_id, create_time, use_flag, nsp_resources) VALUES 
+		_, err = db.Exec(`INSERT INTO tbl_Test
+		(k8sresource_id, nspresource_release_time, subnet_id, create_time, use_flag, nsp_resources) VALUES
 		(?, ?, ?, ?, ?, ?)`,
 			fmt.Sprintf("test-%d", i),
 			time.Now().Add(time.Hour),
@@ -182,7 +182,9 @@ func insertMultilRecored(db *sqlx.DB) {
 }
 
 func testScanRows(db *sqlx.DB) {
-	rows, err := db.Queryx("SELECT * FROM tbl_Test WHERE k8sresource_id=?", "test-0")
+	querySql := fmt.Sprintf("SELECT * FROM tbl_Test WHERE k8sresource_id='%s'", "test-1")
+	//rows, err := db.Queryx("SELECT * FROM tbl_Test WHERE k8sresource_id=?", "test-0")
+	rows, err := db.Queryx(querySql)
 	if err != nil {
 		log.Fatalf("SELECT * FROM tbl_Test WHERE k8sresource_id=test-0 failed. err:%s", err.Error())
 	}
@@ -218,8 +220,8 @@ func insertMultiK8SResourceIPRecycles(db *sqlx.DB) {
 	recycleRecord.CreateTime = time.Now()
 
 	for i := 0; i < 10; i++ {
-		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPRecycle 
-		(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES 
+		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPRecycle
+		(srv_instance_name, k8sresource_id, k8sresource_type, replicas, create_time, nspresource_release_time) VALUES
 		(?, ?, ?, ?, ?, ?)`,
 			recycleRecord.SrvInstanceName,
 			fmt.Sprintf("k8sresource-%d", i),
@@ -322,8 +324,8 @@ func testPessimisticLock(db *sqlx.DB) {
 func insertMultiK8SResourceIPBindRecord(db *sqlx.DB) {
 	for i := 0; i < 10; i++ {
 		mac, _ := calm_utils.GenerateRandomPrivateMacAddr()
-		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind 
-		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES 
+		_, err := db.Exec(`INSERT INTO tbl_K8SResourceIPBind
+		(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind) VALUES
 		(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 			"cluster-1:default:kata-nginx-deployment",
 			int(proto.K8SApiResourceKindDeployment),
@@ -411,13 +413,13 @@ func main() {
 	//insertTbltest(db)
 	//selectTbltest(db)
 	//insertMultilRecored(db)
-	//testScanRows(db)
+	testScanRows(db)
 	//deleteInvalidRow(db)
 	//insertMultiK8SResourceIPRecycles(db)
 	//testQueryColumn(db)
 	//testFetchOneRow(db)
 	//testPessimisticLock(db)
-	insertMultiK8SResourceIPBindRecord(db)
+	//insertMultiK8SResourceIPBindRecord(db)
 	//insertMultiScaleDownMarkRecord(db)
 	//imitationOfConcurrentUpdateScaleDownMarkRecord(db)
 }

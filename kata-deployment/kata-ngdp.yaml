@@ -3,14 +3,14 @@ kind: Deployment
 metadata:
   name: kata-ngdp
   annotations:
-    io.kubernetes.cri.untrusted-workload: "true"  
+    io.kubernetes.cri.untrusted-workload: "true"
 spec:
   replicas: 2
   strategy:
     rollingUpdate:
       maxSurge: 1         #
       maxUnavailable: 0   #
-    type: RollingUpdate   #    
+    type: RollingUpdate   #
   selector:
     matchLabels:
       app: kata-ngdp
@@ -19,7 +19,7 @@ spec:
       labels:
         app: kata-ngdp
       annotations:
-        io.kubernetes.cri.untrusted-workload: "true"  
+        io.kubernetes.cri.untrusted-workload: "true"
     spec:
       hostNetwork: true
       containers:

@@ -11,7 +11,6 @@ package config
 import (
 	"io/ioutil"
 	"os"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -53,7 +52,6 @@ type SrvIPResMgrConfigData struct {
 
 var (
 	configFileName string
-	guard          sync.Mutex
 	configVal      atomic.Value
 )
 

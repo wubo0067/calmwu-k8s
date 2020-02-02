@@ -118,8 +118,9 @@ func decodeFromYamlContent(client *kube.Client, yamlContent []byte) {
 	calm_utils.Debugf("gvk:%s", litter.Sdump(gvk))
 	//calm_utils.Debugf("runtimeObj:%#v， type:[%s]", runtimeObj, reflect.TypeOf(runtimeObj).Name())
 
-	clientSet, _ := client.Factory.KubernetesClientSet()
+	cs, _ := client.Factory.KubernetesClientSet()
 
+	// 这里代码可以参考，helm/v3/pkg/kube/wait.go
 	switch obj := runtimeObj.(type) {
 	case *v1.Service:
 		//calm_utils.Debugf("obj type:%s", reflect.TypeOf(obj).Name())
@@ -127,7 +128,7 @@ func decodeFromYamlContent(client *kube.Client, yamlContent []byte) {
 	case *appv1.Deployment:
 		calm_utils.Debugf("deployment name:[%s]", obj.ObjectMeta.Name)
 		// 运行时的状态还是需要去获取
-		dp, _ := clientSet.AppsV1().Deployments("default").Get(obj.ObjectMeta.Name, metav1.GetOptions{ResourceVersion: "1"})
+		dp, _ := cs.AppsV1().Deployments("default").Get(obj.ObjectMeta.Name, metav1.GetOptions{ResourceVersion: "1"})
 		calm_utils.Debugf("obj is *appv1.Deployment name:[%s], namespace:[%s] Status: %#v", dp.ObjectMeta.Name, dp.ObjectMeta.Namespace, dp.Status)
 	default:
 		calm_utils.Debug("obj is unknown!")

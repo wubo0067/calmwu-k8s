@@ -151,12 +151,12 @@ func (ni *nspMgrImpl) ReleaseAddrResources(portID string) error {
 		return err
 	}
 
-	calm_utils.Debugf("Post to %s, httpCode:%d", delPortURL, res.StatusCode)
-
 	if res != nil {
+		calm_utils.Debugf("Post to %s, httpCode:%d", delPortURL, res.StatusCode)
 		defer res.Body.Close()
+		ioutil.ReadAll(res.Body)
 	}
-	ioutil.ReadAll(res.Body)
+
 	return nil
 }
 
