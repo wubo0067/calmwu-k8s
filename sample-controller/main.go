@@ -55,13 +55,16 @@ func main() {
 		klog.Fatalf("Error building kubernetes clientset: %s", err.Error())
 	}
 
+	// 这是自动生成的代码
 	exampleClient, err := clientset.NewForConfig(cfg)
 	if err != nil {
 		klog.Fatalf("Error building example clientset: %s", err.Error())
 	}
 
 	// Shared指在多个Informer中共享一个本地cache，每隔30秒resync一次（list）,每种类型的resource都需要一个informer
+	// 为每个资源创建一个informer
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
+	// 调用自动生成的代码，通过clientset创建informer
 	exampleInformerFactory := informers.NewSharedInformerFactory(exampleClient, time.Second*30)
 
 	controller := NewController(kubeClient, exampleClient,

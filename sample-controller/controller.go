@@ -102,7 +102,7 @@ func NewController(
 
 	controller := &Controller{
 		kubeclientset:     kubeclientset,
-		sampleclientset:   sampleclientset,
+		sampleclientset:   sampleclientset,             // 操作自定义类型为什么需要指定的clientset
 		deploymentsLister: deploymentInformer.Lister(), // 通过informer获取
 		deploymentsSynced: deploymentInformer.Informer().HasSynced,
 		foosLister:        fooInformer.Lister(),
@@ -113,6 +113,7 @@ func NewController(
 
 	klog.Info("Setting up event handlers")
 	// Set up an event handler for when Foo resources change
+	// 设置informer的处理函数
 	fooInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: controller.enqueueFoo,
 		UpdateFunc: func(old, new interface{}) {
@@ -168,6 +169,7 @@ func (c *Controller) Run(threadiness int, stopCh <-chan struct{}) error {
 	}
 
 	klog.Info("Started workers")
+	// 等待结束通知
 	<-stopCh
 	klog.Info("Shutting down workers")
 
@@ -185,6 +187,7 @@ func (c *Controller) runWorker() {
 // processNextWorkItem will read a single work item off the workqueue and
 // attempt to process it, by calling the syncHandler.
 func (c *Controller) processNextWorkItem() bool {
+	// 获取key
 	obj, shutdown := c.workqueue.Get()
 
 	if shutdown {
@@ -217,6 +220,7 @@ func (c *Controller) processNextWorkItem() bool {
 		}
 		// Run the syncHandler, passing it the namespace/name string of the
 		// Foo resource to be synced.
+		// 调用处理函数
 		if err := c.syncHandler(key); err != nil {
 			// Put the item back on the workqueue to handle any transient errors.
 			c.workqueue.AddRateLimited(key)
@@ -249,6 +253,8 @@ func (c *Controller) syncHandler(key string) error {
 	}
 
 	// Get the Foo resource with this namespace/name
+	// 通过namespace和name获取对象
+	// foo对象是不可修改的
 	foo, err := c.foosLister.Foos(namespace).Get(name)
 	if err != nil {
 		// The Foo resource may no longer exist, in which case we stop
@@ -271,6 +277,7 @@ func (c *Controller) syncHandler(key string) error {
 	}
 
 	// Get the deployment with the name specified in Foo.spec
+	// 获取deployment
 	deployment, err := c.deploymentsLister.Deployments(foo.Namespace).Get(deploymentName)
 	// If the resource doesn't exist, we'll create it
 	if errors.IsNotFound(err) {
@@ -323,6 +330,7 @@ func (c *Controller) updateFooStatus(foo *samplev1alpha1.Foo, deployment *appsv1
 	// NEVER modify objects from the store. It's a read-only, local cache.
 	// You can use DeepCopy() to make a deep copy of original object and modify this copy
 	// Or create a copy manually for better performance
+	// 这个是不能修改的，需要拷贝，而operator-sdk是可以修改的
 	fooCopy := foo.DeepCopy()
 	fooCopy.Status.AvailableReplicas = deployment.Status.AvailableReplicas
 	// If the CustomResourceSubresources feature gate is not enabled,
@@ -339,11 +347,12 @@ func (c *Controller) updateFooStatus(foo *samplev1alpha1.Foo, deployment *appsv1
 func (c *Controller) enqueueFoo(obj interface{}) {
 	var key string
 	var err error
+	// 将对象放入缓存中
 	if key, err = cache.MetaNamespaceKeyFunc(obj); err != nil {
 		utilruntime.HandleError(err)
 		return
 	}
-	// enqueueFoo 就是解析 Foo 资源为 namespace/name 形式的字符串
+	// 将key放入队列
 	c.workqueue.Add(key)
 }
 
@@ -353,9 +362,12 @@ func (c *Controller) enqueueFoo(obj interface{}) {
 // It then enqueues that Foo resource to be processed. If the object does not
 // have an appropriate OwnerReference, it will simply be skipped.
 func (c *Controller) handleObject(obj interface{}) {
+	// 对于deployment的ObjectMeta嵌入类型已经实现了该接口
 	var object metav1.Object
 	var ok bool
+	// 判断是否可以类型转换
 	if object, ok = obj.(metav1.Object); !ok {
+		// 为什么是墓碑
 		tombstone, ok := obj.(cache.DeletedFinalStateUnknown)
 		if !ok {
 			utilruntime.HandleError(fmt.Errorf("error decoding object, invalid type"))
@@ -369,10 +381,12 @@ func (c *Controller) handleObject(obj interface{}) {
 		klog.V(4).Infof("Recovered deleted object '%s' from tombstone", object.GetName())
 	}
 	klog.V(4).Infof("Processing object: %s", object.GetName())
+	// 判断这个对象的owner
 	if ownerRef := metav1.GetControllerOf(object); ownerRef != nil {
 		// If this object is not owned by a Foo, we should not do anything more
 		// with it.
 		if ownerRef.Kind != "Foo" {
+			// 这个对象的owner必须是Foo
 			return
 		}
 
@@ -381,7 +395,7 @@ func (c *Controller) handleObject(obj interface{}) {
 			klog.V(4).Infof("ignoring orphaned object '%s' of foo '%s'", object.GetSelfLink(), ownerRef.Name)
 			return
 		}
-
+		// 最终还是放入的是Owner对象
 		c.enqueueFoo(foo)
 		return
 	}
@@ -399,7 +413,7 @@ func newDeployment(foo *samplev1alpha1.Foo) *appsv1.Deployment {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      foo.Spec.DeploymentName,
 			Namespace: foo.Namespace,
-			OwnerReferences: []metav1.OwnerReference{
+			OwnerReferences: []metav1.OwnerReference{ // 这里必须设置owner
 				*metav1.NewControllerRef(foo, samplev1alpha1.SchemeGroupVersion.WithKind("Foo")),
 			},
 		},

@@ -1,0 +1,11 @@
+apiVersion: k8s.calmwu.org/v1alpha1
+kind: ELBService
+metadata:
+  name: example-elbservice
+spec:
+  # 配置elb的监听器
+  elblistener:
+    name: db
+    vip:  192.168.100.109
+    port: 3306
+    protocol: TCP

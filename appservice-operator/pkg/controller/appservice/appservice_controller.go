@@ -1,23 +1,30 @@
+// Package appservice for implement
 package appservice
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	appservicecontrollerv1 "calmwu.org/appservice-operator/pkg/apis/appservicecontroller/v1"
+	v1 "calmwu.org/appservice-operator/pkg/apis/appservicecontroller/v1"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
+
+const appServiceFinalizer = "finalizer.appservice"
 
 var log = logf.Log.WithName("controller_appservice")
 
@@ -61,6 +68,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// 添加需要监听的资源类型
+	err = c.Watch(&source.Kind{Type: &appsv1.Deployment{}}, &handler.EnqueueRequestForOwner{
+		IsController: true,
+		OwnerType:    &appservicecontrollerv1.AppService{},
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -84,7 +100,7 @@ type ReconcileAppService struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileAppService) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling AppService")
+	reqLogger.Info("calmwu-log", "request:", request)
 
 	// Fetch the AppService instance
 	instance := &appservicecontrollerv1.AppService{}
@@ -94,60 +110,243 @@ func (r *ReconcileAppService) Reconcile(request reconcile.Request) (reconcile.Re
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
+			reqLogger.Info("---------------NotFound-------------")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
 
-	// Define a new Pod object
-	pod := newPodForCR(instance)
+	if instance.DeletionTimestamp != nil {
+		// 表明crd对象被删除
+		now := time.Now()
+		nowName := now.Format("2006-01-02 15:04:05 -0700")
+		deletionTimestampName := instance.DeletionTimestamp.Format("2006-01-02 15:04:05 -0700")
+		reqLogger.Info("**calmwu-log**", "deletionTimestampName:", deletionTimestampName, "now:", nowName)
 
-	// Set AppService instance as the owner and controller
-	if err := controllerutil.SetControllerReference(instance, pod, r.scheme); err != nil {
+		// 如果包含appServiceFinalizer信息，就开始做手工清理工作
+		if contains(instance.GetFinalizers(), appServiceFinalizer) {
+			reqLogger.Info("**calmwu-log** Successfully finalized AppService")
+		}
+
+		// 同时清理Finalizers所有内容
+		instance.SetFinalizers([]string{})
+		// 更新
+		r.client.Update(context.TODO(), instance)
+
 		return reconcile.Result{}, err
 	}
 
-	// Check if this Pod already exists
-	found := &corev1.Pod{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: pod.Name, Namespace: pod.Namespace}, found)
-	if err != nil && errors.IsNotFound(err) {
-		reqLogger.Info("Creating a new Pod", "Pod.Namespace", pod.Namespace, "Pod.Name", pod.Name)
-		err = r.client.Create(context.TODO(), pod)
+	// 给cr加上finalizer
+	if !contains(instance.GetFinalizers(), appServiceFinalizer) {
+		reqLogger.Info("**calmwu-log** Adding Finalizer for the AppService")
+		instance.SetFinalizers(append(instance.GetFinalizers(), appServiceFinalizer))
+		// 这个不可修改
+		//var sec int64 = 60
+		//instance.SetDeletionGracePeriodSeconds(&sec)
+		err = r.client.Update(context.TODO(), instance)
 		if err != nil {
+			reqLogger.Error(err, "Failed to update AppService with finalizer")
+			return reconcile.Result{}, err
+		}
+	}
+
+	//instanceInfo := fmt.Sprintf("%#v", instance)
+	//reqLogger.Info("calmwu-log", "AppService instance info:", instanceInfo)
+
+	//controllerutil.SetControllerReference
+	deploy := &appsv1.Deployment{}
+	// deployment名字和appservice相同
+	if err := r.client.Get(context.TODO(), request.NamespacedName, deploy); err != nil && errors.IsNotFound(err) {
+		// 如果deployment不存在，创建
+		deploy = newDeploy(instance)
+		if err := r.client.Create(context.TODO(), deploy); err != nil {
+			reqLogger.Error(err, "**calmwu-log** Create deployment failed.")
+			return reconcile.Result{}, err
+		} else {
+			reqLogger.Info("calmwu-log ---------- create deployment")
+		}
+
+		// 创建service
+		service := newService(instance)
+		if err = r.client.Create(context.TODO(), service); err != nil {
+			reqLogger.Error(err, "**calmwu-log** Create service failed.")
 			return reconcile.Result{}, err
 		}
 
-		// Pod created successfully - don't requeue
+		// 将当前的信息写入到appservice的annotation中
+		reqLogger.Info("**calmwu-log**", "instance.spec", instance.Spec)
+		data, _ := json.Marshal(instance.Spec)
+		if instance.Annotations != nil {
+			instance.Annotations["spec"] = string(data)
+		} else {
+			instance.Annotations = map[string]string{
+				"spec": string(data),
+			}
+		}
+
+		// 然后修改instance，将spec加入到instance中
+		if err := r.client.Update(context.TODO(), instance); err != nil {
+			reqLogger.Error(err, "calmwu-log", "update instance space failed.", instance.Spec)
+			return reconcile.Result{}, nil
+		}
 		return reconcile.Result{}, nil
-	} else if err != nil {
-		return reconcile.Result{}, err
 	}
 
-	// Pod already exists - don't requeue
-	reqLogger.Info("Skip reconcile: Pod already exists", "Pod.Namespace", found.Namespace, "Pod.Name", found.Name)
+	//reqLogger.Info("**calmwu-log**", "annotation.spec", instance.Annotations["spec"])
+
+	// 判断instance状态是否变化，带过来的annotaion.Spec来判断
+	annotationSpecStr := instance.Annotations["spec"]
+	specStr, _ := json.Marshal(instance.Spec)
+
+	// 判断是否需要更新，instance中spec和annotation中带的内容不对应，需要更新
+	if annotationSpecStr != string(specStr) {
+		//diffStr := cmp.Diff(instance.Spec, oldSpec)
+
+		reqLogger.Info("**calmwu-log** update")
+		reqLogger.Info("**calmwu-log**", "annotationSpecStr", annotationSpecStr)
+		reqLogger.Info("**calmwu-log**", "specStr", string(specStr))
+
+		instance.Annotations["spec"] = string(specStr)
+		if err := r.client.Update(context.TODO(), instance); err != nil {
+			reqLogger.Error(err, "-------calmwu-log-----------", "update instance spec failed.", instance.Spec)
+			return reconcile.Result{}, nil
+		}
+
+		// 将这个spec内容设置到deployment中
+		newDP := newDeploy(instance)
+		newDP.GetNamespace()
+		oldDP := &appsv1.Deployment{}
+		if err := r.client.Get(context.TODO(), request.NamespacedName, oldDP); err != nil {
+			reqLogger.Error(err, "Get deployment:", request.NamespacedName, " failed.")
+			return reconcile.Result{}, err
+		}
+		oldDP.Spec = newDP.Spec
+		// 更新
+		if err := r.client.Update(context.TODO(), oldDP); err != nil {
+			reqLogger.Error(err, "Update deployment:", request.NamespacedName, " failed.")
+			return reconcile.Result{}, err
+		}
+
+		newSvc := newService(instance)
+		oldSvc := &corev1.Service{}
+		if err := r.client.Get(context.TODO(), request.NamespacedName, oldSvc); err != nil {
+			return reconcile.Result{}, err
+		}
+		oldSvc.Spec = newSvc.Spec
+		if err := r.client.Update(context.TODO(), oldSvc); err != nil {
+			return reconcile.Result{}, err
+		}
+
+		return reconcile.Result{}, nil
+	}
+
+	reqLogger.Info("---------------Reconcile exit-------------")
+
 	return reconcile.Result{}, nil
 }
 
-// newPodForCR returns a busybox pod with the same name/namespace as the cr
-func newPodForCR(cr *appservicecontrollerv1.AppService) *corev1.Pod {
+// 构建一个新的deployment
+func newDeploy(cr *appservicecontrollerv1.AppService) *appsv1.Deployment {
 	labels := map[string]string{
 		"app": cr.Name,
 	}
-	return &corev1.Pod{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      cr.Name + "-pod",
-			Namespace: cr.Namespace,
-			Labels:    labels,
+
+	selector := &metav1.LabelSelector{MatchLabels: labels}
+
+	return &appsv1.Deployment{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "apps/v1",
+			Kind:       "Deployment",
 		},
-		Spec: corev1.PodSpec{
-			Containers: []corev1.Container{
-				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      cr.Name,
+			Namespace: cr.Namespace,
+
+			// 设置deployment的归属资源
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(cr, schema.GroupVersionKind{
+					Group:   appservicecontrollerv1.SchemeGroupVersion.Group,
+					Version: appservicecontrollerv1.SchemeGroupVersion.Version,
+					Kind:    "AppService",
+				}),
+			},
+		},
+		Spec: appsv1.DeploymentSpec{
+			Replicas: cr.Spec.Size,
+			Template: corev1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: labels,
 				},
+				Spec: corev1.PodSpec{
+					Containers: newContainers(cr),
+				},
+			},
+			Selector: selector,
+		},
+	}
+}
+
+func newContainers(app *v1.AppService) []corev1.Container {
+	containerPorts := []corev1.ContainerPort{}
+	for _, svcPort := range app.Spec.Ports {
+		cport := corev1.ContainerPort{}
+		cport.ContainerPort = svcPort.TargetPort.IntVal
+		containerPorts = append(containerPorts, cport)
+	}
+	return []corev1.Container{
+		{
+			Name:            app.Name,
+			Image:           app.Spec.Image,
+			Resources:       app.Spec.Resources,
+			Ports:           containerPorts,
+			ImagePullPolicy: corev1.PullIfNotPresent,
+			Env:             app.Spec.Envs,
+		},
+	}
+}
+
+func newService(app *v1.AppService) *corev1.Service {
+	return &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      app.Name,
+			Namespace: app.Namespace,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(app, schema.GroupVersionKind{
+					Group:   v1.SchemeGroupVersion.Group,
+					Version: v1.SchemeGroupVersion.Version,
+					Kind:    "AppService",
+				}),
+			},
+		},
+		Spec: corev1.ServiceSpec{
+			Type:  corev1.ServiceTypeNodePort,
+			Ports: app.Spec.Ports,
+			Selector: map[string]string{
+				"app": app.Name,
 			},
 		},
 	}
+}
+
+func contains(list []string, s string) bool {
+	for _, v := range list {
+		if v == s {
+			return true
+		}
+	}
+	return false
+}
+
+func remove(list []string, s string) []string {
+	for i, v := range list {
+		if v == s {
+			list = append(list[:i], list[i+1:]...)
+		}
+	}
+	return list
 }
