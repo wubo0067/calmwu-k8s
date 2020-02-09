@@ -3,9 +3,13 @@ package elbservice
 
 import (
 	"context"
+	"time"
 
 	k8sv1alpha1 "calmwu.org/elbservice-operator/pkg/apis/k8s/v1alpha1"
 	"calmwu.org/elbservice-operator/pkg/resources"
+	"github.com/emirpasic/gods/sets/hashset"
+	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -30,6 +34,7 @@ var log = logf.Log.WithName("controller_elbservice")
 // Add creates a new ELBService Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
+	// 加入mgr中
 	return add(mgr, newReconciler(mgr))
 }
 
@@ -55,7 +60,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// 监控二级资源 vipservice
+	// 监控二级资源 vipservice，这些资源owner必须是ELBService
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &k8sv1alpha1.ELBService{},
@@ -72,6 +77,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
+
+	// 由于pod不是ELBService创建的，所以这里监控没有用，说白了没有单独创建pod的informer
+	// err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
+	// 	IsController: true,
+	// 	OwnerType:    &k8sv1alpha1.ELBService{},
+	// })
+	// if err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -124,46 +138,168 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 		vipService = resources.NewVIPServiceForCR(instance)
 		// 设置owner
 		controllerutil.SetControllerReference(instance, vipService, r.scheme)
-		reqLogger.Info("Creating a new VIPService.", "VIPService.Namespaec", vipService.Namespace, "VIPService.Name", vipService.Name)
+		reqLogger.Info("Creating a new VIPService.", "VIPService.Namespace", vipService.Namespace, "VIPService.Name", vipService.Name)
 		err = r.client.Create(context.TODO(), vipService)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new VIPService", "VIPService.Namespaec", vipService.Namespace, "VIPService.Name", vipService.Name)
+			reqLogger.Error(err, "Failed to create new VIPService", "VIPService.Namespace", vipService.Namespace, "VIPService.Name", vipService.Name)
 			return reconcile.Result{}, err
 		}
+		// Service created successfully - return and requeue
+		return reconcile.Result{}, err
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get VIPService.")
 		return reconcile.Result{}, err
 	} else {
-		reqLogger.Info("Skip reconcile: VIPService already exists", "VIPService.Namespaec", vipService.Namespace, "VIPService.Name", vipService.Name)
+		reqLogger.Info("Skip reconcile: VIPService already exists", "VIPService.Namespace", vipService.Namespace, "VIPService.Name", vipService.Name)
 	}
 
 	// 判断vipendpoints是否存在，不存在就创建
-	vipEndpoints := &corev1.Endpoints{}
+	vipSvcEndpoints := &corev1.Endpoints{}
 	err = r.client.Get(context.TODO(), types.NamespacedName{
 		Name:      resources.GetVIPServiceName(instance),
 		Namespace: request.Namespace,
-	}, vipEndpoints)
+	}, vipSvcEndpoints)
 	if err != nil && errors.IsNotFound(err) {
-		vipEndpoints = resources.NewVIPEndpointForCR(instance)
+		vipSvcEndpoints = resources.NewVIPEndpointForCR(instance)
 		// 设置owner
-		controllerutil.SetControllerReference(instance, vipEndpoints, r.scheme)
-		reqLogger.Info("Creating a new VIPEndpoints.", "VIPEndpoints.Namespaec", vipEndpoints.Namespace, "VIPEndpoints.Name", vipEndpoints.Name)
-		err = r.client.Create(context.TODO(), vipEndpoints)
+		controllerutil.SetControllerReference(instance, vipSvcEndpoints, r.scheme)
+		reqLogger.Info("Creating a new VIPEndpoints.", "VIPEndpoints.Namespace", vipSvcEndpoints.Namespace, "VIPEndpoints.Name", vipSvcEndpoints.Name)
+		err = r.client.Create(context.TODO(), vipSvcEndpoints)
 		if err != nil {
-			reqLogger.Error(err, "Failed to create new VIPEndpoints", "VIPEndpoints.Namespaec", vipEndpoints.Namespace, "VIPEndpoints.Name", vipEndpoints.Name)
+			reqLogger.Error(err, "Failed to create new VIPEndpoints", "VIPEndpoints.Namespace", vipSvcEndpoints.Namespace, "VIPEndpoints.Name", vipSvcEndpoints.Name)
 			return reconcile.Result{}, err
 		}
 
 		// 创建一个pod用于测试域名解析
-		dnsTestPod := resources.NewPodForCR(instance)
-		controllerutil.SetControllerReference(instance, dnsTestPod, r.scheme)
-		r.client.Create(context.TODO(), dnsTestPod)
+		// dnsTestPod := resources.NewPodForCR(instance)
+		// controllerutil.SetControllerReference(instance, dnsTestPod, r.scheme)
+		// r.client.Create(context.TODO(), dnsTestPod)
+
+		// Endpoints created successfully - return and requeue
+		return reconcile.Result{}, err
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get VIPEndpoints.")
 		return reconcile.Result{}, err
 	} else {
-		reqLogger.Info("Skip reconcile: VIPEndpoints already exists", "VIPEndpoints.Namespaec", vipEndpoints.Namespace, "VIPEndpoints.Name", vipEndpoints.Name)
+		reqLogger.Info("Skip reconcile: VIPEndpoints already exists", "VIPEndpoints.Namespaec", vipSvcEndpoints.Namespace, "VIPEndpoints.Name", vipSvcEndpoints.Name)
+	}
+
+	// 判断epservice是否存在，不存在就创建
+	epService := &corev1.Service{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{
+		Name:      resources.GetEPServiceName(instance),
+		Namespace: request.Namespace,
+	}, epService)
+	if err != nil && errors.IsNotFound(err) {
+		epService = resources.NewEPServiceForCR(instance)
+		// 设置owner
+		controllerutil.SetControllerReference(instance, epService, r.scheme)
+		reqLogger.Info("Creating a new EPService.", "EPService.Namespace", epService.Namespace, "EPService.Name", epService.Name)
+		err = r.client.Create(context.TODO(), epService)
+		if err != nil {
+			reqLogger.Error(err, "Failed to create new EPService", "EPService.Namespace", epService.Namespace, "EPService.Name", epService.Name)
+			return reconcile.Result{}, err
+		}
+		// Service created successfully - return and requeue
+		return reconcile.Result{Requeue: true}, nil
+	} else if err != nil {
+		reqLogger.Error(err, "Failed to get EPService.")
+		return reconcile.Result{}, err
+	} else {
+		reqLogger.Info("Skip reconcile: EPService already exists", "EPService.Namespace", epService.Namespace, "EPService.Name", epService.Name)
+	}
+
+	epSvcEndPoints := &corev1.Endpoints{}
+	err = r.client.Get(context.TODO(), types.NamespacedName{
+		Name:      resources.GetEPServiceName(instance),
+		Namespace: request.Namespace,
+	}, epSvcEndPoints)
+	if err != nil && errors.IsNotFound(err) {
+		// 找不到继续
+		return reconcile.Result{Requeue: true, RequeueAfter: 3 * time.Second}, nil
+	} else if err == nil {
+		// 修改owne，这里只需要做一次
+		reqLogger.Info("----Get EPSvcEndpoints----", "EPSvcEndpoints.Namespace", epSvcEndPoints.Namespace, "EPSvcEndpoints.Name", epSvcEndPoints.Name)
+		err = controllerutil.SetControllerReference(instance, epSvcEndPoints, r.scheme)
+		if err != nil {
+			reqLogger.Error(err, "Set EPSvcEndpoints OwnerReferences failed.")
+		} else {
+			// 更新
+			err = r.client.Update(context.TODO(), epSvcEndPoints)
+			if err != nil {
+				reqLogger.Error(err, "Update EPSvcEndpoints failed.")
+			}
+		}
+
+		// 获得subnet信息
+		subnetPodAddrSet := func() *hashset.Set {
+			addrSet := hashset.New()
+			for i := range epSvcEndPoints.Subsets {
+				epSubset := &epSvcEndPoints.Subsets[i]
+				for j := range epSubset.Addresses {
+					addrSet.Add(epSubset.Addresses[j].IP)
+					reqLogger.Info("***addrSet***", "IP", epSubset.Addresses[j].IP)
+				}
+			}
+			return addrSet
+		}()
+
+		// 根据label查询对应的pod，需要在pod变化是有回调
+		elbPodList := &corev1.PodList{}
+		listOpts := []client.ListOption{
+			client.InNamespace(instance.GetNamespace()),
+			client.MatchingLabels(instance.Spec.Selector),
+		}
+		err = r.client.List(context.TODO(), elbPodList, listOpts...)
+		if err != nil {
+			reqLogger.Error(err, "Failed to list pods.", "ELBService.Namespace", instance.Namespace, "ELBService.Name", instance.Name,
+				"ELBService.Selector", instance.Spec.Selector)
+			return reconcile.Result{}, err
+		}
+		elbServiceStatus := getELBServiceStatus(elbPodList.Items, subnetPodAddrSet, reqLogger)
+
+		// 判断当前状态和计算出来是否相同
+		if !cmp.Equal(*elbServiceStatus, instance.Status) {
+			reqLogger.Info("Update ELBService status", "ELBService.Namespace", instance.Namespace, "ELBService.Name", instance.Name,
+				"Calculation ELBService.Status", elbServiceStatus, "Current ELBService.instance.Status", instance.Status)
+			// 更新状态
+			/*
+						Status:
+				  			Podcount:  2
+				  			Podinfos:
+				    			Name:   elbservice-pod-2
+				    			Podip:  10.244.62.163
+				    			Name:   elbservice-pod-1
+				    			Podip:  10.244.62.175
+			*/
+			instance.Status = *elbServiceStatus
+			err = r.client.Status().Update(context.TODO(), instance)
+			if err != nil {
+				reqLogger.Error(err, "Failed to Update ELBService status.")
+				return reconcile.Result{}, err
+			}
+		}
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func getELBServiceStatus(pods []corev1.Pod, podAddrSet *hashset.Set, reqLogger logr.Logger) *k8sv1alpha1.ELBServiceStatus {
+	status := &k8sv1alpha1.ELBServiceStatus{
+		PodCount: int32(podAddrSet.Size()),
+		PodInfos: make([]k8sv1alpha1.ELBPodInfo, podAddrSet.Size()),
+	}
+
+	for index, pod := range pods {
+		reqLogger.Info("---Pod---", "Pod.Name", pod.Name, "Pod.Phase", pod.Status.Phase, "Pod.IP", pod.Status.PodIP)
+		if podAddrSet.Contains(pod.Status.PodIP) {
+			status.PodInfos[index] = k8sv1alpha1.ELBPodInfo{
+				Name:   pod.Name,
+				PodIP:  pod.Status.PodIP,
+				Status: pod.Status.Phase,
+			}
+		}
+	}
+
+	return status
 }

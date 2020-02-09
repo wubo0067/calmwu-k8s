@@ -1,18 +1,55 @@
 package v1alpha1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
+// 负载均衡策略
+type LoadBalancingStrategy string
+
+const (
+	// LBStrategyRR 轮询
+	LBStrategyRR LoadBalancingStrategy = "roundrobin"
+	// LBStrategyWRR 加权轮询
+	LBStrategyWRR LoadBalancingStrategy = "weightedroundrobin"
+	// LBStrategyLC 最少链接
+	LBStrategyLC LoadBalancingStrategy = "leastconnectons"
+	// LBStrategyDH 目标地址散列调度
+	LBStrategyDH LoadBalancingStrategy = "destinationhashing"
+	// LBStrategySH 源地址散列调度
+	LBStrategySH LoadBalancingStrategy = "sourcehashing"
+)
+
+// LoadBalancingStrategies
+var LoadBalancingStrategies []LoadBalancingStrategy
+
+// Check 检查策略合法性
+func CheckLBStrategy(strategy LoadBalancingStrategy) bool {
+	for _, lbName := range LoadBalancingStrategies {
+		if lbName == strategy {
+			return true
+		}
+	}
+	return false
+}
+
+// PodLabel 选择标签
+type PodLabel struct {
+	Name  string `json:"labelName"`
+	Value string `json:"labelVal"`
+}
+
 // ELBListener 监听器的参数
 type ELBListener struct {
-	Name     string `json:"name"`
-	VIP      string `json:"vip"`
-	Port     int32  `json:"port"`
-	Protocol string `json:"protocol"`
+	Name       string                `json:"name"`
+	VIP        string                `json:"vip"`
+	Port       int32                 `json:"port"`
+	Protocol   string                `json:"protocol"`
+	LBStrategy LoadBalancingStrategy `json:"lbstrategy"`
 }
 
 // ELBServiceSpec defines the desired state of ELBService
@@ -20,7 +57,15 @@ type ELBServiceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Listener ELBListener `json:"elblistener"`
+	Listener ELBListener       `json:"elblistener"`
+	Selector map[string]string `json:"selector,omitempty" protobuf:"bytes,2,rep,name=selector"`
+}
+
+// ELBPodInfo pod信息
+type ELBPodInfo struct {
+	Name   string          `json:"name"`
+	PodIP  string          `json:"podip"`
+	Status corev1.PodPhase `json:"status"`
 }
 
 // ELBServiceStatus defines the observed state of ELBService
@@ -28,6 +73,8 @@ type ELBServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+	PodCount int32        `json:"podcount"`
+	PodInfos []ELBPodInfo `json:"podinfos"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
@@ -54,4 +101,12 @@ type ELBServiceList struct {
 
 func init() {
 	SchemeBuilder.Register(&ELBService{}, &ELBServiceList{})
+
+	LoadBalancingStrategies = []LoadBalancingStrategy{
+		LBStrategyRR,
+		LBStrategyWRR,
+		LBStrategyLC,
+		LBStrategyDH,
+		LBStrategySH,
+	}
 }

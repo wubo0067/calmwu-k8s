@@ -28,9 +28,10 @@ func NewPodForCR(cr *k8sv1alpha1.ELBService) *corev1.Pod {
 		Spec: corev1.PodSpec{
 			Containers: []corev1.Container{
 				{
-					Name:    "busybox",
-					Image:   "busybox",
-					Command: []string{"sleep", "3600"},
+					Name:            "busybox",
+					Image:           "busybox",
+					Command:         []string{"sleep", "3600"},
+					ImagePullPolicy: corev1.PullIfNotPresent,
 				},
 			},
 		},

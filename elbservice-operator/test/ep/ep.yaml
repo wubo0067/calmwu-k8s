@@ -1,0 +1,7 @@
+kind: Endpoints
+apiVersion: v1
+metadata:
+  name: elbservice-endpoint
+  namespace: default
+  labels:
+    app: elbservice-pods

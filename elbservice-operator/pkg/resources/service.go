@@ -21,6 +21,10 @@ func GetVIPServiceName(cr *k8sv1alpha1.ELBService) string {
 	return fmt.Sprintf("%s-vipsvc", cr.GetName())
 }
 
+func GetEPServiceName(cr *k8sv1alpha1.ELBService) string {
+	return fmt.Sprintf("%s-endsvc", cr.GetName())
+}
+
 // NewVIPService创建一个无头service，没有selector
 func NewVIPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 	vipService := &corev1.Service{
@@ -48,5 +52,18 @@ func NewVIPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 }
 
 func NewEPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
-	return &corev1.Service{}
+	return &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Service",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      GetEPServiceName(cr),
+			Namespace: cr.GetNamespace(),
+		},
+		Spec: corev1.ServiceSpec{
+			ClusterIP: "None",
+			Selector:  cr.Spec.Selector,
+		},
+	}
 }

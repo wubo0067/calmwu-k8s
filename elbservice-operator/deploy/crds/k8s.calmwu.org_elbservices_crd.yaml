@@ -37,6 +37,9 @@ spec:
                 modifying this file Add custom validation using kubebuilder tags:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               properties:
+                lbstrategy:
+                  description: 负载均衡策略
+                  type: string
                 name:
                   type: string
                 port:
@@ -47,16 +50,50 @@ spec:
                 vip:
                   type: string
               required:
+              - lbstrategy
               - name
               - port
               - protocol
               - vip
+              type: object
+            selector:
+              additionalProperties:
+                type: string
               type: object
           required:
           - elblistener
           type: object
         status:
           description: ELBServiceStatus defines the observed state of ELBService
+          properties:
+            podcount:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              format: int32
+              type: integer
+            podinfos:
+              items:
+                description: ELBPodInfo pod信息
+                properties:
+                  name:
+                    type: string
+                  podip:
+                    type: string
+                  status:
+                    description: PodPhase is a label for the condition of a pod at
+                      the current time.
+                    type: string
+                required:
+                - name
+                - podip
+                - status
+                type: object
+              type: array
+          required:
+          - podcount
+          - podinfos
           type: object
       type: object
   version: v1alpha1
