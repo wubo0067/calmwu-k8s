@@ -145,7 +145,7 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 			return reconcile.Result{}, err
 		}
 		// Service created successfully - return and requeue
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: true}, err
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get VIPService.")
 		return reconcile.Result{}, err
@@ -176,7 +176,7 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 		// r.client.Create(context.TODO(), dnsTestPod)
 
 		// Endpoints created successfully - return and requeue
-		return reconcile.Result{}, err
+		return reconcile.Result{Requeue: true}, err
 	} else if err != nil {
 		reqLogger.Error(err, "Failed to get VIPEndpoints.")
 		return reconcile.Result{}, err
@@ -285,19 +285,28 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 }
 
 func getELBServiceStatus(pods []corev1.Pod, podAddrSet *hashset.Set, reqLogger logr.Logger) *k8sv1alpha1.ELBServiceStatus {
+	ipCount := podAddrSet.Size()
+	podCount := len(pods)
+
 	status := &k8sv1alpha1.ELBServiceStatus{
-		PodCount: int32(podAddrSet.Size()),
-		PodInfos: make([]k8sv1alpha1.ELBPodInfo, podAddrSet.Size()),
+		PodCount: int32(ipCount),
+		PodInfos: make([]k8sv1alpha1.ELBPodInfo, ipCount),
 	}
 
-	for index, pod := range pods {
+	for index, pos := 0, 0; pos < ipCount && index < podCount; index++ {
+		pod := &pods[index]
 		reqLogger.Info("---Pod---", "Pod.Name", pod.Name, "Pod.Phase", pod.Status.Phase, "Pod.IP", pod.Status.PodIP)
+		if pod.Status.HostIP == "" {
+			continue
+		}
+
 		if podAddrSet.Contains(pod.Status.PodIP) {
-			status.PodInfos[index] = k8sv1alpha1.ELBPodInfo{
+			status.PodInfos[pos] = k8sv1alpha1.ELBPodInfo{
 				Name:   pod.Name,
 				PodIP:  pod.Status.PodIP,
 				Status: pod.Status.Phase,
 			}
+			pos++
 		}
 	}
 
