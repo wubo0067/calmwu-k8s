@@ -172,10 +172,10 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 
 			queryBindIPSql := ""
 			if k8sResourceType == proto.K8SApiResourceKindDeployment {
-				queryBindIPSql = fmt.Sprintf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id='%s AND k8sresource_type=%d FOR UPDATE",
+				queryBindIPSql = fmt.Sprintf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id='%s' AND k8sresource_type=%d FOR UPDATE",
 					k8sResourceID, int(k8sResourceType))
 			} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
-				queryBindIPSql = fmt.Sprintf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id='%s AND k8sresource_type=%d AND bind_poduniquename='%s' FOR UPDATE",
+				queryBindIPSql = fmt.Sprintf("SELECT * FROM tbl_K8SResourceIPBind WHERE k8sresource_id='%s' AND k8sresource_type=%d AND bind_poduniquename='%s' FOR UPDATE",
 					k8sResourceID, int(k8sResourceType), podUniqueName)
 			}
 
