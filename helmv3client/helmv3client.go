@@ -181,5 +181,5 @@ func main() {
 	// patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_deployment.yaml")
 	//patchTemplateFileWithSCISpecific("./test_patch_template/ark_service.yaml")
 	//patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_service.yaml")
-	status("myguestbook-1", "guestbook")
+	status("myguestbook", "default")
 }
