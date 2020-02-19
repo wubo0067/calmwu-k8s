@@ -148,7 +148,7 @@ func cniReleaseIP(c *gin.Context) {
 
 	if k8sResourceType == proto.K8SApiResourceKindDeployment ||
 		k8sResourceType == proto.K8SApiResourceKindStatefulSet {
-		err = storeMgr.UnbindAddrInfoWithK8SPodID(proto.K8SApiResourceKindDeployment, podUniqueName)
+		err = storeMgr.UnbindAddrInfoWithK8SPodID(k8sResourceType, podUniqueName)
 		if err != nil {
 			// TODO 告警
 			err = errors.Wrapf(err, "ReqID:%s podName:%s unBind failed.", req.ReqID, req.K8SPodName)

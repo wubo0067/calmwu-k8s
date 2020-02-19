@@ -260,6 +260,19 @@ func (msm *mysqlStoreMgr) expiredRecycling(record *table.TblK8SResourceIPRecycle
 				delRows, _ := delRes.RowsAffected()
 				calm_utils.Debugf("DELETE FROM tbl_K8SResourceIPBind rows:%d", delRows)
 
+				// 清除tbl_K8SScaleDownMark表
+				delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=? AND k8sresource_type=?",
+					record.K8SResourceID, record.K8SResourceType)
+				if err != nil {
+					err = errors.Wrapf(err, "DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s AND k8sresource_type=%d failed.",
+						record.K8SResourceID, record.K8SResourceType)
+					calm_utils.Error(err)
+					return err
+				}
+
+				delRows, _ = delRes.RowsAffected()
+				calm_utils.Debugf("DELETE FROM tbl_K8SScaleDownMark rows:%d", delRows)
+
 				// 调用nsp接口，传入portid
 				var ip, portID string
 				for ipBindRows.Next() {

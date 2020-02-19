@@ -166,3 +166,19 @@ func (msm *mysqlStoreMgr) MaintainForceReleasePodIP(k8sResourceID string, bindPo
 
 	return nil
 }
+
+// GetUnbindAddrCountByResourceID 根据resourceid和类型查询未绑定地址数量
+func (msm *mysqlStoreMgr) GetUnbindAddrCountByResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) (int, error) {
+	defer calm_utils.MeasureFunc()()
+
+	var unBindAddrCount int
+	err := msm.dbMgr.Get(&unBindAddrCount, "SELECT COUNT(*) FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? AND is_bind=0",
+		k8sResourceID, int(k8sResourceType))
+	if err != nil {
+		err = errors.Wrapf(err, "GetUnbindAddrCount k8sResourceID:[%s] k8sResourceType:[%s] failed", k8sResourceID, k8sResourceType.String())
+		calm_utils.Error(err)
+		return -1, err
+	}
+	calm_utils.Debugf("GetUnbindAddrCount:[%d] k8sResourceID:[%s] k8sResourceType:[%s]", unBindAddrCount, k8sResourceID, k8sResourceType.String())
+	return unBindAddrCount, nil
+}

@@ -277,6 +277,19 @@ func wbScaleIPPool(c *gin.Context) {
 			// 插入标记表，在cni真正释放的时候才回收给nsp
 			calm_utils.Debugf("ReqID:%s k8sResourceID:%s K8SApiResourceKind:%s scaleDown [%d<===%d]",
 				req.ReqID, k8sResourceID, req.K8SApiResourceKind.String(), req.K8SApiResourceNewReplicas, req.K8SApiResourceOldReplicas)
+
+			// 缩容要小心，如果有未绑定的地址，这个时候不能缩容，因为有这种场景，扩容过程中进行缩容，导致很多ip分配了而没有被使用，缩容的pod
+			// 又是调度来指定的。
+			unBindAddrCount, err := storeMgr.GetUnbindAddrCountByResourceID(k8sResourceID, req.K8SApiResourceKind)
+			if err != nil || unBindAddrCount > 0 {
+				err = errors.Wrapf(err, "ReqID:%s Can't to perform scaleDown, because have unbind address!", req.ReqID)
+				calm_utils.Errorf(err.Error())
+				res.Msg = err.Error()
+				res.Code = proto.IPResMgrErrnoScaleIPPoolFailed
+				calm_utils.Error(err.Error())
+				return
+			}
+
 			err = storeMgr.AddScaleDownMarked(k8sResourceID, req.K8SApiResourceKind, req.K8SApiResourceNewReplicas,
 				(req.K8SApiResourceOldReplicas - req.K8SApiResourceNewReplicas))
 			if err != nil {

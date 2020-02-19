@@ -74,6 +74,9 @@ type StoreMgr interface {
 
 	// MaintainForceReleasePodIP 强制释放pod的ip，归还给nsp，同时删除该记录
 	MaintainForceReleasePodIP(k8sResourceID string, bindPodUniqueName string) error
+
+	// GetUnbindAddrCountByResourceID 根据resourceid和类型查询未绑定地址数量
+	GetUnbindAddrCountByResourceID(k8sResourceID string, k8sResourceType proto.K8SApiResourceKindType) (int, error)
 }
 
 // StoreOptions 存储的参数

@@ -77,7 +77,7 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 
 				insRes := tx.MustExec(`INSERT INTO tbl_K8SResourceIPBind
 			(k8sresource_id, k8sresource_type, ip, mac, netregional_id, subnet_id, port_id, subnetgatewayaddr, alloc_time, is_bind, bind_poduniquename) VALUES
-			(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 					k8sResourceID,
 					int(k8sResourceType),
 					k8sAddrInfo.IP,
@@ -138,11 +138,13 @@ func (msm *mysqlStoreMgr) BindAddrInfoWithK8SPodUniqueName(k8sResourceID string,
 					k8sAddrInfo.SubNetID = checkExistk8sAddrBindInfo.SubNetID
 					k8sAddrInfo.SubNetGatewayAddr = checkExistk8sAddrBindInfo.SubNetGatewayAddr
 					k8sAddrInfo.PortID = checkExistk8sAddrBindInfo.PortID
-					calm_utils.Warnf("k8sResourceType:[%s] k8sResourceID:[%s] bindPod:[%s] is already occupied address:%s resources", k8sResourceID, podUniqueName, checkExistk8sAddrBindInfo.IP)
+					calm_utils.Warnf("k8sResourceType:[%s] k8sResourceID:[%s] bindPod:[%s] is already occupied address:%s resources",
+						proto.K8SApiResourceKindDeployment.String(), k8sResourceID, podUniqueName, checkExistk8sAddrBindInfo.IP)
 					return nil
 				} else {
 					// statefulset不允许重复绑定
-					err := errors.Errorf("k8sResourceType:[%s] k8sResourceID:[%s] bindPod:[%s] is already occupied address:%s resources", k8sResourceID, podUniqueName, checkExistk8sAddrBindInfo.IP)
+					err := errors.Errorf("k8sResourceType:[%s] k8sResourceID:[%s] bindPod:[%s] is already occupied address:%s resources",
+						proto.K8SApiResourceKindStatefulSet.String(), k8sResourceID, podUniqueName, checkExistk8sAddrBindInfo.IP)
 					calm_utils.Error(err.Error())
 					return err
 				}
@@ -476,10 +478,10 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, k8sResour
 			for _, k8sBindAddr := range reduceK8SBindAddrs {
 				if k8sBindAddr.IsBind == 0 {
 					calm_utils.Infof("Deployment POD k8sResourceID:%s BindPodUniqueName:%s ip:%s portID:%s address will be recycled and returned to nsp",
-						k8sResourceID, k8sBindAddr.BindPodUniqueName, k8sBindAddr.IP, k8sBindAddr.PortID)
+						k8sResourceID, k8sBindAddr.BindPodUniqueName.String, k8sBindAddr.IP, k8sBindAddr.PortID)
 					// 删除该条记录
 					msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_poduniquename=? LIMIT 1",
-						k8sResourceID, k8sBindAddr.BindPodUniqueName)
+						k8sResourceID, k8sBindAddr.BindPodUniqueName.String)
 					// NSP回收
 					nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
 					reduceCount--
@@ -496,10 +498,10 @@ func (msm *mysqlStoreMgr) ReduceK8SResourceAddrs(k8sResourceID string, k8sResour
 					// TODO 告警
 				}
 				calm_utils.Infof("StatefulSet POD k8sResourceID:%s BindPodUniqueName:%s ip:%s portID:%s address will be recycled and returned to nsp",
-					k8sResourceID, k8sBindAddr.BindPodUniqueName, k8sBindAddr.IP, k8sBindAddr.PortID)
+					k8sResourceID, k8sBindAddr.BindPodUniqueName.String, k8sBindAddr.IP, k8sBindAddr.PortID)
 				// 删除该条记录
 				msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND bind_poduniquename=? LIMIT 1",
-					k8sResourceID, k8sBindAddr.BindPodUniqueName)
+					k8sResourceID, k8sBindAddr.BindPodUniqueName.String)
 				// NSP回收
 				nsp.NSPMgr.ReleaseAddrResources(k8sBindAddr.PortID)
 			}
@@ -519,7 +521,7 @@ func (msm *mysqlStoreMgr) AddScaleDownMarked(k8sResourceID string, k8sResourceTy
 				k8sResourceID, k8sResourceType.String(), scaleDownSize)
 
 			createTime := time.Now()
-			insertRes, err := msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, current_replicas, scaledown_count, create_time) VALUES (?, ?, ?, ?)",
+			insertRes, err := msm.dbMgr.Exec("INSERT INTO tbl_K8SScaleDownMark (k8sresource_id, k8sresource_type, current_replicas, scaledown_count, create_time) VALUES (?, ?, ?, ?, ?)",
 				k8sResourceID, int(k8sResourceType), currReplicas, scaleDownSize, createTime)
 			if err != nil {
 				if strings.Contains(err.Error(), "for key 'PRIMARY'") {
