@@ -14,6 +14,7 @@ import (
 	"net/http"
 	proto "pci-ipresmgr/api/proto_json"
 	"sync"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
@@ -164,7 +165,7 @@ func (ni *nspMgrImpl) ReleaseAddrResources(portID string) error {
 func NSPInit(nspUrl string) {
 	initOnce.Do(func() {
 		NSPMgr = &nspMgrImpl{
-			httpClient: calm_utils.NewBaseHttpClient(6, 2),
+			httpClient: calm_utils.NewBaseHttpClient(2*time.Second, 6, 2),
 			nspURL:     nspUrl,
 		}
 	})

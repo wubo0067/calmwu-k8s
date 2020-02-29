@@ -27,6 +27,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mitchellh/mapstructure"
+	"github.com/pkg/errors"
 )
 
 func UnpackRequest(c *gin.Context) *ProtoRequestS {
@@ -92,16 +93,18 @@ func PostRequest(url string, data []byte) ([]byte, int, error) {
 
 	if res != nil {
 		defer res.Body.Close()
-	}
 
-	resBody, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		ZLog.Errorf("Read body failed! reason[%s]", err.Error())
-		return nil, 0, err
+		resBody, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			ZLog.Errorf("Read body failed! reason[%s]", err.Error())
+			return nil, 0, errors.Wrapf(err, "PostRequest read response body failed.")
+		}
+		return resBody, res.StatusCode, nil
 	}
-	return resBody, res.StatusCode, nil
+	return nil, http.StatusBadRequest, errors.New("http response is nil")
 }
 
+// MapstructUnPackByJsonTag使用mapstruct进行解包
 func MapstructUnPackByJsonTag(m interface{}, rawVal interface{}) error {
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		TagName:  "json",
@@ -148,12 +151,12 @@ func NewTimeoutHttpClient(connectTimeout time.Duration, readWritetimeout time.Du
 // https://colobu.com/2016/07/01/the-complete-guide-to-golang-net-http-timeouts/
 // https://stackoverflow.com/questions/36773837/best-way-to-use-http-client-in-a-concurrent-application
 // NewBaseHttpClient Clients are safe for concurrent use by multiple goroutines.
-func NewBaseHttpClient(maxIdleConns, maxIdleConnsPerHost int) *http.Client {
+func NewBaseHttpClient(dialTimeout time.Duration, maxIdleConns, maxIdleConnsPerHost int) *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
 			Dial: (&net.Dialer{
-				Timeout:   30 * time.Second,
-				KeepAlive: 30 * time.Second,
+				Timeout:   dialTimeout,      // 限制建立TCP连接的时间
+				KeepAlive: 30 * time.Second, // If negative, keep-alive probes are disabled. set 0 use default 15s
 			}).Dial,
 			DisableKeepAlives:     false,
 			TLSHandshakeTimeout:   10 * time.Second, // 限制TLS握手使用的时间
