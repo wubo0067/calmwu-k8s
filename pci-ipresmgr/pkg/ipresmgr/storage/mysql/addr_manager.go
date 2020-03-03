@@ -36,6 +36,15 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 		return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 			tx := msm.dbMgr.MustBegin()
 
+			var guardPanicWithMustExec int = 1
+			defer func(flag *int) {
+				if *flag == 1 {
+					calm_utils.Debugf("K8SApiResourceKindDeployment k8sResourceID:[%s] INSERT INTO tbl_K8SResourceIPBind Rollback",
+						k8sResourceID)
+					tx.Rollback()
+				}
+			}(&guardPanicWithMustExec)
+
 			for index, k8sAddrInfo := range k8sAddrInfos {
 				calm_utils.Debugf("%d k8sResourceID[%s] k8sResourceType[%s] k8sAddrInfo:%+v", index, k8sResourceID,
 					k8sResourceType.String(), k8sAddrInfo)
@@ -55,6 +64,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 					0,
 				)
 
+				guardPanicWithMustExec = 0
+
 				_, err := insRes.RowsAffected()
 				if err != nil {
 					err = errors.Wrapf(err, "insert k8sResourceID[%s] k8sResourceType[%s] addrinfo failed, Rollback.", k8sResourceID, k8sResourceType.String())
@@ -70,6 +81,15 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 	} else if k8sResourceType == proto.K8SApiResourceKindStatefulSet {
 		return msm.dbSafeExec(context.Background(), func(ctx context.Context) error {
 			tx := msm.dbMgr.MustBegin()
+
+			var guardPanicWithMustExec int = 1
+			defer func(flag *int) {
+				if *flag == 1 {
+					calm_utils.Debugf("K8SApiResourceKindStatefulset k8sResourceID:[%s] INSERT INTO tbl_K8SResourceIPBind Rollback",
+						k8sResourceID)
+					tx.Rollback()
+				}
+			}(&guardPanicWithMustExec)
 
 			for index, k8sAddrInfo := range k8sAddrInfos {
 				calm_utils.Debugf("%d k8sResourceID[%s] k8sResourceType[%s] k8sAddrInfo:%+v", index, k8sResourceID,
@@ -90,6 +110,8 @@ func (msm *mysqlStoreMgr) SetAddrInfosToK8SResourceID(k8sResourceID string, k8sR
 					0,
 					fmt.Sprintf("%s-%d", k8sResourceID, index+offset), // 直接分配podid，因为statefulset的pod是固定的
 				)
+
+				guardPanicWithMustExec = 0
 
 				_, err := insRes.RowsAffected()
 				if err != nil {

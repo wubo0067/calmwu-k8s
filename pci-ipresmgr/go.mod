@@ -7,6 +7,7 @@ require (
 	github.com/Pallinder/go-randomdata v1.2.0
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/dghubble/sling v1.3.0
+	github.com/fatih/color v1.9.0 // indirect
 	github.com/fvbock/endless v0.0.0-20170109170031-447134032cb6
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/gin-gonic/gin v1.4.0
@@ -18,7 +19,6 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.8
 	github.com/lib/pq v1.2.0 // indirect
-	github.com/mattn/go-isatty v0.0.10 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
 	github.com/micro/cli v0.2.0
 	github.com/mitchellh/mapstructure v1.1.2 // indirect
@@ -28,10 +28,12 @@ require (
 	github.com/sanity-io/litter v1.1.0
 	github.com/segmentio/ksuid v1.0.2
 	github.com/sergi/go-diff v1.1.0 // indirect
+	github.com/sirupsen/logrus v1.4.2 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190731233626-505e41936337 // indirect
+	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20191212053606-d55e0c97e2cd
+	github.com/wubo0067/calmwu-go v0.0.0-20200219020446-0236a7792879
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/multierr v1.4.0 // indirect

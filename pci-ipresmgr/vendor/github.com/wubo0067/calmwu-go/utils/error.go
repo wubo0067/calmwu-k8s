@@ -6,48 +6,70 @@
  * @Comment:
  */
 
+// Package utils for golang tools functions
 package utils
 
 import (
-	"errors"
-	"fmt"
+	"reflect"
 
-	"github.com/mozhata/merr"
+	"github.com/pkg/errors"
+	"github.com/snwfdhmp/errlog"
 )
 
+// NewError 构建错误对象
 func NewError(args ...interface{}) error {
 	var err error
 	var rawData []interface{}
 	for _, arg := range args {
-		switch arg.(type) {
+		switch arg := arg.(type) {
 		case error:
 			err = arg.(error)
-			ZLog.Errorf("error", err)
 			continue
 		default:
 			rawData = append(rawData, arg)
 		}
 	}
 	if err == nil {
-		err = errors.New(fmt.Sprintf("%v", rawData))
+		err = errors.Errorf("%v", rawData)
 	}
-	return errors.New(fmt.Sprintf("%v [error => %s]", rawData, err.Error()))
+	return errors.Errorf("%v [error => %s]", rawData, err.Error())
 }
 
-/*
-use example
-
-func GetLocationFor(u *User) (*Location,error){
-  respMsg, err := grpcClient.GetLocationFor(u.name)
-  if err != nil{
-    // here we directly send the error
-    return nil, errors.New("while getting location from grpc client in GetLocationFor", err)
-  }
-  // process the respMsg and move on
+// IsInterfaceNil 判断接口是否为空接口
+func IsInterfaceNil(v interface{}) bool {
+	return v == nil || (reflect.ValueOf(v).Kind() == reflect.Ptr && reflect.ValueOf(v).IsNil())
 }
-*/
 
-func StrError(err error) string {
-	e := merr.WrapErr(err)
-	return fmt.Sprintf("err: %s\nreason: %s\ncall stack: %s\n", e.Error(), e.RawErr(), e.CallStack())
+var (
+	// DefaultErrCheck error判断和列出上下文
+	DefaultErrCheck = errlog.NewLogger(&errlog.Config{
+		// PrintFunc is of type `func (format string, data ...interface{})`
+		// so you can easily implement your own logger func.
+		// In this example, logrus is used, but any other logger can be used.
+		// Beware that you should add '\n' at the end of format string when printing.
+		PrintFunc:          Debugf,
+		PrintSource:        true,  //Print the failing source code
+		LinesBefore:        2,     //Print 2 lines before failing line
+		LinesAfter:         1,     //Print 1 line after failing line
+		PrintError:         true,  //Print the error
+		PrintStack:         false, //Don't print the stack trace
+		ExitOnDebugSuccess: false, //Exit if err
+	})
+)
+
+func NewDefaultErrCheck(printFunc func(format string, data ...interface{}), printStack bool) {
+	DefaultErrCheck = nil
+	DefaultErrCheck = errlog.NewLogger(&errlog.Config{
+		// PrintFunc is of type `func (format string, data ...interface{})`
+		// so you can easily implement your own logger func.
+		// In this example, logrus is used, but any other logger can be used.
+		// Beware that you should add '\n' at the end of format string when printing.
+		PrintFunc:          printFunc,
+		PrintSource:        true,       //Print the failing source code
+		LinesBefore:        2,          //Print 2 lines before failing line
+		LinesAfter:         1,          //Print 1 line after failing line
+		PrintError:         true,       //Print the error
+		PrintStack:         printStack, //Don't print the stack trace
+		ExitOnDebugSuccess: false,      //Exit if err
+	})
 }
