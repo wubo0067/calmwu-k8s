@@ -2,14 +2,18 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kata-ngdp
-  annotations:
-    io.kubernetes.cri.untrusted-workload: "true"
+  finalizers:
+  - foregroundDeletion
+  #annotations:
+  #  io.kubernetes.cri.untrusted-workload: "true"
+  labels:
+    app: test-scale-status
 spec:
   replicas: 2
   strategy:
     rollingUpdate:
-      maxSurge: 1         #
-      maxUnavailable: 0   #
+      maxSurge: 0         #
+      maxUnavailable: 1   #
     type: RollingUpdate   #
   selector:
     matchLabels:
@@ -21,10 +25,11 @@ spec:
       annotations:
         io.kubernetes.cri.untrusted-workload: "true"
     spec:
-      hostNetwork: true
+      #hostNetwork: true
       containers:
       - name: kata-ngdp
-        image: nginx:1.16.0
+        image: docker.io/library/nginx:1.16.1
+        imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 80
         resources:
@@ -34,4 +39,5 @@ spec:
           limits:
             memory: "128Mi"
             cpu: "500m"
+
 
