@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS tbl_K8SJobNetInfo (
     subnetgatewayaddr VARCHAR(32) NOT NULL,        -- 子网网关地址
     subnetcidr VARCHAR(32) NOT NULL,               -- 子网cidr
     create_time TIMESTAMP NULL DEFAULT '0000-00-00 00:00:00', -- 创建时间
-    PRIMARY KEY(k8sresource_id)
+    PRIMARY KEY(k8sresource_id, k8sresource_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS tbl_K8SJobIPBind (
