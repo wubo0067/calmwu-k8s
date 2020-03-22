@@ -35,6 +35,7 @@ const (
 
 func patchTemplateFileWithSCISpecific(fileName string) {
 	calm_utils.Debugf("\n----------------loadTemplateFile----------------")
+	// 读取模板文件
 	templateData, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		calm_utils.Fatalf("read file:%s failed. err:%s", fileName, err.Error())
@@ -60,7 +61,11 @@ func patchTemplateFileWithSCISpecific(fileName string) {
 	KINDCHECK:
 		switch currTagKind {
 		case tagKindDeployment:
-			lineNum, currTagKind, _ = patchDeploymentTemplate(lineNum, scanner, newTemplateBuf)
+			lineNum, currTagKind, err = patchDeploymentTemplate(lineNum, scanner, newTemplateBuf)
+			if err != nil {
+				calm_utils.Error(err.Error())
+				return
+			}
 			calm_utils.Debugf("---->currTagKind:%d<----", currTagKind)
 			if currTagKind != tagKindOthers {
 				goto KINDCHECK
