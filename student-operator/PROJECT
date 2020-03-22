@@ -1,0 +1,7 @@
+domain: calmwu.org
+repo: calmwu.org/student-operator
+resources:
+- group: studentcontroller
+  kind: Student
+  version: v1
+version: "2"

@@ -1,0 +1,7 @@
+apiVersion: studentcontroller.calmwu.org/v1
+kind: Student
+metadata:
+  name: student-sample
+spec:
+  # Add fields here
+  foo: bar
