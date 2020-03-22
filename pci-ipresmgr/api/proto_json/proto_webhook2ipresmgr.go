@@ -61,6 +61,7 @@ type WB2IPResMgrReleaseIPPoolReq struct {
 	K8SApiResourceName string                 `json:"K8SApiResourceName" mapstructure:"K8SApiResourceName"`
 }
 
+//easyjson:json
 // WB2IPResMgrScaleIPPoolReq webhook层通知ipresmgr修改副本数量，用户可以做update
 type WB2IPResMgrScaleIPPoolReq struct {
 	ReqID                     string                 `json:"ReqID" mapstructure:"ReqID"`
