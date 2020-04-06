@@ -84,6 +84,7 @@ func main() {
 
 	ctx := context.TODO()
 	// Become the leader before proceeding
+	// 这里就是保证了高可用，里面是个无限循环在抢锁，如果是in-cluster模式
 	err = leader.Become(ctx, "elbservice-operator-lock")
 	if err != nil {
 		log.Error(err, "")
@@ -91,6 +92,7 @@ func main() {
 	}
 
 	// Create a new Cmd to provide shared dependencies and start components
+	// 如果观察所有命名空间的，namespace设置""
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
@@ -103,6 +105,7 @@ func main() {
 	log.Info("Registering Components.")
 
 	// Setup Scheme for all resources
+	// 这里应该有多种scheme注册到manager的scheme中
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)

@@ -48,7 +48,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New("elbservice-controller", mgr, controller.Options{
 		Reconciler:              r,
-		MaxConcurrentReconciles: 1, //启动一个worker
+		MaxConcurrentReconciles: 2, //启动一个worker
 	})
 	if err != nil {
 		return err

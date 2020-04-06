@@ -47,8 +47,6 @@ func watchDeployment(clientSet *kubernetes.Clientset) {
 				litter.Sdump(dpObj.Status))
 		}
 	}
-
-	return
 }
 
 func main() {
@@ -70,7 +68,7 @@ func main() {
 
 		config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 		if err != nil {
-			logger.Fatal(err.Error)
+			logger.Fatal(err.Error())
 		}
 
 		logger.Printf("config:%s", litter.Sdump(config))

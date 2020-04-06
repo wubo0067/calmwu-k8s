@@ -19,6 +19,7 @@ require (
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/json-iterator/go v1.1.8
 	github.com/lib/pq v1.2.0 // indirect
+	github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a
 	github.com/mattn/go-sqlite3 v1.11.0 // indirect
 	github.com/micro/cli v0.2.0
 	github.com/mitchellh/mapstructure v1.1.2 // indirect

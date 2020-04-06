@@ -15,5 +15,6 @@ var (
 	SchemeGroupVersion = schema.GroupVersion{Group: "k8s.calmwu.org", Version: "v1alpha1"}
 
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
+	// 这个在init函数之前，该对象有AddToScheme方法，用来注册自己的schema
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 )
