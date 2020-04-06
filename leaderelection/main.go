@@ -67,7 +67,7 @@ func leaderElection(clientSet *kubernetes.Clientset) {
 		Lock:          rl,
 		LeaseDuration: 15 * time.Second,
 		RenewDeadline: 10 * time.Second,
-		RetryPeriod:   2 * time.Second,
+		RetryPeriod:   2 * time.Second, // 每2秒去尝试acquire或者renew
 		Callbacks: leaderelection.LeaderCallbacks{
 			OnStartedLeading: func(ctx context.Context) {
 				logger.Println("you are the leader")
