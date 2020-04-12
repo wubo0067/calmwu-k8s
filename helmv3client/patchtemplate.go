@@ -71,7 +71,11 @@ func patchTemplateFileWithSCISpecific(fileName string) {
 				goto KINDCHECK
 			}
 		case tagKindService:
-			lineNum, currTagKind, _ = patchServiceTemplate(lineNum, scanner, newTemplateBuf)
+			lineNum, currTagKind, err = patchServiceTemplate(lineNum, scanner, newTemplateBuf)
+			if err != nil {
+				calm_utils.Error(err.Error())
+				return
+			}
 			calm_utils.Debugf("---->currTagKind:%d<----", currTagKind)
 			if currTagKind != tagKindOthers {
 				goto KINDCHECK

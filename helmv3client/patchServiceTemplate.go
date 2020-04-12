@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2020-01-08 14:08:28
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-08 15:24:33
+ * @Last Modified time: 2020-04-09 10:59:45
  */
 
 // 加上ClusterIP: None，如果有就改为None
@@ -14,8 +14,10 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"regexp"
 	"strings"
 
+	"github.com/pkg/errors"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
@@ -30,9 +32,10 @@ const (
 func patchServiceTemplate(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, templateTagKind, error) {
 	calm_utils.Debugf("---patchServiceTemplate start line:%d---", lineNum)
 
+	var err error
 	tagKind := tagKindNone
 	lineContentStr := ""
-	bAlreadyRead := false
+
 	bCanRead := scanner.Scan()
 
 	for ; bCanRead; bCanRead = scanner.Scan() {
@@ -44,19 +47,18 @@ func patchServiceTemplate(lineNum int, scanner *bufio.Scanner, newTemplateBuf *b
 		if strings.Compare(lineContentStr, tagServiceSpecStr) == 0 {
 			newTemplateBuf.WriteString(lineContentStr)
 			newTemplateBuf.WriteByte('\n')
-			lineNum, lineContentStr, bAlreadyRead, bCanRead = patchInServiceSpecRegion(lineNum, scanner, newTemplateBuf)
-			if !bCanRead {
-				calm_utils.Debugf("--->completed service.spec node, service.spec end line:%d", lineNum)
-			} else {
-				calm_utils.Debugf("--->completed service.spec node, service.spec end line:%d", lineNum-1)
+			lineNum, lineContentStr, bCanRead, err = patchInServiceSpecRegion(lineNum, scanner, newTemplateBuf)
+			if err != nil {
+				return lineNum, tagKind, errors.Wrap(err, "patchInServiceSpecRegion failed.")
 			}
 		}
 
-		if !bAlreadyRead {
-			newTemplateBuf.WriteString(lineContentStr)
-			newTemplateBuf.WriteByte('\n')
+		if !bCanRead {
+			break
 		}
-		bAlreadyRead = false
+
+		newTemplateBuf.WriteString(lineContentStr)
+		newTemplateBuf.WriteByte('\n')
 
 		tagKind = isKindTag(lineContentStr)
 		if tagKind != tagKindNone {
@@ -69,18 +71,13 @@ func patchServiceTemplate(lineNum int, scanner *bufio.Scanner, newTemplateBuf *b
 	return lineNum, tagKind, nil
 }
 
-func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool, bool) {
+// clusterIP是默认形式，可以不填写
+func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBuf *bytes.Buffer) (int, string, bool, error) {
 	calm_utils.Debugf("---service.spec start line:%d---", lineNum)
 
 	lineContentStr := ""
 	bRegionEnd := false
-	//bFindSpecClusterIPNode := false
-	//bFindSpecTypeNode := false
-
-	newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
-	newTemplateBuf.WriteByte('\n')
-	newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
-	newTemplateBuf.WriteByte('\n')
+	bFindSpecClusterIPNode := false
 
 	bCanRead := scanner.Scan()
 
@@ -93,37 +90,61 @@ func patchInServiceSpecRegion(lineNum int, scanner *bufio.Scanner, newTemplateBu
 
 		if strings.HasPrefix(lineContentStr, tagServiceSpecClusterIPPrefixStr) {
 			// 替换
-			calm_utils.Debug("--->find clusterIP in service.spec so replace")
+			calm_utils.Debug("--->find service.spec.clusterIP, clear this")
 			continue
 		}
 
+		// 这里可能没有，因为默认clusterIP不需要填写
 		if strings.HasPrefix(lineContentStr, tagServiceSpecTypePrefixStr) {
 			// 替换
-			calm_utils.Debug("--->find type in service.spec so replace")
+			serviceTypeStr := strings.TrimSpace(lineContentStr)
+			calm_utils.Debugf("--->this service.spec.type:[%s] line:%d", serviceTypeStr, lineNum)
+			// 判断是不是clusterIP模式
+			r, err := regexp.Compile(`type:\s+ClusterIP`)
+			if err != nil {
+				err = errors.Wrap(err, "regexp Compile type:\\s+ClusterIP failed.")
+				calm_utils.Error(err.Error())
+				return lineNum, "", true, err
+			}
+
+			bMatched := r.MatchString(serviceTypeStr)
+			if bMatched {
+				calm_utils.Debugf("--->this service.spec.type=ClusterIP, line:%d", lineNum)
+				// 设置，为headless
+				newTemplateBuf.WriteString(lineContentStr)
+				newTemplateBuf.WriteByte('\n')
+				newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
+				newTemplateBuf.WriteByte('\n')
+				bFindSpecClusterIPNode = true
+			}
 			continue
 		}
 
 		bRegionEnd = isRegionEnd(lineContentStr, 0)
+		if bRegionEnd {
+			if !bFindSpecClusterIPNode {
+				// 加上
+				newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
+				newTemplateBuf.WriteByte('\n')
+				newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
+				newTemplateBuf.WriteByte('\n')
+			}
+			calm_utils.Debugf("--->find service.spec end, line:%d", lineNum)
+			return lineNum, lineContentStr, true, nil
+		}
+
 		newTemplateBuf.WriteString(lineContentStr)
 		newTemplateBuf.WriteByte('\n')
-		if bRegionEnd {
-			calm_utils.Debug("--->find service.spec end")
-			break
-		}
 	}
 
-	// if !bCanRead {
-	// 	if !bFindSpecClusterIPNode {
-	// 		calm_utils.Debug("--->not find clusterIP in service.spec so add")
-	// 		newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
-	// 		newTemplateBuf.WriteByte('\n')
-	// 	}
+	if !bFindSpecClusterIPNode {
+		// 加上
+		newTemplateBuf.WriteString(headlessServiceSpecClusterIPStr)
+		newTemplateBuf.WriteByte('\n')
+		newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
+		newTemplateBuf.WriteByte('\n')
+	}
 
-	// 	if !bFindSpecTypeNode {
-	// 		calm_utils.Debug("--->not find type in service.spec so add")
-	// 		newTemplateBuf.WriteString(headlessServiceSpecTypeStr)
-	// 		newTemplateBuf.WriteByte('\n')
-	// 	}
-	// }
-	return lineNum, lineContentStr, true, bCanRead
+	calm_utils.Debugf("--->find service.spec end, This is also the end of the file! line:%d", lineNum)
+	return lineNum, lineContentStr, false, nil
 }

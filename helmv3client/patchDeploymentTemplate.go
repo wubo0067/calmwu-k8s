@@ -564,6 +564,10 @@ func isRegionEnd(lineContent string, spaceCount int) bool {
 	if len(lineContent) > 0 {
 
 		tempLineContent := strings.TrimSpace(lineContent)
+		if len(tempLineContent) > 0 && tempLineContent[:2] == "{{" {
+			return true
+		}
+
 		if len(tempLineContent) > 0 && tempLineContent[0] == '{' {
 			return false
 		}

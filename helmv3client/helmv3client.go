@@ -2,7 +2,7 @@
  * @Author: calm.wu
  * @Date: 2019-12-24 10:42:23
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-01-21 14:38:14
+ * @Last Modified time: 2020-04-08 14:10:44
  */
 
 package main
@@ -181,6 +181,7 @@ func main() {
 	//patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_deployment.yaml")
 	//patchTemplateFileWithSCISpecific("./test_patch_template/ark_service.yaml")
 	//patchTemplateFileWithSCISpecific("./test_patch_template/bookstack_service.yaml")
-	patchTemplateFileWithSCISpecific("./test_patch_template/kata-ngdp.yaml")
+	//patchTemplateFileWithSCISpecific("./test_patch_template/kata-ngdp.yaml")
 	//status("myguestbook", "default")
+	renderTemplate("/home/calmwu/Dev/Downloads/workshop/kubecon2019china/charts/guestbook", "myguestbook", "default")
 }
