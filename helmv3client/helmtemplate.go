@@ -106,6 +106,7 @@ func renderTemplate(chartFullPath string, releaseName string, namespace string) 
 		}
 	}
 
+	// 这个被拆分后的
 	_, manifests, err := releaseutil.SortManifests(files, caps.APIVersions, releaseutil.InstallOrder)
 	if err != nil {
 		calm_utils.Fatalf("sort manifests failed. err:%s", err.Error())
