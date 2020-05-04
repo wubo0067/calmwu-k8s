@@ -8,7 +8,7 @@ import (
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// 负载均衡策略
+// LoadBalancingStrategy 负载均衡策略
 type LoadBalancingStrategy string
 
 const (
@@ -24,10 +24,21 @@ const (
 	LBStrategySH LoadBalancingStrategy = "sourcehashing"
 )
 
-// LoadBalancingStrategies
+// LoadBalancingStrategies 策略列表
 var LoadBalancingStrategies []LoadBalancingStrategy
 
-// Check 检查策略合法性
+type ELBServicePhase string
+
+const (
+	ELBServiceNone        ELBServicePhase = ""
+	ELBServiceCreating    ELBServicePhase = "Creating"
+	ELBServiceActive      ELBServicePhase = "Active"
+	ELBServiceFailed      ELBServicePhase = "Failed"
+	ELBServiceTerminating ELBServicePhase = "Terminating"
+	ELBServiceUnknown     ELBServicePhase = "Unknown"
+)
+
+// CheckLBStrategy 检查策略合法性
 func CheckLBStrategy(strategy LoadBalancingStrategy) bool {
 	for _, lbName := range LoadBalancingStrategies {
 		if lbName == strategy {
@@ -73,8 +84,9 @@ type ELBServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	PodCount int32        `json:"podcount"`
-	PodInfos []ELBPodInfo `json:"podinfos"`
+	Phase    ELBServicePhase `json:"phase"`
+	PodCount int32           `json:"podcount"`
+	PodInfos []ELBPodInfo    `json:"podinfos"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

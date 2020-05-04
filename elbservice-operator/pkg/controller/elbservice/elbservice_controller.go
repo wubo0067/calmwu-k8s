@@ -55,12 +55,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource ELBService
+	// 监控主资源
 	err = c.Watch(&source.Kind{Type: &k8sv1alpha1.ELBService{}}, &handler.EnqueueRequestForObject{})
 	if err != nil {
 		return err
 	}
 
-	// 监控二级资源 vipservice，这些资源owner必须是ELBService
+	// 监控依赖主资源的dependent资源，这些dependent的owner为ELBService
+	// 监控二级资源 headlessservice，这些资源owner必须是ELBService
 	err = c.Watch(&source.Kind{Type: &corev1.Service{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &k8sv1alpha1.ELBService{},
@@ -69,7 +71,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// 监控二级资源 vipendpoints
+	// 监控二级资源 endpoints
 	err = c.Watch(&source.Kind{Type: &corev1.Endpoints{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &k8sv1alpha1.ELBService{},
@@ -77,15 +79,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-
-	// 由于pod不是ELBService创建的，所以这里监控没有用，说白了没有单独创建pod的informer
-	// err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-	// 	IsController: true,
-	// 	OwnerType:    &k8sv1alpha1.ELBService{},
-	// })
-	// if err != nil {
-	// 	return err
-	// }
 
 	return nil
 }
@@ -218,7 +211,7 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 		// 找不到继续
 		return reconcile.Result{Requeue: true, RequeueAfter: 3 * time.Second}, nil
 	} else if err == nil {
-		// 修改owne，这里只需要做一次
+		// 修改owner，这里只需要做一次
 		reqLogger.Info("----Get EPSvcEndpoints----", "EPSvcEndpoints.Namespace", epSvcEndPoints.Namespace, "EPSvcEndpoints.Name", epSvcEndPoints.Name)
 		err = controllerutil.SetControllerReference(instance, epSvcEndPoints, r.scheme)
 		if err != nil {

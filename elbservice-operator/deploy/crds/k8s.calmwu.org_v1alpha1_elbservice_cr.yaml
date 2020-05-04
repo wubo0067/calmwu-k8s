@@ -2,6 +2,7 @@ apiVersion: k8s.calmwu.org/v1alpha1
 kind: ELBService
 metadata:
   name: example-elbservice
+  namespace: calmwu-namespace
 spec:
   # 配置elb的监听器
   elblistener:

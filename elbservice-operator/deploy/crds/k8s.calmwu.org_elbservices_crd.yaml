@@ -38,7 +38,7 @@ spec:
                 https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
               properties:
                 lbstrategy:
-                  description: 负载均衡策略
+                  description: LoadBalancingStrategy 负载均衡策略
                   type: string
                 name:
                   type: string
@@ -66,11 +66,13 @@ spec:
         status:
           description: ELBServiceStatus defines the observed state of ELBService
           properties:
-            podcount:
+            phase:
               description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                 of cluster Important: Run "operator-sdk generate k8s" to regenerate
                 code after modifying this file Add custom validation using kubebuilder
                 tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: string
+            podcount:
               format: int32
               type: integer
             podinfos:
@@ -92,6 +94,7 @@ spec:
                 type: object
               type: array
           required:
+          - phase
           - podcount
           - podinfos
           type: object

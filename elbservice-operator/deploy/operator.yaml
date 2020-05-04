@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: elbservice-operator
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       name: elbservice-operator
