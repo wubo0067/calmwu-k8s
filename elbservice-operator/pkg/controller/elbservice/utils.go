@@ -18,8 +18,12 @@ func addFinalizer(meta *metav1.ObjectMeta, finalizer string) {
 	}
 }
 
-func removeFinalizer(meta *metav1.ObjectMeta, finalizer string) {
-	meta.Finalizers = funk.FilterString(meta.Finalizers, func(s string) bool {
-		return s != finalizer
-	})
+func removeFinalizer(meta *metav1.ObjectMeta, finalizer string) bool {
+	bExists := funk.ContainsString(meta.Finalizers, finalizer)
+	if bExists {
+		meta.Finalizers = funk.FilterString(meta.Finalizers, func(s string) bool {
+			return s != finalizer
+		})
+	}
+	return bExists
 }

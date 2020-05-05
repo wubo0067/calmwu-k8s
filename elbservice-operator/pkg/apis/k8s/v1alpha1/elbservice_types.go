@@ -84,9 +84,11 @@ type ELBServiceStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Phase    ELBServicePhase `json:"phase"`
-	PodCount int32           `json:"podcount"`
-	PodInfos []ELBPodInfo    `json:"podinfos"`
+	Phase          ELBServicePhase `json:"phase"`
+	Reason         string          `json:"reason,omitempty"`
+	PodCount       int32           `json:"podcount,omitempty"`
+	PodInfos       []ELBPodInfo    `json:"podinfos,omitempty"`
+	LastUpdateTime metav1.Time     `json:"lastUpdateTime"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

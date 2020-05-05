@@ -66,6 +66,9 @@ spec:
         status:
           description: ELBServiceStatus defines the observed state of ELBService
           properties:
+            lastUpdateTime:
+              format: date-time
+              type: string
             phase:
               description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                 of cluster Important: Run "operator-sdk generate k8s" to regenerate
@@ -93,10 +96,11 @@ spec:
                 - status
                 type: object
               type: array
+            reason:
+              type: string
           required:
+          - lastUpdateTime
           - phase
-          - podcount
-          - podinfos
           type: object
       type: object
   version: v1alpha1
