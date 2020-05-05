@@ -234,9 +234,9 @@ func (r *ReconcileELBService) updateUsage(elbServiceInst *k8sv1alpha1.ELBService
 		elbServiceStatus := getELBServiceStatus(elbPodList.Items, subnetPodAddrSet, logger)
 
 		// 判断当前状态和计算出来是否相同
-		if !cmp.Equal(*elbServiceStatus, elbServiceInst.Status) {
-			logger.Info("Update ELBService status", "ELBService.Namespace", elbServiceInst.Namespace, "ELBService.Name", elbServiceInst.Name,
-				"Calculation ELBService.Status", elbServiceStatus, "Current ELBService.instance.Status", elbServiceInst.Status)
+		if !cmp.Equal(elbServiceStatus.PodInfos, elbServiceInst.Status.PodInfos) {
+			logger.Info("Update ELBService.Status.PodInfos", "Calculation ELBService.PodInfos", elbServiceStatus.PodInfos,
+				"Current ELBService.PodInfos", elbServiceInst.Status.PodInfos)
 
 			// 这里要和elb进行绑定
 			/*
@@ -248,8 +248,14 @@ func (r *ReconcileELBService) updateUsage(elbServiceInst *k8sv1alpha1.ELBService
 				    			Name:   elbservice-pod-1
 				    			Podip:  10.244.62.175
 			*/
-			elbServiceInst.Status = *elbServiceStatus
-			r.client.Status().Update(context.TODO(), elbServiceInst)
+			elbServiceInst.Status.PodCount = elbServiceStatus.PodCount
+			elbServiceInst.Status.PodInfos = elbServiceStatus.PodInfos
+			if err := r.client.Status().Update(context.TODO(), elbServiceInst); err != nil {
+				logger.Error(err, "Update ELBService.Status.PodInfos failed.")
+				return err
+			} else {
+				logger.Info("Update ELBService.Status.PodInfos successed.")
+			}
 		}
 	}
 
