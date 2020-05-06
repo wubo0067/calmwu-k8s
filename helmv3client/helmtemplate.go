@@ -20,7 +20,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
-	"k8s.io/kubectl/pkg/scheme"
+	"k8s.io/client-go/kubernetes/scheme"
 )
 
 const notesFileSuffix = "NOTES.txt"
