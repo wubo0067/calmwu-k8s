@@ -133,6 +133,7 @@ func (in *ELBServiceStatus) DeepCopyInto(out *ELBServiceStatus) {
 		*out = make([]ELBPodInfo, len(*in))
 		copy(*out, *in)
 	}
+	in.LastUpdateTime.DeepCopyInto(&out.LastUpdateTime)
 	return
 }
 

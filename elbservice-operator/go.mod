@@ -3,15 +3,17 @@ module calmwu.org/elbservice-operator
 go 1.14
 
 require (
+	github.com/Azure/go-autorest v12.2.0+incompatible // indirect
 	github.com/emirpasic/gods v1.12.0
 	github.com/go-logr/logr v0.1.0
-	github.com/google/go-cmp v0.3.1
-	github.com/operator-framework/operator-sdk v0.15.1
+	github.com/google/go-cmp v0.4.0
+	github.com/operator-framework/operator-sdk v0.17.0
 	github.com/spf13/pflag v1.0.5
-	k8s.io/api v0.0.0
-	k8s.io/apimachinery v0.0.0
+	github.com/thoas/go-funk v0.6.0 // indirect
+	k8s.io/api v0.17.4
+	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible
-	sigs.k8s.io/controller-runtime v0.4.0
+	sigs.k8s.io/controller-runtime v0.5.2
 )
 
 // Pinned to kubernetes-1.16.2

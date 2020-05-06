@@ -25,7 +25,7 @@ func GetEPServiceName(cr *k8sv1alpha1.ELBService) string {
 	return fmt.Sprintf("%s-endsvc", cr.GetName())
 }
 
-// NewVIPService创建一个无头service，没有selector
+// NewVIPServiceForCR 创建一个无头service，没有selector
 func NewVIPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 	vipService := &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -62,7 +62,7 @@ func NewEPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 			Namespace: cr.GetNamespace(),
 		},
 		Spec: corev1.ServiceSpec{
-			ClusterIP: "None",
+			ClusterIP: "None", // 这个是headless service
 			Selector:  cr.Spec.Selector,
 		},
 	}

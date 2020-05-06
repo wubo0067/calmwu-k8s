@@ -13,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NewVIPEndpointForCR创建一个endpoints资源
+// NewVIPEndpointForCR 创建一个endpoints资源
 func NewVIPEndpointForCR(cr *k8sv1alpha1.ELBService) *corev1.Endpoints {
 	vipEndpoints := &corev1.Endpoints{
 		TypeMeta: metav1.TypeMeta{

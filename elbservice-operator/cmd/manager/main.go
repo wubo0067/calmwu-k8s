@@ -49,6 +49,7 @@ func printVersion() {
 func main() {
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
+	// 可以设置日志参数
 	pflag.CommandLine.AddFlagSet(zap.FlagSet())
 
 	// Add flags registered by imported packages (e.g. glog and
@@ -69,6 +70,8 @@ func main() {
 
 	printVersion()
 
+	// 这个namespace是从部署的yaml文件环境变量中获取的
+	// 获取Operator需要监控的命名空间，通过环境变量设置命名空间
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
 		log.Error(err, "Failed to get watch namespace")
@@ -93,6 +96,7 @@ func main() {
 
 	// Create a new Cmd to provide shared dependencies and start components
 	// 如果观察所有命名空间的，namespace设置""
+	// 创建管理器，并创建共享组件，启动所有控制器
 	mgr, err := manager.New(cfg, manager.Options{
 		Namespace:          namespace,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
@@ -106,12 +110,14 @@ func main() {
 
 	// Setup Scheme for all resources
 	// 这里应该有多种scheme注册到manager的scheme中
+	// 为所有资源注册Scheme
 	if err := apis.AddToScheme(mgr.GetScheme()); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}
 
 	// Setup all Controllers
+	// 添加所有控制器
 	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
@@ -122,7 +128,8 @@ func main() {
 
 	log.Info("Starting the Cmd.")
 
-	// Start the Cmd
+	// Start the Cmd 用于启动（ Manager.Start）控制器，管理被多个控制器共享的依赖，例如Cache、Client、Scheme。
+	// 启动缓存、所有控制器
 	if err := mgr.Start(signals.SetupSignalHandler()); err != nil {
 		log.Error(err, "Manager exited non-zero")
 		os.Exit(1)

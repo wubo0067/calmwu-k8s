@@ -13,7 +13,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// NewPodForCR创建一个pod资源
+// NewPodForCR 创建一个pod资源
 func NewPodForCR(cr *k8sv1alpha1.ELBService) *corev1.Pod {
 	labels := map[string]string{
 		"app":     cr.Name,

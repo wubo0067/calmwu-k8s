@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: elbservice-pod-1
+  namespace: calmwu-namespace
   labels:
     app: elbservice-pods #service通过该标签与其对应
 spec:
@@ -19,6 +20,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: elbservice-pod-2
+  namespace: calmwu-namespace
   labels:
     app: elbservice-pods #service通过该标签与其对应
 spec:
