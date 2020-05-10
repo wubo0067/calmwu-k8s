@@ -1,0 +1,8 @@
+apiVersion: cloudnative.tw/v1alpha1
+kind: VirtualMachine
+metadata:
+  name: test-vm
+spec:
+  resource:
+    cpu: 1
+    memory: 4G
