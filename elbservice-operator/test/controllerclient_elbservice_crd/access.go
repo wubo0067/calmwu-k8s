@@ -6,7 +6,7 @@
  */
 
 // 使用dynclient "sigs.k8s.io/controller-runtime/pkg/client"去访问CRD资源
-// 使用sigs.k8s.io/controller-runtime/pkg/client能更好的去CRUD CR资源，很好的结合GVK、GVR、RESTMapper、Scheme、CR反序列化，CRUD扩展k8s资源更方便
+// 使用sigs.k8s.io/controller-runtime/pkg/client构造dynamic client，很好的结合GVK、GVR、RESTMapper、Scheme、CR反序列化，CRUD扩展k8s资源更方便
 
 package main
 
@@ -25,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
-	cached "k8s.io/client-go/discovery/cached"
+	"k8s.io/client-go/discovery/cached/memory"
 	"k8s.io/client-go/kubernetes"
 	cgoscheme "k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -108,7 +108,7 @@ func main() {
 	}
 
 	// 为什么这里要构造一个discoveryClient，还是基于cache的
-	cachedDiscoveryClient := cached.NewMemCacheClient(kubeclient.Discovery())
+	cachedDiscoveryClient := memory.NewMemCacheClient(kubeclient.Discovery())
 
 	restMapper := restmapper.NewDeferredDiscoveryRESTMapper(cachedDiscoveryClient)
 	restMapper.Reset()
