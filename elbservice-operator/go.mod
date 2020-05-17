@@ -4,13 +4,31 @@ go 1.14
 
 require (
 	github.com/Azure/go-autorest v12.2.0+incompatible // indirect
+	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586 // indirect
+	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/emirpasic/gods v1.12.0
+	github.com/fatih/color v1.9.0 // indirect
+	github.com/gin-gonic/gin v1.6.3 // indirect
 	github.com/go-logr/logr v0.1.0
+	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-cmp v0.4.0
+	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/mattn/go-colorable v0.1.6 // indirect
+	github.com/mitchellh/mapstructure v1.3.0 // indirect
+	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/operator-framework/operator-sdk v0.17.0
+	github.com/sanity-io/litter v1.2.0
+	github.com/sirupsen/logrus v1.6.0 // indirect
+	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
 	github.com/spf13/pflag v1.0.5
-	github.com/thoas/go-funk v0.6.0 // indirect
+	github.com/thoas/go-funk v0.6.0
+	github.com/wubo0067/calmwu-go v0.0.0-20200410083741-d348bac27c84
+	go.uber.org/zap v1.15.0 // indirect
+	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
+	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
 	k8s.io/api v0.17.4
+	k8s.io/apiextensions-apiserver v0.17.4
 	k8s.io/apimachinery v0.17.4
 	k8s.io/client-go v12.0.0+incompatible
 	sigs.k8s.io/controller-runtime v0.5.2
