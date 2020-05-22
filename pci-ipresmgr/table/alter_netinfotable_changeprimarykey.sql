@@ -1,0 +1,1 @@
+ALTER TABLE tbl_K8SJobNetInfo DROP PRIMARY KEY, ADD PRIMARY KEY(k8sresource_id, k8sresource_type);

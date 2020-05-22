@@ -142,7 +142,7 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 		}
 	case k8sv1alpha1.ELBServiceActive:
 		reqLogger.Info("-----k8sv1alpha1.ELBServiceActive-----")
-		// 判断是是否被删除
+		// 判断是否被删除
 		if !elbServiceInst.ObjectMeta.DeletionTimestamp.IsZero() {
 			// 更新状态为ELBServiceTerminating
 			if err := r.makeTerminatingPhase(elbServiceInst); err != nil {
@@ -298,7 +298,7 @@ func (r *ReconcileELBService) createService(elbServiceInst *k8sv1alpha1.ELBServi
 	}, vipService)
 	if err != nil && errors.IsNotFound(err) {
 		vipService = resources.NewVIPServiceForCR(elbServiceInst)
-		// 设置owner
+		// 设置owner，这里需要cr的scheme
 		controllerutil.SetControllerReference(elbServiceInst, vipService, r.scheme)
 		err = r.client.Create(context.TODO(), vipService)
 		if err != nil {

@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "D:\\develope\\gopath\\src\\github.com\\kata-containers"
+		}
+	],
+	"settings": {
+		"go.useLanguageServer": false,
+		"git.ignoreLimitWarning": true
+	}
+}

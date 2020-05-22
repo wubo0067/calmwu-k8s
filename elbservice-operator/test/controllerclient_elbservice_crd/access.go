@@ -1,8 +1,8 @@
 /*
  * @Author: calmwu
  * @Date: 2020-05-17 10:39:16
- * @Last Modified by: calmwu
- * @Last Modified time: 2020-05-17 10:51:46
+ * @Last Modified by: calm.wu
+ * @Last Modified time: 2020-05-21 15:30:01
  */
 
 // 使用dynclient "sigs.k8s.io/controller-runtime/pkg/client"去访问CRD资源
