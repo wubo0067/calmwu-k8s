@@ -235,9 +235,15 @@ func main() {
 	deployment := &appsv1.Deployment{}
 	err = sciKube.GetClient().Get(context.TODO(), types.NamespacedName{Name: "example-appservice", Namespace: "default"}, deployment)
 	if err != nil {
-		calm_utils.Fatalf("failed to deployment:[example-appservice] in namespace:[default], err: %s", err.Error())
+		calm_utils.Fatalf("failed to get deployment:[example-appservice] in namespace:[default], err: %s", err.Error())
 	}
 	calm_utils.Debugf("successed to deployment:[example-appservice] in namespace:[default] %s", litter.Sdump(deployment))
+
+	deployment.ObjectMeta.Labels = map[string]string{"test": "update-by-controllerclient"}
+	err = sciKube.GetClient().Update(context.TODO(), deployment)
+	if err != nil {
+		calm_utils.Fatalf("failed to update deployment:[example-appservice] in namespace:[default], err: %s", err.Error())
+	}
 
 	// 测试获取、修改cr
 	exampleELBService := &elbserviceoperator.ELBService{}
