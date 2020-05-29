@@ -19,7 +19,7 @@ spec:
       containers:
         - name: elbservice-operator
           # Replace this with the built image name
-          image: REPLACE_IMAGE
+          image: docker.io/littlebull/elbservice-operator:v2020.05.29
           command:
           - elbservice-operator
           args: ["--zap-level=debug", "--zap-devel", "--zap-time-encoding=iso8601"]
