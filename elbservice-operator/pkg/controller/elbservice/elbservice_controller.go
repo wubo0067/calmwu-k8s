@@ -265,6 +265,7 @@ func (r *ReconcileELBService) updateUsage(elbServiceInst *k8sv1alpha1.ELBService
 func (r *ReconcileELBService) makeCreatingPhase(elbServiceInst *k8sv1alpha1.ELBService) error {
 	logger := log.WithValues("Request.Namespace", elbServiceInst.Namespace, "Request.Name", elbServiceInst.Name)
 	logger.Info("update", "OldPhase", elbServiceInst.Status.Phase, " NewPhase", "ELBServiceCreating")
+	elbServiceInst.Status.PodInfos = make([]k8sv1alpha1.ELBPodInfo, 0)
 	return r.updateServiceStatus(elbServiceInst, k8sv1alpha1.ELBServiceCreating, nil)
 }
 

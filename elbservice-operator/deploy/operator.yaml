@@ -2,8 +2,10 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: elbservice-operator
+  # 部署的命名空间
+  namespace: calmwu-namespace
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       name: elbservice-operator
@@ -12,6 +14,7 @@ spec:
       labels:
         name: elbservice-operator
     spec:
+      #priorityClassName: system-cluster-critical # 由於控制器有可能是重要元件，因此要確保節點資源不足時，不會優先被驅逐
       serviceAccountName: elbservice-operator
       containers:
         - name: elbservice-operator
@@ -19,12 +22,11 @@ spec:
           image: REPLACE_IMAGE
           command:
           - elbservice-operator
-          imagePullPolicy: Always
+          args: ["--zap-level=debug", "--zap-devel", "--zap-time-encoding=iso8601"]
+          imagePullPolicy: IfNotPresent
           env:
             - name: WATCH_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
+              value: ""
             - name: POD_NAME
               valueFrom:
                 fieldRef:
