@@ -23,7 +23,11 @@ spec:
           command:
           - elbservice-operator
           args: ["--zap-level=debug", "--zap-devel", "--zap-time-encoding=iso8601"]
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
+          volumeMounts:
+            - mountPath: /etc/elbservice
+              name: elbservice-cm
+              readOnly: true
           env:
             - name: WATCH_NAMESPACE
               value: ""
@@ -33,3 +37,7 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "elbservice-operator"
+      volumes:
+        - name: elbservice-cm
+          configMap:
+            name: elbservice-cm

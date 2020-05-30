@@ -1,0 +1,21 @@
+{
+    "CurrEnv" : "FinancialCloud",
+
+    "ELBEnvConfigs" : [
+        {
+            "Env" : "FinancialCloud",
+            "ELBOpers" : {
+                "BindURL" : "http://127.0.0.1/v2.0/pod/bind",
+                "UnBindURL" : "http://127.0.0.1/v2.0/pod/unbind"
+            }
+        },
+
+        {
+            "Env" : "InternalCloud",
+            "ELBOpers" : {
+                "BindURL" : "http://192.0.0.1/v2.0/pod/bind",
+                "UnBindURL" : "http://192.0.0.1/v2.0/pod/unbind"
+            }
+        }
+    ]
+}

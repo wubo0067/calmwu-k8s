@@ -13,6 +13,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"calmwu.org/elbservice-operator/pkg/apis"
+	escfg "calmwu.org/elbservice-operator/pkg/config"
 	"calmwu.org/elbservice-operator/pkg/controller"
 	"calmwu.org/elbservice-operator/version"
 
@@ -70,6 +71,13 @@ func main() {
 
 	printVersion()
 
+	// 读取配置
+	err := escfg.Init()
+	if err != nil {
+		log.Error(err, "Failed to get /etc/elbservice/elbservice_config.json config info")
+		os.Exit(1)
+	}
+
 	// 这个namespace是从部署的yaml文件环境变量中获取的
 	// 获取Operator需要监控的命名空间，通过环境变量设置命名空间
 	namespace, err := k8sutil.GetWatchNamespace()
@@ -77,6 +85,8 @@ func main() {
 		log.Error(err, "Failed to get watch namespace")
 		os.Exit(1)
 	}
+
+	log.Info(fmt.Sprintf("namespace: %s", namespace))
 
 	// Get a config to talk to the apiserver
 	cfg, err := config.GetConfig()

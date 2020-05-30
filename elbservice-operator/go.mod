@@ -13,6 +13,7 @@ require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/google/go-cmp v0.4.0
 	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/mailru/easyjson v0.7.1
 	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/mitchellh/mapstructure v1.3.0 // indirect
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
@@ -20,6 +21,7 @@ require (
 	github.com/sanity-io/litter v1.2.0
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
+	github.com/spf13/afero v1.2.2
 	github.com/spf13/pflag v1.0.5
 	github.com/thoas/go-funk v0.6.0
 	github.com/wubo0067/calmwu-go v0.0.0-20200410083741-d348bac27c84

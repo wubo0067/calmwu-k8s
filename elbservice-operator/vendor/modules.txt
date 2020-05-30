@@ -114,6 +114,12 @@ github.com/json-iterator/go
 github.com/konsorten/go-windows-terminal-sequences
 # github.com/leodido/go-urn v1.2.0
 github.com/leodido/go-urn
+# github.com/mailru/easyjson v0.7.1
+## explicit
+github.com/mailru/easyjson
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
 # github.com/mattn/go-colorable v0.1.6
 ## explicit
 github.com/mattn/go-colorable
@@ -167,6 +173,7 @@ github.com/snwfdhmp/errlog
 # github.com/spaolacci/murmur3 v1.1.0
 github.com/spaolacci/murmur3
 # github.com/spf13/afero v1.2.2
+## explicit
 github.com/spf13/afero
 github.com/spf13/afero/mem
 # github.com/spf13/pflag v1.0.5
@@ -370,7 +377,6 @@ k8s.io/apimachinery/third_party/forked/golang/reflect
 # k8s.io/client-go v12.0.0+incompatible => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 ## explicit
 k8s.io/client-go/discovery
-k8s.io/client-go/discovery/cached
 k8s.io/client-go/discovery/cached/memory
 k8s.io/client-go/dynamic
 k8s.io/client-go/kubernetes
