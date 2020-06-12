@@ -54,13 +54,32 @@ type PodLabel struct {
 	Value string `json:"labelVal"`
 }
 
+// NetELBInstance 网络ELB实例
+type NetELBInstance struct {
+	VpcID             string `json:"vpcid"`
+	NetworkID         string `json:"networkid"`         // 网络域id
+	SubnetID          string `json:"subnetid"`          // 子网id
+	RegionID          string `json:"regionid"`          // 实例所在地域id
+	AutoRenew         bool   `json:"autorenew"`         // 是否自动续费，计费类型为包月
+	ZoneID            string `json:"zoneid"`            // 实例可用区id
+	DisplayName       string `json:"displayname"`       // 实例的显示名
+	LoadbalanceTypeID string `json:"loadbalancetypeid"` // 产品规格
+	LoadType          string `json:"loadtype"`          // 负载均衡类型F5 LVX LVS
+	VIP               string `json:"vip"`               // vip
+	AccessType        string `json:"accesstype"`        // 访问类型，INSIDE OUTSIDE
+	ELBInstanceID     string `json:"elbinstanceid"`     // elbinstanceid
+}
+
 // ELBListener 监听器的参数
 type ELBListener struct {
-	Name       string                `json:"name"`
-	VIP        string                `json:"vip"`
-	Port       int32                 `json:"port"`
-	Protocol   string                `json:"protocol"`
-	LBStrategy LoadBalancingStrategy `json:"lbstrategy"`
+	DidplayName   string `json:"DidplayName"`
+	FrontPort     int32  `json:"FrontPort"`
+	Protocol      string `json:"protocol"`
+	LBStrategy    string `json:"lbstrategy"`    // WRR加权轮询、WLC加权最少连接
+	ContainerPort int32  `json:"containerport"` // 后端容器端口
+	ListenerID    string `json:"listenerid"`    // 监听器id
+	PoolID        string `json:"poolid"`        // 对应的poolid
+	FrontProtocol string `json:"frontprotcol"`  // 前端接入协议
 }
 
 // ELBServiceSpec defines the desired state of ELBService
@@ -68,8 +87,9 @@ type ELBServiceSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	Listener ELBListener       `json:"elblistener"`
-	Selector map[string]string `json:"selector,omitempty" protobuf:"bytes,2,rep,name=selector"`
+	ElbInstance NetELBInstance    `json:"elbinstance"`
+	Listeners   []ELBListener     `json:"elblisteners"`
+	Selector    map[string]string `json:"selector,omitempty" protobuf:"bytes,2,rep,name=selector"`
 }
 
 // ELBPodInfo pod信息
