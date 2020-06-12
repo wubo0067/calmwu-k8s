@@ -79,7 +79,7 @@ spec:
                 items:
                   description: ELBListener 监听器的参数
                   properties:
-                    DidplayName:
+                    DisplayName:
                       type: string
                     FrontPort:
                       format: int32
@@ -98,7 +98,7 @@ spec:
                     protocol:
                       type: string
                   required:
-                  - DidplayName
+                  - DisplayName
                   - FrontPort
                   - containerport
                   - frontprotcol

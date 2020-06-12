@@ -38,14 +38,16 @@ func NewVIPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 		},
 		Spec: corev1.ServiceSpec{
 			ClusterIP: "None",
-			Ports: []corev1.ServicePort{
-				corev1.ServicePort{
-					Name:       cr.Spec.Listener.Name,
-					Protocol:   corev1.Protocol(cr.Spec.Listener.Protocol),
-					Port:       cr.Spec.Listener.Port,
-					TargetPort: intstr.FromInt(int(cr.Spec.Listener.Port)),
-				},
-			},
+			Ports: func() []corev1.ServicePort {
+				servicePorts := make([]corev1.ServicePort, len(cr.Spec.Listeners))
+				for index := range cr.Spec.Listeners {
+					servicePorts[index].Name = cr.Spec.Listeners[index].DisplayName
+					servicePorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].FrontProtocol)
+					servicePorts[index].Port = cr.Spec.Listeners[index].FrontPort
+					servicePorts[index].TargetPort = intstr.FromInt(int(cr.Spec.Listeners[index].ContainerPort))
+				}
+				return servicePorts
+			}(),
 		},
 	}
 	return vipService

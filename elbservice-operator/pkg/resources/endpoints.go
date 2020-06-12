@@ -28,15 +28,17 @@ func NewVIPEndpointForCR(cr *k8sv1alpha1.ELBService) *corev1.Endpoints {
 			corev1.EndpointSubset{
 				Addresses: []corev1.EndpointAddress{
 					corev1.EndpointAddress{
-						IP: cr.Spec.Listener.VIP, // 设置elb的ip地址
+						IP: cr.Spec.ElbInstance.VIP, // 设置elb的ip地址
 					},
 				},
-				Ports: []corev1.EndpointPort{
-					corev1.EndpointPort{
-						Port:     cr.Spec.Listener.Port,
-						Protocol: corev1.Protocol(cr.Spec.Listener.Protocol),
-					},
-				},
+				Ports: func() []corev1.EndpointPort {
+					endPointPorts := make([]corev1.EndpointPort, len(cr.Spec.Listeners))
+					for index := range cr.Spec.Listeners {
+						endPointPorts[index].Port = cr.Spec.Listeners[index].FrontPort
+						endPointPorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].FrontProtocol)
+					}
+					return endPointPorts
+				}(),
 			},
 		},
 	}

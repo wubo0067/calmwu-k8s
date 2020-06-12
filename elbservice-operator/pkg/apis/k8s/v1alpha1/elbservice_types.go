@@ -72,7 +72,7 @@ type NetELBInstance struct {
 
 // ELBListener 监听器的参数
 type ELBListener struct {
-	DidplayName   string `json:"DidplayName"`
+	DisplayName   string `json:"DisplayName"`
 	FrontPort     int32  `json:"FrontPort"`
 	Protocol      string `json:"protocol"`
 	LBStrategy    string `json:"lbstrategy"`    // WRR加权轮询、WLC加权最少连接
