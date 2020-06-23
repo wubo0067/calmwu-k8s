@@ -42,7 +42,7 @@ func NewVIPServiceForCR(cr *k8sv1alpha1.ELBService) *corev1.Service {
 				servicePorts := make([]corev1.ServicePort, len(cr.Spec.Listeners))
 				for index := range cr.Spec.Listeners {
 					servicePorts[index].Name = cr.Spec.Listeners[index].DisplayName
-					servicePorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].FrontProtocol)
+					servicePorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].Protocol)
 					servicePorts[index].Port = cr.Spec.Listeners[index].FrontPort
 					servicePorts[index].TargetPort = intstr.FromInt(int(cr.Spec.Listeners[index].ContainerPort))
 				}
