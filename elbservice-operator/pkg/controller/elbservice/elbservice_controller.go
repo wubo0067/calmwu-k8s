@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -24,6 +25,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 )
+
+// https://github.com/kubernetes/kubernetes/issues/84430
 
 var log = logf.Log.WithName("controller_elbservice")
 
@@ -125,6 +128,8 @@ func (r *ReconcileELBService) Reconcile(request reconcile.Request) (reconcile.Re
 		reqLogger.Error(err, "Failed to get ELBService.")
 		return reconcile.Result{}, err
 	}
+
+	reqLogger.Info("<<<ELBService>>>", "name:", elbServiceInst.Name, "resourceVersion", elbServiceInst.ResourceVersion)
 
 	switch elbServiceInst.Status.Phase {
 	case k8sv1alpha1.ELBServiceNone:
@@ -251,8 +256,11 @@ func (r *ReconcileELBService) updateUsage(elbServiceInst *k8sv1alpha1.ELBService
 			elbServiceInst.Status.PodCount = elbServiceStatus.PodCount
 			elbServiceInst.Status.PodInfos = elbServiceStatus.PodInfos
 			if err := r.client.Status().Update(context.TODO(), elbServiceInst); err != nil {
-				logger.Error(err, "Update ELBService.Status.PodInfos failed.")
-				return err
+				if !k8serrors.IsConflict(err) {
+					logger.Error(err, "Update ELBService.Status.PodInfos failed.")
+					return err
+				}
+
 			} else {
 				logger.Info("Update ELBService.Status.PodInfos successed.")
 			}
@@ -303,10 +311,12 @@ func (r *ReconcileELBService) createService(elbServiceInst *k8sv1alpha1.ELBServi
 		controllerutil.SetControllerReference(elbServiceInst, vipService, r.scheme)
 		err = r.client.Create(context.TODO(), vipService)
 		if err != nil {
-			logger.Error(err, "Failed to create new VIPService", "VIPService.Namespace", vipService.Namespace, "VIPService.Name", vipService.Name)
-			// 需要重试
-			r.makeFailedPhase(elbServiceInst, err)
-			return err
+			if !k8serrors.IsAlreadyExists(err) {
+				logger.Error(err, "Failed to create new VIPService", "VIPService.Namespace", vipService.Namespace, "VIPService.Name", vipService.Name)
+				// 需要重试
+				r.makeFailedPhase(elbServiceInst, err)
+				return err
+			}
 		}
 		logger.Info("Creating a new VIPService successed.", "VIPService.Name", vipService.Name)
 		// Service created successfully - return and requeue
@@ -331,10 +341,12 @@ func (r *ReconcileELBService) createService(elbServiceInst *k8sv1alpha1.ELBServi
 		controllerutil.SetControllerReference(elbServiceInst, vipSvcEndpoints, r.scheme)
 		err = r.client.Create(context.TODO(), vipSvcEndpoints)
 		if err != nil {
-			logger.Error(err, "Failed to create new VIPEndpoints", "VIPEndpoints.Namespace", vipSvcEndpoints.Namespace, "VIPEndpoints.Name", vipSvcEndpoints.Name)
-			// 需要重试
-			r.makeFailedPhase(elbServiceInst, err)
-			return err
+			if !k8serrors.IsAlreadyExists(err) {
+				logger.Error(err, "Failed to create new VIPEndpoints", "VIPEndpoints.Namespace", vipSvcEndpoints.Namespace, "VIPEndpoints.Name", vipSvcEndpoints.Name)
+				// 需要重试
+				r.makeFailedPhase(elbServiceInst, err)
+				return err
+			}
 		}
 		logger.Info("Creating a new VIPSvcEndpoints successed.", "VIPSvcEndpoints.Name", vipSvcEndpoints.Name)
 		// 创建一个pod用于测试域名解析
@@ -365,9 +377,11 @@ func (r *ReconcileELBService) createService(elbServiceInst *k8sv1alpha1.ELBServi
 
 		err = r.client.Create(context.TODO(), epService)
 		if err != nil {
-			logger.Error(err, "Failed to create new EPService", "EPService.Namespace", epService.Namespace, "EPService.Name", epService.Name)
-			r.makeFailedPhase(elbServiceInst, err)
-			return err
+			if !k8serrors.IsAlreadyExists(err) {
+				logger.Error(err, "Failed to create new EPService", "EPService.Namespace", epService.Namespace, "EPService.Name", epService.Name)
+				r.makeFailedPhase(elbServiceInst, err)
+				return err
+			}
 		}
 		logger.Info("Creating a new EPService successed.", "EPService.Name", epService.Name)
 		// Service created successfully - return and requeue

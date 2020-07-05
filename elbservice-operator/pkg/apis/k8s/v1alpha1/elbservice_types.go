@@ -72,14 +72,13 @@ type NetELBInstance struct {
 
 // ELBListener 监听器的参数
 type ELBListener struct {
-	DisplayName   string `json:"DisplayName"`
-	FrontPort     int32  `json:"FrontPort"`
+	DisplayName   string `json:"displayname"`
+	FrontPort     int32  `json:"frontport"`
 	Protocol      string `json:"protocol"`
 	LBStrategy    string `json:"lbstrategy"`    // WRR加权轮询、WLC加权最少连接
 	ContainerPort int32  `json:"containerport"` // 后端容器端口
 	ListenerID    string `json:"listenerid"`    // 监听器id
 	PoolID        string `json:"poolid"`        // 对应的poolid
-	FrontProtocol string `json:"frontprotcol"`  // 前端接入协议
 }
 
 // ELBServiceSpec defines the desired state of ELBService

@@ -4,12 +4,27 @@ metadata:
   name: example-elbservice
   namespace: calmwu-namespace
 spec:
+  elbinstance:
+    vpcid: vpcid,
+    networkid: networkid-1
+    subnetid: subnetid-1
+    regionid: regionid-1
+    autorenew: true
+    zoneid: ZoneID-1
+    displayname: calmwu-elbservice
+    loadbalancetypeid: LVX-TYPE
+    loadtype: LVX
+    vip: 1.2.3.4
+    accesstype: INSIDE
+    elbinstanceid: ELBInstanceID-1
   # 配置elb的监听器
-  elblistener:
-    name: db
-    vip:  192.168.100.109
-    port: 3306
-    protocol: TCP
-    lbstrategy: roundrobin
+  elblisteners:
+    - displayname: db
+      frontport: 3306
+      containerport: 3307
+      protocol: TCP
+      lbstrategy: roundrobin
+      poolid: poolid-1
+      listenerid: listenerid-1
   selector:
     app: elbservice-pods

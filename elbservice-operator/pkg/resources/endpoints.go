@@ -35,7 +35,7 @@ func NewVIPEndpointForCR(cr *k8sv1alpha1.ELBService) *corev1.Endpoints {
 					endPointPorts := make([]corev1.EndpointPort, len(cr.Spec.Listeners))
 					for index := range cr.Spec.Listeners {
 						endPointPorts[index].Port = cr.Spec.Listeners[index].FrontPort
-						endPointPorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].FrontProtocol)
+						endPointPorts[index].Protocol = corev1.Protocol(cr.Spec.Listeners[index].Protocol)
 					}
 					return endPointPorts
 				}(),
