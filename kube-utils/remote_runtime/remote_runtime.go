@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/containerd/containerd/defaults"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
@@ -71,7 +72,14 @@ func getConnection(endPoints []string, connectionTimeout time.Duration) (*grpc.C
 			klog.Error(err)
 			continue
 		}
-		conn, err = grpc.Dial(addr, grpc.WithInsecure(), grpc.WithBlock(), grpc.WithTimeout(connectionTimeout), grpc.WithContextDialer(dialer))
+		conn, err = grpc.Dial(addr,
+			grpc.WithInsecure(),
+			grpc.WithBlock(),
+			grpc.WithTimeout(connectionTimeout),
+			grpc.WithContextDialer(dialer),
+			grpc.WithDefaultCallOptions(grpc.MaxCallRecvMsgSize(defaults.DefaultMaxRecvMsgSize)),
+			grpc.WithDefaultCallOptions(grpc.MaxCallSendMsgSize(defaults.DefaultMaxSendMsgSize)),
+		)
 		if err != nil {
 			errMsg := errors.Wrapf(err, "connect endpoint '%s', make sure you are running as root and the endpoint has been started", endPoint)
 			if indx == endPointsLen-1 {
