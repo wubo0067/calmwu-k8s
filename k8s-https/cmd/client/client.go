@@ -14,27 +14,40 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/net/http2"
+	"k8s.io/apimachinery/pkg/util/wait"
 )
 
 func main() {
 	client := &http.Client{Transport: transport2()}
 
-	res, err := client.Get("https://my-svc.calm-space.svc:8443")
-	if err != nil {
-		log.Fatal(err)
-	}
+	count := 10
 
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
+	wait.PollInfinite(3*time.Second, func() (bool, error) {
+		res, err := client.Get("https://my-svc.calm-space.svc:8443")
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	res.Body.Close()
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-	fmt.Printf("Code: %d\n", res.StatusCode)
-	fmt.Printf("Body: %s\n", body)
+		res.Body.Close()
+
+		fmt.Printf("count:%d Code: %d, Body: %s\n", count, res.StatusCode, body)
+
+		count--
+		if count == 0 {
+			return true, nil
+		}
+		return false, nil
+	})
+
+	fmt.Println("https-cli exit!")
 }
 
 func transport2() *http2.Transport {
@@ -78,9 +91,10 @@ func tlsConfig() *tls.Config {
 
 	return &tls.Config{
 		RootCAs:            rootCAs,
-		InsecureSkipVerify: false, /*InsecureSkipVerify用来控制客户端是否证书和服务器主机名。如果设置为true,则不会校验证书以及证书中的主机名和服务器主机名是否一致。
-		因为在我们的例子中使用自签名的证书，所以设置它为true,仅仅用于测试目的。*/
+		InsecureSkipVerify: true,
+		//InsecureSkipVerify: false, /*InsecureSkipVerify用来控制客户端是否证书和服务器主机名。如果设置为true,则不会校验证书以及证书中的主机名和服务器主机名是否一致。
+		// 因为在我们的例子中使用自签名的证书，所以设置它为true,仅仅用于测试目的。*/
 		//ServerName:         "localhost",
-		ServerName: "my-svc.calm-space.svc.cluster.local",
+		//ServerName: "my-svc.calm-space.svc.cluster.local",
 	}
 }

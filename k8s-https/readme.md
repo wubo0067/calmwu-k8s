@@ -1,6 +1,8 @@
 ### 镜像打包
 ```
 docker build -t littlebull/https-server:0.0.1 -f Dockerfile_server .
+docker build -t littlebull/https-client:0.0.1 -f Dockerfile_client .
+
 ```
 
 ### 查看镜像结构
