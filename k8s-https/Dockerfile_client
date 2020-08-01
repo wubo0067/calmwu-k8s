@@ -1,0 +1,20 @@
+FROM golang:alpine3.12 AS builder
+WORKDIR /build
+
+COPY go.mod .
+COPY go.sum .
+COPY cert/* cert/
+COPY cmd/client cmd/client
+
+ENV GOPROXY https://goproxy.cn
+
+RUN go mod vendor
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -mod=vendor -o https-cli cmd/client/client.go
+
+FROM alpine:3.10 AS final
+WORKDIR /https
+COPY --from=builder /build/https-cli /https/cmd/client/
+COPY --from=builder /build/cert/* /https/cert/
+#USER nonroot:nonroot
+
+ENTRYPOINT ["sh", "-c", "cd /https/cmd/client;./https-cli"]

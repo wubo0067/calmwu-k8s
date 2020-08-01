@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: calm-space
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-svc
+  namespace: calm-space
+spec:
+  ports:
+    - port: 8443
+      targetPort: 8443
+  selector:
+    srv: https-srv
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: https-srv
+  namespace: calm-space
+spec:
+  selector:
+    matchLabels:
+        srv: https-srv
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        srv: https-srv
+    spec:
+      containers:
+      - image: littlebull/https-server:0.0.1
+        name: https-srv
+        imagePullPolicy: Always
+        ports:
+            - containerPort: 8443
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10
