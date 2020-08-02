@@ -52,6 +52,10 @@ spec:
     namespace: calm-space
     annotations:
       kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-passthrough: "true"
+      nginx.ingress.kubernetes.io/secure-backends: "true"
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+      nginx.org/ssl-services: "my-svc"
   spec:
     rules:
     - host: k8s.calmwu.org

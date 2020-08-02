@@ -17,3 +17,8 @@ tar xf https-srv.tar
 ```
 https://www.qikqiak.com/post/install-nginx-ingress/
 ```
+
+### curl访问
+```
+curl -v https://192.168.2.128/my-svc -H "host:k8s.calmwu.org" --cacert server.crt -k
+```
