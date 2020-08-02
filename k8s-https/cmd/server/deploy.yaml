@@ -44,3 +44,20 @@ spec:
             cpu: 100m
             memory: 20Mi
       terminationGracePeriodSeconds: 10
+---
+  apiVersion: extensions/v1beta1
+  kind: Ingress
+  metadata:
+    name: https-srv
+    namespace: calm-space
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+  spec:
+    rules:
+    - host: k8s.calmwu.org
+      http:
+        paths:
+        - path: /my-svc
+          backend:
+            serviceName: my-svc
+            servicePort: 8443
