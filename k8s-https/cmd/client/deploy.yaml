@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: https-cli
+  namespace: calm-space
+spec:
+  containers:
+  - name: https-cli
+    image: littlebull/https-client:0.0.1
+    imagePullPolicy: Always
