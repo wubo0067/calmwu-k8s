@@ -24,6 +24,7 @@ import (
 	"helm.sh/helm/v3/pkg/kube"
 	"helm.sh/helm/v3/pkg/storage"
 	"helm.sh/helm/v3/pkg/storage/driver"
+	"k8s.io/apimachinery/pkg/conversion"
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/client-go/kubernetes/scheme"
@@ -35,7 +36,8 @@ import (
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	apiruntime "k8s.io/apimachinery/pkg/runtime"
-	k8sapps "k8s.io/kubernetes/pkg/apis/apps"
+	apiapps "k8s.io/kubernetes/pkg/apis/apps"
+	apicore "k8s.io/kubernetes/pkg/apis/core"
 )
 
 func makeHelmConfiguration(namespace string) (*action.Configuration, error) {
@@ -124,7 +126,12 @@ func decodeFromYamlContent(client *kube.Client, yamlContent []byte) {
 	calm_utils.Debugf("gvk:%s", litter.Sdump(gvk))
 	//calm_utils.Debugf("runtimeObj:%#v， type:[%s]", runtimeObj, reflect.TypeOf(runtimeObj).Name())
 
-	apiruntime.UnsafeObjectConvertor(scheme.Scheme).ConvertToVersion(runtimeObj, k8sapps.SchemeGroupVersion)
+	// 转换为内部没有版本的对象，statefulset、deployment、service这些
+	apiapps.AddToScheme(scheme.Scheme)
+	apicore.AddToScheme(scheme.Scheme)
+	// 屏蔽字段差异
+	scheme.Scheme.RegisterInputDefaults(runtimeObj, nil, conversion.AllowDifferentFieldTypeNames|conversion.IgnoreMissingFields)
+	apiruntime.UnsafeObjectConvertor(scheme.Scheme).ConvertToVersion(runtimeObj, apiapps.SchemeGroupVersion)
 
 	cs, _ := client.Factory.KubernetesClientSet()
 
