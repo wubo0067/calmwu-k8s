@@ -1,6 +1,6 @@
 module helmclient
 
-go 1.13
+go 1.15
 
 replace (
 	// github.com/Azure/go-autorest/autorest has different versions for the Go
@@ -28,6 +28,7 @@ require (
 	github.com/gin-gonic/gin v1.5.0 // indirect
 	github.com/mattn/go-colorable v0.1.4 // indirect
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
+	github.com/pkg/errors v0.8.1
 	github.com/sanity-io/litter v1.2.0
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc
@@ -39,10 +40,53 @@ require (
 	golang.org/x/tools/gopls v0.1.8-0.20200121042740-dbc83e6dc05e // indirect
 	golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543 // indirect
 	helm.sh/helm/v3 v3.0.0-beta.5.0.20200119220513-a911600fc2d6
-	k8s.io/api v0.0.0-20191016110408-35e52d86657a
-	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
-	k8s.io/cli-runtime v0.0.0-20191016114015-74ad18325ed5
-	k8s.io/client-go v0.0.0-20191016111102-bec269661e48
-	k8s.io/kubectl v0.0.0-20191016120415-2ed914427d51
-	sigs.k8s.io/yaml v1.1.0
+	k8s.io/api v0.18.6
+	k8s.io/apimachinery v0.18.6
+	k8s.io/cli-runtime v0.18.6
+	k8s.io/client-go v0.18.6
+	k8s.io/cloud-provider v0.18.6 // indirect
+	k8s.io/kubernetes v1.18.6
+	sigs.k8s.io/yaml v1.2.0
 )
+
+replace k8s.io/api v0.0.0 => k8s.io/api v0.18.6
+
+replace k8s.io/apiextensions-apiserver v0.0.0 => k8s.io/apiextensions-apiserver v0.18.6
+
+replace k8s.io/apimachinery v0.0.0 => k8s.io/apimachinery v0.18.6
+
+replace k8s.io/apiserver v0.0.0 => k8s.io/apiserver v0.18.6
+
+replace k8s.io/cli-runtime v0.0.0 => k8s.io/cli-runtime v0.18.6
+
+replace k8s.io/client-go v0.0.0 => k8s.io/client-go v0.18.6
+
+replace k8s.io/cloud-provider v0.0.0 => k8s.io/cloud-provider v0.18.6
+
+replace k8s.io/cluster-bootstrap v0.0.0 => k8s.io/cluster-bootstrap v0.18.6
+
+replace k8s.io/code-generator v0.0.0 => k8s.io/code-generator v0.18.6
+
+replace k8s.io/component-base v0.0.0 => k8s.io/component-base v0.18.6
+
+replace k8s.io/cri-api v0.0.0 => k8s.io/cri-api v0.18.6
+
+replace k8s.io/csi-translation-lib v0.0.0 => k8s.io/csi-translation-lib v0.18.6
+
+replace k8s.io/kube-aggregator v0.0.0 => k8s.io/kube-aggregator v0.18.6
+
+replace k8s.io/kube-controller-manager v0.0.0 => k8s.io/kube-controller-manager v0.18.6
+
+replace k8s.io/kube-proxy v0.0.0 => k8s.io/kube-proxy v0.18.6
+
+replace k8s.io/kube-scheduler v0.0.0 => k8s.io/kube-scheduler v0.18.6
+
+replace k8s.io/kubectl v0.0.0 => k8s.io/kubectl v0.18.6
+
+replace k8s.io/kubelet v0.0.0 => k8s.io/kubelet v0.18.6
+
+replace k8s.io/legacy-cloud-providers v0.0.0 => k8s.io/legacy-cloud-providers v0.18.6
+
+replace k8s.io/metrics v0.0.0 => k8s.io/metrics v0.18.6
+
+replace k8s.io/sample-apiserver v0.0.0 => k8s.io/sample-apiserver v0.18.6

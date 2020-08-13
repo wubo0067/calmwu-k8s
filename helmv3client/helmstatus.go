@@ -34,6 +34,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	apiruntime "k8s.io/apimachinery/pkg/runtime"
+	k8sapps "k8s.io/kubernetes/pkg/apis/apps"
 )
 
 func makeHelmConfiguration(namespace string) (*action.Configuration, error) {
@@ -121,6 +123,8 @@ func decodeFromYamlContent(client *kube.Client, yamlContent []byte) {
 
 	calm_utils.Debugf("gvk:%s", litter.Sdump(gvk))
 	//calm_utils.Debugf("runtimeObj:%#v， type:[%s]", runtimeObj, reflect.TypeOf(runtimeObj).Name())
+
+	apiruntime.UnsafeObjectConvertor(scheme.Scheme).ConvertToVersion(runtimeObj, k8sapps.SchemeGroupVersion)
 
 	cs, _ := client.Factory.KubernetesClientSet()
 
