@@ -1,6 +1,6 @@
 module calmwu.org/elbservice-operator
 
-go 1.14
+go 1.15
 
 require (
 	github.com/Azure/go-autorest v12.2.0+incompatible // indirect
