@@ -149,6 +149,7 @@ func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internal
 	defer f.lock.Unlock()
 
 	informerType := reflect.TypeOf(obj)
+	// key为类型，crd的类型也是这里加入
 	informer, exists := f.informers[informerType]
 	if exists {
 		return informer
@@ -159,6 +160,7 @@ func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internal
 		resyncPeriod = f.defaultResync
 	}
 
+	// calmwu: informer其实就是cache.SharedIndexInformer
 	informer = newFunc(f.client, resyncPeriod)
 	f.informers[informerType] = informer
 

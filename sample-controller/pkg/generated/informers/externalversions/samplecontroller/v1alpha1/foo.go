@@ -81,6 +81,7 @@ func (f *fooInformer) defaultInformer(client versioned.Interface, resyncPeriod t
 }
 
 func (f *fooInformer) Informer() cache.SharedIndexInformer {
+	// 将informer加入factory，这里就是cache.NewSharedIndexInformer
 	return f.factory.InformerFor(&samplecontrollerv1alpha1.Foo{}, f.defaultInformer)
 }
 

@@ -93,6 +93,8 @@ func NewController(
 	// Create event broadcaster
 	// Add sample-controller types to the default Kubernetes Scheme so Events can be
 	// logged for sample-controller types.
+
+	// 必须将自定义scheme加入全局的scheme中，这还是第一步，其实核心是runtime.NewSchemeBuilder(addKnownTypes).AddToScheme
 	utilruntime.Must(samplescheme.AddToScheme(scheme.Scheme))
 	klog.V(4).Info("Creating event broadcaster")
 	eventBroadcaster := record.NewBroadcaster()

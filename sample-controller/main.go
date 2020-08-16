@@ -64,17 +64,19 @@ func main() {
 	// Shared指在多个Informer中共享一个本地cache，每隔30秒resync一次（list）,每种类型的resource都需要一个informer
 	// 为每个资源创建一个informer
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
-	// 调用自动生成的代码，通过clientset创建informer
+	// 这里先构造Factory对象，其实我觉得没必要，因为Factory中就管理一个type
 	exampleInformerFactory := informers.NewSharedInformerFactory(exampleClient, time.Second*30)
 
 	controller := NewController(kubeClient, exampleClient,
 		kubeInformerFactory.Apps().V1().Deployments(),
+		// 下面这个就是构造 fooInformer对象
 		exampleInformerFactory.Samplecontroller().V1alpha1().Foos())
 
 	// notice that there is no need to run Start methods in a separate goroutine. (i.e. go kubeInformerFactory.Start(stopCh)
 	// Start method is non-blocking and runs all registered informers in a dedicated goroutine.
 	// // 启动 informer，list & watch，这里包括自定义的类型的Informer
 	kubeInformerFactory.Start(stopCh)
+	// 其实这里就是启动 cache.NewSharedIndexInformer
 	exampleInformerFactory.Start(stopCh)
 
 	// 启动controller

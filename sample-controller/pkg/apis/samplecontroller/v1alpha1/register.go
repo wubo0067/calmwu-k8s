@@ -39,6 +39,7 @@ func Resource(resource string) schema.GroupResource {
 
 var (
 	// SchemeBuilder initializes a scheme builder
+	// calm 这里很重要，将类型加入到sheme中
 	SchemeBuilder = runtime.NewSchemeBuilder(addKnownTypes)
 	// AddToScheme is a global function that registers this API group & version to a scheme
 	AddToScheme = SchemeBuilder.AddToScheme
