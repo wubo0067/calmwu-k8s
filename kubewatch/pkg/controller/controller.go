@@ -80,6 +80,8 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 
 	// Adding Default Critical Alerts
 	// For Capturing Critical Event NodeNotReady in Nodes
+	// involvedObject：表示的是这个events所属的资源，它的类型是ObjectReference
+	// FieldSelector是匹配的该资源的域，比如Name、Namespace.
 	nodeNotReadyInformer := cache.NewSharedIndexInformer(
 		&cache.ListWatch{
 			ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
@@ -92,7 +94,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 		},
 		&api_v1.Event{},
-		0, //Skip resync
+		0, //Skip resync，对于event不需要resync
 		cache.Indexers{},
 	)
 
@@ -100,6 +102,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 	stopNodeNotReadyCh := make(chan struct{})
 	defer close(stopNodeNotReadyCh)
 
+	// 这里就直接run了，没有WaitForCacheSync，是不是因为周期设置为0了
 	go nodeNotReadyController.Run(stopNodeNotReadyCh)
 
 	// For Capturing Critical Event NodeReady in Nodes
@@ -174,6 +177,7 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 		backoffInformer := cache.NewSharedIndexInformer(
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
+					// selector的使用，就是在Event这个对象上，针对结构成员的选择。类似对象都可以使用
 					options.FieldSelector = "involvedObject.kind=Pod,type=Warning,reason=BackOff"
 					return kubeClient.CoreV1().Events(conf.Namespace).List(options)
 				},
@@ -510,9 +514,11 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 }
 
 func newResourceController(client kubernetes.Interface, eventHandler handlers.Handler, informer cache.SharedIndexInformer, resourceType string) *Controller {
+	// 都会构造一个queue，回调函数写入对象用
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	var newEvent Event
 	var err error
+	// 注册事件响应函数
 	informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			newEvent.key, err = cache.MetaNamespaceKeyFunc(obj)
@@ -561,8 +567,10 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 	c.logger.Info("Starting kubewatch controller")
 	serverStartTime = time.Now().Local()
 
+	// 启动informer
 	go c.informer.Run(stopCh)
 
+	// 等待同步
 	if !cache.WaitForCacheSync(stopCh, c.HasSynced) {
 		utilruntime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 		return
