@@ -1,0 +1,12 @@
+namespace: ""
+handler:
+  default:
+resource:
+  deployment: false
+  replicationcontroller: false
+  replicaset: false
+  daemonset: false
+  services: true
+  pod: true
+  secret: false
+  configmap: false

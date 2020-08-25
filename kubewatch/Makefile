@@ -9,14 +9,19 @@ PKG            = github.com/bitnami-labs/kubewatch
 TRAVIS_COMMIT ?= `git describe --tags`
 GOCMD          = go
 BUILD_DATE     = `date +%FT%T%z`
-GOFLAGS       ?= $(GOFLAGS:)
+GOFLAGS        = -mod=vendor
 LDFLAGS       := "-X '$(PKG)/cmd.gitCommit=$(TRAVIS_COMMIT)' \
 		          -X '$(PKG)/cmd.buildDate=$(BUILD_DATE)'"
+LDFLAGS		   =
+
+LDFLAGS     =   -ldflags "-extldflags=-static"
+GCFLAGS     =   -gcflags "-N -l -m"
+GOTAGS      :=  -tags static -tags deadlock
 
 default: build test
 
 build:
-	"$(GOCMD)" build ${GOFLAGS} -ldflags ${LDFLAGS} -o "${BINARY}"
+	go build ${GOFLAGS} ${GCFLAGS} ${LDFLAGS} -o kubewatch main.go
 
 docker-image:
 	@docker build -t "${BINARY}" .

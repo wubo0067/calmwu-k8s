@@ -26,6 +26,8 @@ import (
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/slack"
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/smtp"
 	"github.com/bitnami-labs/kubewatch/pkg/handlers/webhook"
+	"github.com/sanity-io/litter"
+	"github.com/sirupsen/logrus"
 )
 
 // Handler is implemented by any handler.
@@ -60,4 +62,5 @@ func (d *Default) Init(c *config.Config) error {
 
 // Handle handles an event.
 func (d *Default) Handle(e event.Event) {
+	logrus.WithField("handler", "kubewatch-log").Infof("event message: %s}", litter.Sdump(e))
 }
