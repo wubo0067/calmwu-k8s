@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/containerd/containerd/defaults"
@@ -187,7 +188,11 @@ func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([
 
 	klog.Infof("StreamOptions: %v", streamOptions)
 
+	var wg sync.WaitGroup
+	wg.Add(1)
+
 	go func() {
+		defer wg.Done()
 		klog.Info("---stream start----")
 		executor.Stream(streamOptions)
 		klog.Info("---stream exit----")
@@ -232,6 +237,8 @@ func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([
 	// 退出sh
 	pw.Write([]byte("exit\n"))
 	pw.Close()
+
+	wg.Wait()
 
 	klog.Info("executor completed.")
 
