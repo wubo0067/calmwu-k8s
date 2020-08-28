@@ -49,7 +49,14 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
-	data, err := runtimeService.RunBash("af1e3248721ea", "ls -al")
+	cmdLines := []string{
+		"cat<<EOF\n",
+		"123456\n",
+		"654321\n",
+		"EOF",
+	}
+
+	data, err := runtimeService.RunBash("af1e3248721ea", cmdLines)
 	if err != nil {
 		t.Errorf("RunBash failed, err:%s", err.Error())
 		return

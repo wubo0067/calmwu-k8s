@@ -12,8 +12,8 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -142,8 +142,8 @@ func (r *RemoteRuntimeService) ExecSync(containerID string, cmd []string, timeou
 	return append(resp.Stdout, resp.Stderr...), err
 }
 
-func (r *RemoteRuntimeService) RunBash(containerID string, cmd string) ([]byte, error) {
-	pr, pw := io.Pipe()
+func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([]byte, error) {
+	pr, pw, _ := os.Pipe()
 
 	request := &runtimeapi.ExecRequest{
 		ContainerId: containerID,
@@ -194,18 +194,37 @@ func (r *RemoteRuntimeService) RunBash(containerID string, cmd string) ([]byte, 
 	}()
 
 	// 通过pipe写入命令
-	len, err := pw.Write([]byte(cmd))
-	if err != nil {
-		klog.Errorf("RunBash %s pipe write failed: %v", containerID, err)
-		return nil, err
+	writeLen := 0
+	for _, cmdLine := range cmdLines {
+		len, err := pw.Write([]byte(cmdLine))
+		if err != nil {
+			klog.Errorf("RunBash %s pipe write failed: %v", containerID, err)
+			return nil, err
+		}
+		writeLen += len
 	}
 
 	// 回车执行命令
 	pw.Write([]byte("\n"))
-	klog.Infof("RunBash %s enter perform cmd, len:%d", containerID, len)
+	klog.Infof("RunBash %s enter perform cmd, writeLen:%d", containerID, writeLen)
+
+	// 等待结果
+	waitTimeout := time.Now().Add(time.Second)
+	for {
+		if writer.Len() > 0 {
+			break
+		}
+
+		if time.Now().After(waitTimeout) {
+			// 超时时间1秒
+			klog.Info("RunBash wait result timeout")
+			break
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
 
 	// 获取结果
-	time.Sleep(time.Second)
 	cmdRes := new(bytes.Buffer)
 	cmdRes.Write(writer.Bytes())
 	klog.Infof("cmd res:%s", cmdRes.String())
