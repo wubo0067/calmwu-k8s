@@ -9,14 +9,20 @@
 package remoteruntime
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"net/url"
+	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/containerd/containerd/defaults"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	restclient "k8s.io/client-go/rest"
+	remoteclient "k8s.io/client-go/tools/remotecommand"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
 	"k8s.io/klog"
 	"k8s.io/kubernetes/pkg/kubelet/util"
@@ -135,4 +141,106 @@ func (r *RemoteRuntimeService) ExecSync(containerID string, cmd []string, timeou
 	}
 
 	return append(resp.Stdout, resp.Stderr...), err
+}
+
+func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([]byte, error) {
+	pr, pw, _ := os.Pipe()
+
+	request := &runtimeapi.ExecRequest{
+		ContainerId: containerID,
+		Cmd:         []string{"sh"},
+		Tty:         false,
+		Stdin:       true,
+		Stdout:      true,
+		Stderr:      true,
+	}
+
+	resp, err := r.runtimeClient.Exec(context.Background(), request)
+	if err != nil {
+		klog.Errorf("RunBash %s '/bin/sh' from runtime service failed: %v", containerID, err)
+		return nil, err
+	}
+
+	execURL := resp.Url
+
+	URL, err := url.Parse(execURL)
+	if err != nil {
+		klog.Errorf("RunBash %s url.Parse %s failed: %v", containerID, execURL, err)
+		return nil, err
+	}
+
+	klog.Infof("RunBash URL: %v", URL)
+
+	executor, err := remoteclient.NewSPDYExecutor(&restclient.Config{TLSClientConfig: restclient.TLSClientConfig{Insecure: true}}, "POST", URL)
+	if err != nil {
+		klog.Errorf("RunBash %s NewSPDYExecutor failed: %v", containerID, err)
+		return nil, err
+	}
+
+	//_, stdout, stderr := dockerterm.StdStreams()
+	writer := new(bytes.Buffer)
+	streamOptions := remoteclient.StreamOptions{
+		Stdout: writer,
+		Stderr: writer,
+		Tty:    false,
+		Stdin:  pr,
+	}
+
+	klog.Infof("StreamOptions: %v", streamOptions)
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		klog.Info("---stream start----")
+		executor.Stream(streamOptions)
+		klog.Info("---stream exit----")
+	}()
+
+	// 通过pipe写入命令
+	writeLen := 0
+	for _, cmdLine := range cmdLines {
+		len, err := pw.Write([]byte(cmdLine))
+		if err != nil {
+			klog.Errorf("RunBash %s pipe write failed: %v", containerID, err)
+			return nil, err
+		}
+		writeLen += len
+	}
+
+	// 回车执行命令
+	pw.Write([]byte("\n"))
+	klog.Infof("RunBash %s enter perform cmd, writeLen:%d", containerID, writeLen)
+
+	// 等待结果
+	waitTimeout := time.Now().Add(time.Second)
+	for {
+		if writer.Len() > 0 {
+			break
+		}
+
+		if time.Now().After(waitTimeout) {
+			// 超时时间1秒
+			klog.Info("RunBash wait result timeout")
+			break
+		}
+
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	// 获取结果
+	cmdRes := new(bytes.Buffer)
+	cmdRes.Write(writer.Bytes())
+	klog.Infof("cmd res:%s", cmdRes.String())
+
+	// 退出sh
+	pw.Write([]byte("exit\n"))
+	pw.Close()
+
+	wg.Wait()
+
+	klog.Info("executor completed.")
+
+	return cmdRes.Bytes(), nil
 }

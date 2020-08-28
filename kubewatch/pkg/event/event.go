@@ -35,6 +35,7 @@ type Event struct {
 	Reason    string
 	Status    string
 	Name      string
+	Msg       string
 }
 
 var m = map[string]string{

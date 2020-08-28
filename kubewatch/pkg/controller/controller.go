@@ -178,11 +178,13 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			&cache.ListWatch{
 				ListFunc: func(options meta_v1.ListOptions) (runtime.Object, error) {
 					// selector的使用，就是在Event这个对象上，针对结构成员的选择。类似对象都可以使用
-					options.FieldSelector = "involvedObject.kind=Pod,type=Warning,reason=BackOff"
+					//options.FieldSelector = "involvedObject.kind=Pod,type=Warning,reason=BackOff"
+					options.FieldSelector = "involvedObject.kind=Pod,type=Warning"
 					return kubeClient.CoreV1().Events(conf.Namespace).List(options)
 				},
 				WatchFunc: func(options meta_v1.ListOptions) (watch.Interface, error) {
-					options.FieldSelector = "involvedObject.kind=Pod,type=Warning,reason=BackOff"
+					//options.FieldSelector = "involvedObject.kind=Pod,type=Warning,reason=BackOff"
+					options.FieldSelector = "involvedObject.kind=Pod,type=Warning"
 					return kubeClient.CoreV1().Events(conf.Namespace).Watch(options)
 				},
 			},
@@ -539,6 +541,7 @@ func newResourceController(client kubernetes.Interface, eventHandler handlers.Ha
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
+			// 这里没有把对象插进去，而是一个key
 			newEvent.key, err = cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 			newEvent.eventType = "delete"
 			newEvent.resourceType = resourceType
@@ -628,6 +631,7 @@ func (c *Controller) processNextItem() bool {
 */
 
 func (c *Controller) processItem(newEvent Event) error {
+	// 这是什么获取方式
 	obj, _, err := c.informer.GetIndexer().GetByKey(newEvent.key)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", newEvent.key, err)
@@ -670,6 +674,12 @@ func (c *Controller) processItem(newEvent Event) error {
 				Status:    status,
 				Reason:    "Created",
 			}
+
+			if eventObj, ok := obj.(*api_v1.Event); ok {
+				kbEvent.Msg = eventObj.Message
+				kbEvent.Reason = eventObj.Reason
+			}
+
 			c.eventHandler.Handle(kbEvent)
 			return nil
 		}
@@ -683,6 +693,7 @@ func (c *Controller) processItem(newEvent Event) error {
 		default:
 			status = "Warning"
 		}
+
 		kbEvent := event.Event{
 			Name:      newEvent.key,
 			Namespace: newEvent.namespace,
@@ -690,6 +701,12 @@ func (c *Controller) processItem(newEvent Event) error {
 			Status:    status,
 			Reason:    "Updated",
 		}
+
+		if eventObj, ok := obj.(*api_v1.Event); ok {
+			kbEvent.Msg = eventObj.Message
+			kbEvent.Reason = eventObj.Reason
+		}
+
 		c.eventHandler.Handle(kbEvent)
 		return nil
 	case "delete":

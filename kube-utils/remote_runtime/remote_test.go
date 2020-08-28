@@ -8,6 +8,9 @@
 package remoteruntime
 
 import (
+	"fmt"
+	"io"
+	"os"
 	"testing"
 	"time"
 
@@ -35,4 +38,54 @@ func TestExecSync(t *testing.T) {
 		return
 	}
 	t.Logf("exec successed. response:%s\n", string(data))
+}
+
+func TestRunBash(t *testing.T) {
+	runtimeService, err := NewRemoteRuntimeService("", 3*time.Second)
+	if err != nil {
+		t.Error(err.Error())
+		return
+	}
+
+	defer runtimeService.Close()
+
+	cmdLines := []string{
+		"cat<<EOF\n",
+		"123456\n",
+		"654321\n",
+		"EOF",
+	}
+
+	data, err := runtimeService.RunBash("af1e3248721ea", cmdLines)
+	if err != nil {
+		t.Errorf("RunBash failed, err:%s", err.Error())
+		return
+	}
+	t.Logf("RunBash successed. response:%s\n", string(data))
+}
+
+type readerWrapper struct {
+	reader io.Reader
+}
+
+func (r readerWrapper) Read(p []byte) (int, error) {
+	return r.reader.Read(p)
+}
+
+func TestOSPipe(t *testing.T) {
+	pr, pw := io.Pipe()
+
+	go func() {
+		io.Copy(os.Stdout, readerWrapper{pr})
+		fmt.Println("Pipe read EOF")
+	}()
+
+	pw.Write([]byte("---Hello world---\n"))
+	time.Sleep(time.Second)
+
+	fmt.Println("Pipe close")
+	pw.Close()
+
+	time.Sleep(time.Second)
+	fmt.Println("TestOSPipe exit")
 }

@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/containerd/containerd v1.3.6
+	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
 	github.com/pkg/errors v0.9.1
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
 	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e // indirect
