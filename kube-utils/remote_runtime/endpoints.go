@@ -7,4 +7,4 @@
 
 package remoteruntime
 
-var _defaultRuntimeEndpoints = []string{"unix:///var/run/dockershim.sock", "unix:///run/containerd/containerd.sock", "unix:///run/crio/crio.sock"}
+var _defaultRuntimeEndpoints = []string{"unix:///run/containerd/containerd.sock", "unix:///var/run/dockershim.sock", "unix:///run/crio/crio.sock"}

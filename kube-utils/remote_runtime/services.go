@@ -18,5 +18,5 @@ type RuntimeService interface {
 	// If command exits with a non-zero exit code, an error is returned.
 	ExecSync(containerID string, cmd []string, timeout time.Duration) (data []byte, err error)
 
-	// add more ...
+	RunBash(containerID string, cmd string) (data []byte, err error)
 }
