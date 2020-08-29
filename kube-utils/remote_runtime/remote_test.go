@@ -53,15 +53,28 @@ func TestRunBash(t *testing.T) {
 		"cat<<EOF\n",
 		"123456\n",
 		"654321\n",
+		"calmwu\n",
 		"EOF",
 	}
 
-	data, err := runtimeService.RunBash("af1e3248721ea", cmdLines)
+	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
 	if err != nil {
-		t.Errorf("RunBash failed, err:%s", err.Error())
+		t.Errorf("NewBashShell failed, err:%s", err.Error())
 		return
 	}
-	t.Logf("RunBash successed. response:%s\n", string(data))
+
+	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:%s", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:%s\n", stdout)
+	}
+
+	shell.Exit()
 }
 
 type readerWrapper struct {
