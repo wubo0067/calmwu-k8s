@@ -49,29 +49,103 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
+	// cmdLines := []string{
+	// 	"cat<<EOF\n",
+	// 	"123456\n",
+	// 	"654321\n",
+	// 	"calmwu\n",
+	// 	"EOF",
+	// }
 	cmdLines := []string{
-		"cat<<EOF\n",
-		"123456\n",
-		"654321\n",
-		"calmwu\n",
-		"EOF",
+		"ls -al",
 	}
 
 	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
 	if err != nil {
-		t.Errorf("NewBashShell failed, err:%s", err.Error())
+		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
 		return
 	}
 
 	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
 	if err != nil {
 		if len(stderr) > 0 {
-			t.Errorf("ExecCmd failed, stderr:%s", stderr)
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
 		} else {
-			t.Errorf("ExecCmd failed, %s", err.Error())
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
 		}
 	} else {
-		t.Logf("ExecCmd successed. response:%s\n", stdout)
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	// time.Sleep(1 * time.Second)
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	// time.Sleep(1 * time.Second)
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	errCmdLines := []string{
+		"sdsdsd",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(errCmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	cmdLines = []string{
+		"ls -al /dev",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	cmdLines = []string{
+		"uptime",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
 	}
 
 	shell.Exit()

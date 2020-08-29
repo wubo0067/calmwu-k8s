@@ -50,6 +50,11 @@ type bashShellImpl struct {
 var _ BashShell = &bashShellImpl{}
 
 func (bsi *bashShellImpl) ExecCmd(cmdLines []string, timeOutSecs time.Duration) (string, string, error) {
+	bsi.cmdStderr.Reset()
+	bsi.cmdStdout.Reset()
+
+	klog.Infof("cmdStdout len:%d", bsi.cmdStdout.Len())
+
 	// 通过pipe写入命令
 	writeLen := 0
 	for _, cmdLine := range cmdLines {
@@ -64,12 +69,14 @@ func (bsi *bashShellImpl) ExecCmd(cmdLines []string, timeOutSecs time.Duration) 
 
 	// 回车执行命令
 	bsi.shWriter.Write(calmUtils.String2Bytes("\n"))
-	klog.Infof("ExecCmd %s write bytes:%d", bsi.containerID, writeLen)
+	klog.Infof("containerid[%s] ExecCmd write bytes:%d", bsi.containerID, writeLen)
 
 	// 等待结果
 	waitTimeout := time.Now().Add(timeOutSecs * time.Second)
 	for {
 		if bsi.cmdStdout.Len() > 0 || bsi.cmdStderr.Len() > 0 {
+			klog.Infof("containerid[%s] ExecCmd cmdStdout len:%d, cmdStderr len:%d",
+				bsi.containerID, bsi.cmdStdout.Len(), bsi.cmdStderr.Len())
 			break
 		}
 		if time.Now().After(waitTimeout) {

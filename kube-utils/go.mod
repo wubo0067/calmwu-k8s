@@ -14,6 +14,7 @@ require (
 	github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
 	google.golang.org/grpc v1.26.0
+	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cri-api v0.18.6
 	k8s.io/klog v1.0.0

@@ -22,6 +22,7 @@ import (
 	"github.com/containerd/containerd/defaults"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	restclient "k8s.io/client-go/rest"
 	remoteclient "k8s.io/client-go/tools/remotecommand"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
@@ -144,6 +145,15 @@ func (r *RemoteRuntimeService) ExecSync(containerID string, cmd []string, timeou
 	return append(resp.Stdout, resp.Stderr...), err
 }
 
+type writerWrapper struct {
+	writer io.Writer
+}
+
+func (w writerWrapper) Write(p []byte) (int, error) {
+	klog.Infof("---Write p size:%d---", len(p))
+	return w.writer.Write(p)
+}
+
 // NewBashShell
 func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, error) {
 	pr, pw := io.Pipe()
@@ -182,16 +192,20 @@ func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, erro
 
 	klog.Infof("RunBash URL: %v", URL)
 
-	executor, err := remoteclient.NewSPDYExecutor(&restclient.Config{TLSClientConfig: restclient.TLSClientConfig{Insecure: true}}, "POST", URL)
+	executor, err := remoteclient.NewSPDYExecutor(&restclient.Config{
+		TLSClientConfig:    restclient.TLSClientConfig{Insecure: true},
+		DisableCompression: false,
+	}, "POST", URL)
 	if err != nil {
 		err = errors.Wrapf(err, "NewBashShell %s NewSPDYExecutor failed.", containerID)
 		klog.Error(err.Error())
 		return nil, err
 	}
 
+	// 本来想测试，看看为何有累积的数据，这样wrapper就没问题了，奇怪
 	streamOptions := remoteclient.StreamOptions{
-		Stdout: bashShell.cmdStdout,
-		Stderr: bashShell.cmdStderr,
+		Stdout: writerWrapper{bashShell.cmdStdout},
+		Stderr: writerWrapper{bashShell.cmdStderr},
 		Tty:    false,
 		Stdin:  pr,
 	}
@@ -202,7 +216,7 @@ func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, erro
 
 	go func() {
 		defer func() {
-			recover()
+			runtime.HandleCrash()
 			bashShell.wg.Done()
 		}()
 		executor.Stream(streamOptions)
@@ -217,7 +231,7 @@ func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([
 
 	request := &runtimeapi.ExecRequest{
 		ContainerId: containerID,
-		Cmd:         []string{"sh"},
+		Cmd:         []string{"bin/bash"},
 		Tty:         false,
 		Stdin:       true,
 		Stdout:      true,
