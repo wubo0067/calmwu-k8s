@@ -49,15 +49,12 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
-	// cmdLines := []string{
-	// 	"cat<<EOF\n",
-	// 	"123456\n",
-	// 	"654321\n",
-	// 	"calmwu\n",
-	// 	"EOF",
-	// }
 	cmdLines := []string{
-		"ls -al",
+		"cat<<EOF\n",
+		"123456\n",
+		"654321\n",
+		"calmwu\n",
+		"EOF",
 	}
 
 	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
