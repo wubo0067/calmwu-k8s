@@ -49,18 +49,18 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
+	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
+	if err != nil {
+		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
+		return
+	}
+
 	cmdLines := []string{
 		"cat<<EOF\n",
 		"123456\n",
 		"654321\n",
 		"calmwu\n",
 		"EOF",
-	}
-
-	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
-	if err != nil {
-		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
-		return
 	}
 
 	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
@@ -100,11 +100,13 @@ func TestRunBash(t *testing.T) {
 	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
 	// }
 
-	errCmdLines := []string{
-		"sdsdsd",
+	pipeCmdLines := []string{
+		"echo \"aaaaaaa\n",
+		"bbbbbbwb\n",
+		"\" |grep -n wb",
 	}
 
-	stdout, stderr, err = shell.ExecCmd(errCmdLines, 1)
+	stdout, stderr, err = shell.ExecCmd(pipeCmdLines, 1)
 	if err != nil {
 		if len(stderr) > 0 {
 			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
