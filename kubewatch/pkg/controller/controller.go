@@ -573,7 +573,7 @@ func (c *Controller) Run(stopCh <-chan struct{}) {
 	// 启动informer
 	go c.informer.Run(stopCh)
 
-	// 等待同步
+	// 等待同步，每个资源一个，不像传统的controller多个资源用这个来同步
 	if !cache.WaitForCacheSync(stopCh, c.HasSynced) {
 		utilruntime.HandleError(fmt.Errorf("Timed out waiting for caches to sync"))
 		return

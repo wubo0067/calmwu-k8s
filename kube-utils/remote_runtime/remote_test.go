@@ -49,19 +49,105 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
+	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
+	if err != nil {
+		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
+		return
+	}
+
 	cmdLines := []string{
 		"cat<<EOF\n",
 		"123456\n",
 		"654321\n",
+		"calmwu\n",
 		"EOF",
 	}
 
-	data, err := runtimeService.RunBash("af1e3248721ea", cmdLines)
+	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
 	if err != nil {
-		t.Errorf("RunBash failed, err:%s", err.Error())
-		return
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
 	}
-	t.Logf("RunBash successed. response:%s\n", string(data))
+
+	// time.Sleep(1 * time.Second)
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	// time.Sleep(1 * time.Second)
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	pipeCmdLines := []string{
+		"echo \"aaaaaaa\n",
+		"bbbbbbwb\n",
+		"\" |grep -n wb",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(pipeCmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	cmdLines = []string{
+		"ls -al /dev",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	cmdLines = []string{
+		"uptime",
+	}
+
+	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			t.Errorf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	shell.Exit()
 }
 
 type readerWrapper struct {

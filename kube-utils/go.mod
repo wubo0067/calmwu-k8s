@@ -3,12 +3,18 @@ module kube-utils
 go 1.14
 
 require (
+	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586 // indirect
 	github.com/containerd/containerd v1.3.6
-	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0
+	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 // indirect
+	github.com/gin-gonic/gin v1.6.3 // indirect
+	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
+	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
-	golang.org/x/sys v0.0.0-20191204072324-ce4227a45e2e // indirect
 	google.golang.org/grpc v1.26.0
+	k8s.io/apimachinery v0.0.0
 	k8s.io/client-go v11.0.0+incompatible
 	k8s.io/cri-api v0.18.6
 	k8s.io/klog v1.0.0

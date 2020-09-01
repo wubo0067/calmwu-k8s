@@ -22,10 +22,39 @@ func main() {
 
 	defer runtimeService.Close()
 
-	data, err := runtimeService.RunBash("af1e3248721ea", "ls -al")
+	cmdLines := []string{
+		"ls -al",
+	}
+
+	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
 	if err != nil {
-		log.Fatalf("RunBash failed, err:%s", err.Error())
+		log.Fatalf("NewBashShell failed, err:%s\n", err.Error())
 		return
 	}
-	log.Printf("RunBash successed. response:%s\n", string(data))
+
+	defer shell.Exit()
+
+	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			log.Fatalf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			log.Fatalf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		log.Printf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	if err != nil {
+		if len(stderr) > 0 {
+			log.Fatalf("ExecCmd failed, stderr:\n%s\n", stderr)
+		} else {
+			log.Fatalf("ExecCmd failed, %s\n", err.Error())
+		}
+	} else {
+		log.Printf("ExecCmd successed. response:\n%s\n", stdout)
+	}
+
+	time.Sleep(100 * time.Second)
 }

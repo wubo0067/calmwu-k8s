@@ -34,7 +34,7 @@ require (
 	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/ugorji/go v1.1.7 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20200219020446-0236a7792879
+	github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
 	go.uber.org/atomic v1.5.1 // indirect
 	go.uber.org/automaxprocs v1.2.0
 	go.uber.org/multierr v1.4.0 // indirect

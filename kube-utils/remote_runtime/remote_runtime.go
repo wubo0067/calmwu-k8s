@@ -12,6 +12,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
 	"strings"
@@ -21,6 +22,7 @@ import (
 	"github.com/containerd/containerd/defaults"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
+	"k8s.io/apimachinery/pkg/util/runtime"
 	restclient "k8s.io/client-go/rest"
 	remoteclient "k8s.io/client-go/tools/remotecommand"
 	runtimeapi "k8s.io/cri-api/pkg/apis/runtime/v1alpha2"
@@ -143,12 +145,93 @@ func (r *RemoteRuntimeService) ExecSync(containerID string, cmd []string, timeou
 	return append(resp.Stdout, resp.Stderr...), err
 }
 
+type writerWrapper struct {
+	writer io.Writer
+}
+
+func (w writerWrapper) Write(p []byte) (int, error) {
+	klog.Infof("---Write p size:%d---", len(p))
+	return w.writer.Write(p)
+}
+
+// NewBashShell
+func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, error) {
+	pr, pw := io.Pipe()
+
+	bashShell := &bashShellImpl{
+		containerID: containerID,
+		shWriter:    pw,
+		cmdStdout:   new(bytes.Buffer),
+		cmdStderr:   new(bytes.Buffer),
+	}
+
+	request := &runtimeapi.ExecRequest{
+		ContainerId: containerID,
+		Cmd:         []string{"sh"},
+		Tty:         false,
+		Stdin:       true,
+		Stdout:      true,
+		Stderr:      true,
+	}
+
+	resp, err := r.runtimeClient.Exec(context.Background(), request)
+	if err != nil {
+		err = errors.Wrapf(err, "NewBashShell %s Exec failed.", containerID)
+		klog.Error(err.Error())
+		return nil, err
+	}
+
+	execURL := resp.Url
+
+	URL, err := url.Parse(execURL)
+	if err != nil {
+		err = errors.Wrapf(err, "NewBashShell %s url Parse %s failed.", containerID, execURL)
+		klog.Error(err.Error())
+		return nil, err
+	}
+
+	klog.Infof("RunBash URL: %v", URL)
+
+	executor, err := remoteclient.NewSPDYExecutor(&restclient.Config{
+		TLSClientConfig:    restclient.TLSClientConfig{Insecure: true},
+		DisableCompression: false,
+	}, "POST", URL)
+	if err != nil {
+		err = errors.Wrapf(err, "NewBashShell %s NewSPDYExecutor failed.", containerID)
+		klog.Error(err.Error())
+		return nil, err
+	}
+
+	// 本来想测试，看看为何有累积的数据，这样wrapper就没问题了，奇怪
+	streamOptions := remoteclient.StreamOptions{
+		Stdout: writerWrapper{bashShell.cmdStdout},
+		Stderr: writerWrapper{bashShell.cmdStderr},
+		Tty:    false,
+		Stdin:  pr,
+	}
+
+	klog.Infof("NewBashShell %s StreamOptions: %v", containerID, streamOptions)
+
+	bashShell.wg.Add(1)
+
+	go func() {
+		defer func() {
+			runtime.HandleCrash()
+			bashShell.wg.Done()
+		}()
+		executor.Stream(streamOptions)
+		klog.Infof("NewBashShell %s executor.Stream exit.", containerID)
+	}()
+
+	return bashShell, nil
+}
+
 func (r *RemoteRuntimeService) RunBash(containerID string, cmdLines []string) ([]byte, error) {
 	pr, pw, _ := os.Pipe()
 
 	request := &runtimeapi.ExecRequest{
 		ContainerId: containerID,
-		Cmd:         []string{"sh"},
+		Cmd:         []string{"bin/bash"},
 		Tty:         false,
 		Stdin:       true,
 		Stdout:      true,
