@@ -1,8 +1,8 @@
 /*
  * @Author: calmwu
  * @Date: 2020-07-11 17:39:40
- * @Last Modified by: calmwu
- * @Last Modified time: 2020-07-11 17:47:15
+ * @Last Modified by: calm.wu
+ * @Last Modified time: 2020-09-02 12:26:41
  */
 
 package main
@@ -12,9 +12,14 @@ import (
 	"time"
 
 	remoteruntime "kube-utils/remote_runtime"
+	"kube-utils/workqueue"
 )
 
-func main() {
+func testWorkqueue() {
+	workqueue.TestWorkQueueAdd()
+}
+
+func testRemoteShell() {
 	runtimeService, err := remoteruntime.NewRemoteRuntimeService("", 3*time.Second)
 	if err != nil {
 		log.Fatal(err.Error())
@@ -57,4 +62,8 @@ func main() {
 	}
 
 	time.Sleep(100 * time.Second)
+}
+
+func main() {
+	testWorkqueue()
 }
