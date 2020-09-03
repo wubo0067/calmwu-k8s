@@ -476,8 +476,8 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 				},
 			},
 			&api_v1.ConfigMap{},
-			0, //Skip resync
-			cache.Indexers{},
+			0,                //Skip resync
+			cache.Indexers{}, // 这里设置为空是什么意思
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, "configmap")
@@ -631,7 +631,8 @@ func (c *Controller) processNextItem() bool {
 */
 
 func (c *Controller) processItem(newEvent Event) error {
-	// 这是什么获取方式
+	// 这是什么获取方式，这里的key和list、watch中的index是什么关系，
+	// 这个真的是本质，很多controller就是对其进行封装了
 	obj, _, err := c.informer.GetIndexer().GetByKey(newEvent.key)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", newEvent.key, err)
