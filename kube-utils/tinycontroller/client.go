@@ -34,7 +34,7 @@ func GetClient() kubernetes.Interface {
 func buildOutOfClusterConfig(kubeCfgPath string) (*rest.Config, error) {
 	kubeconfigPath := kubeCfgPath
 	if kubeconfigPath == "" {
-		kubeconfigPath := os.Getenv("KUBECONFIG")
+		kubeconfigPath = os.Getenv("KUBECONFIG")
 		if kubeconfigPath == "" {
 			kubeconfigPath = os.Getenv("HOME") + "/.kube/config"
 		}

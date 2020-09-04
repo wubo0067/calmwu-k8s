@@ -30,12 +30,14 @@ import (
 type ResourceControllerOption func(*ResourceControllerOptions)
 
 type ResourceControllerOptions struct {
-	resourceType     ResourceType
-	namespace        string
-	kubeCfgPath      string
-	resyncPeriod     time.Duration
-	tweakListOptions internalinterfaces.TweakListOptionsFunc
-	threadiness      int
+	resourceType      ResourceType
+	namespace         string
+	kubeCfgPath       string
+	resyncPeriod      time.Duration
+	tweakListOptions  internalinterfaces.TweakListOptionsFunc // 对象过滤，apiserver将过滤后的数据发送给cache
+	threadiness       int
+	resourceIndexName string          // 索引名字
+	resourceIndexFunc cache.IndexFunc // 自定义索引函数，cache会将该函数作用于对象，返回对象的值，这个值决定了相同值的一堆对象
 	// labelSelector string
 	// fieldSelector string
 }
@@ -72,14 +74,20 @@ func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOp
 	//stopCh := make(chan struct{})
 	var informer cache.SharedIndexInformer
 
+	// 加速对象在cache中查询，rc.informer.GetIndexer
+	indexers := cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
+	if tcoptions.resourceIndexName != "" && tcoptions.resourceIndexFunc != nil {
+		indexers[tcoptions.resourceIndexName] = tcoptions.resourceIndexFunc
+	}
+
 	// 根据类型构造infomer对象，调用client-go接口
 	switch tcoptions.resourceType {
 	case Pod:
 		informer = informcorev1.NewFilteredPodInformer(kubeClient, tcoptions.namespace, tcoptions.resyncPeriod,
-			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, tcoptions.tweakListOptions)
+			indexers, tcoptions.tweakListOptions)
 	case Deployment:
 		informer = informappsv1.NewFilteredDeploymentInformer(kubeClient, tcoptions.namespace, tcoptions.resyncPeriod,
-			cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}, tcoptions.tweakListOptions)
+			indexers, tcoptions.tweakListOptions)
 	default:
 		return ErrResourceNotSupport
 	}
@@ -97,9 +105,30 @@ func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOp
 }
 
 func newResourceController(client kubernetes.Interface, informer cache.SharedIndexInformer, tcoptions *ResourceControllerOptions) *ResourceController {
-	return &ResourceController{
+	rc := &ResourceController{
 		threadiness: tcoptions.threadiness,
+		queue:       workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()), // 构造队列，存放key
+		informer:    informer,
+		clientset:   client,
 	}
+
+	// 注册事件处理函数
+	rc.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			key := cache.MetaNamespaceIndexFunc(obj)
+
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			key := cache.MetaNamespaceIndexFunc(obj)
+		},
+		DeleteFunc: func(obj interface{}) {
+			if tombStone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
+
+			}
+		},
+	})
+
+	return rc
 }
 
 func (rc *ResourceController) Run(stopCh <-chan struct{}) {
@@ -135,5 +164,8 @@ func (rc *ResourceController) runWorker() {
 }
 
 func (rc *ResourceController) processNextWorkItem() bool {
+	// 从队列中获取，这个队列的特性要记住
+	obj, ok := rc.queue.Get()
+
 	return true
 }

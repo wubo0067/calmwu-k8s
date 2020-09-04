@@ -9,6 +9,8 @@ package tinycontroller
 
 import "errors"
 
-var ErrResourceNotSupport = errors.New("resource not support")
+var (
+	ErrResourceNotSupport = errors.New("resource not support")
 
-var ErrCacheSyncTimeout = errors.New("cache resource sync timeout")
+	ErrCacheSyncTimeout = errors.New("cache resource sync timeout")
+)

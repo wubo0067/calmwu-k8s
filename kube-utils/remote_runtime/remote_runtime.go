@@ -154,9 +154,9 @@ func (w writerWrapper) Write(p []byte) (int, error) {
 	return w.writer.Write(p)
 }
 
-// NewBashShell
+// NewBashShell ...
 func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, error) {
-	pr, pw := io.Pipe()
+	pr, pw, _ := os.Pipe()
 
 	bashShell := &bashShellImpl{
 		containerID: containerID,

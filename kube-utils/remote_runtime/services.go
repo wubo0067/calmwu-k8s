@@ -9,7 +9,7 @@ package remoteruntime
 
 import (
 	"bytes"
-	"io"
+	"os"
 	"sync"
 	"time"
 
@@ -41,7 +41,7 @@ type RuntimeService interface {
 
 type bashShellImpl struct {
 	containerID string
-	shWriter    *io.PipeWriter
+	shWriter    *os.File
 	cmdStdout   *bytes.Buffer
 	cmdStderr   *bytes.Buffer
 	wg          sync.WaitGroup
