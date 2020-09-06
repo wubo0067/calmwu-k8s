@@ -10,13 +10,17 @@ package tinycontroller
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"kube-utils/vendor/k8s.io/apimachinery/pkg/util/wait"
 	"kube-utils/vendor/k8s.io/client-go/util/workqueue"
 
+	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
+	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	informappsv1 "k8s.io/client-go/informers/apps/v1"
 	informcorev1 "k8s.io/client-go/informers/core/v1"
@@ -43,10 +47,11 @@ type ResourceControllerOptions struct {
 }
 
 type ResourceController struct {
-	clientset   kubernetes.Interface
-	queue       workqueue.RateLimitingInterface
-	informer    cache.SharedIndexInformer
-	threadiness int
+	clientset    kubernetes.Interface
+	queue        workqueue.RateLimitingInterface
+	informer     cache.SharedIndexInformer
+	threadiness  int
+	resourceType ResourceType
 }
 
 var defaultResourceControllerOptions = ResourceControllerOptions{
@@ -93,49 +98,96 @@ func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOp
 	}
 
 	// 构造一个controller
-	c := newResourceController(kubeClient, informer, &tcoptions)
-	stopCh := make(chan struct{})
-	defer close(stopCh)
-	// 运行
-	go c.Run(stopCh)
+	if c, err := newResourceController(tcoptions.resourceType, kubeClient, informer, &tcoptions); err != nil {
+		return err
+	} else {
+		stopCh := make(chan struct{})
+		defer close(stopCh)
+		// 运行
+		go c.Run(stopCh)
 
-	// 等待停止
-	<-ctx.Done()
-	return nil
+		// 等待停止
+		<-ctx.Done()
+		return nil
+	}
 }
 
-func newResourceController(client kubernetes.Interface, informer cache.SharedIndexInformer, tcoptions *ResourceControllerOptions) *ResourceController {
+func newResourceController(resourceType ResourceType, client kubernetes.Interface, informer cache.SharedIndexInformer, tcoptions *ResourceControllerOptions) (*ResourceController, error) {
 	rc := &ResourceController{
-		threadiness: tcoptions.threadiness,
-		queue:       workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()), // 构造队列，存放key
-		informer:    informer,
-		clientset:   client,
+		threadiness:  tcoptions.threadiness,
+		queue:        workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()), // 构造队列，存放key
+		informer:     informer,
+		clientset:    client,
+		resourceType: resourceType,
 	}
 
 	// 注册事件处理函数
 	rc.informer.AddEventHandler(cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
-			key := cache.MetaNamespaceIndexFunc(obj)
-
+			if key, err := cache.MetaNamespaceKeyFunc(obj); err != nil {
+				utilruntime.HandleError(errors.Wrap(err, "informer add event handler get obj key failed."))
+				return
+			} else {
+				klog.Infof("resource:%s controller AddFunc add key:%s to workqueue", resourceType, key)
+				rc.queue.Add(key)
+			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			key := cache.MetaNamespaceIndexFunc(obj)
+			if oldObj.(*appsv1.Deployment).ResourceVersion == newObj.(*appsv1.Deployment).ResourceVersion {
+				return
+			}
+
+			if key, err := cache.MetaNamespaceKeyFunc(newObj); err != nil {
+				utilruntime.HandleError(errors.Wrapf(err, "resource:%s controller informer update event handler get newObj key failed.", resourceType))
+				return
+			} else {
+				klog.Infof("resource:%s controller UpdateFunc add key:%s to workqueue", resourceType, key)
+				rc.queue.Add(key)
+			}
 		},
 		DeleteFunc: func(obj interface{}) {
-			if tombStone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
+			// 处理delete传入的object，有两种可能，也许是你期望的类型，有可能是DeletedFinalStateUnknown类型
+			var object metav1.Object
+			var ok bool
 
+			if object, ok = obj.(metav1.Object); !ok {
+				if tombStone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
+					if _, ok := tombStone.Obj.(metav1.Object); ok {
+						klog.Infof("resource:%s controller Recovered deleted object '%s' from tombstone", resourceType, object.GetName())
+
+						if key, err := cache.MetaNamespaceKeyFunc(obj); err != nil {
+							utilruntime.HandleError(errors.Wrapf(err, "resource:%s controller informer delete event handler get newObj key failed.", resourceType))
+							return
+						} else {
+							klog.Infof("resource:%s controller DeleteFunc add key:%s to workqueue", resourceType, key)
+							rc.queue.Add(key)
+						}
+					} else {
+						utilruntime.HandleError(fmt.Errorf("error decoding object tombstone, invalid type"))
+					}
+				} else {
+					utilruntime.HandleError(fmt.Errorf("error decoding object, invalid type"))
+				}
+			} else {
+				if key, err := cache.MetaNamespaceKeyFunc(obj); err != nil {
+					utilruntime.HandleError(errors.Wrap(err, "informer delete event handler get newObj key failed."))
+					return
+				} else {
+					klog.Infof("resource:%s controller DeleteFunc add key:%s to workqueue", resourceType, key)
+					rc.queue.Add(key)
+				}
 			}
 		},
 	})
 
-	return rc
+	return rc, nil
 }
 
 func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 	defer utilruntime.HandleCrash()
 	defer rc.queue.ShutDown()
 
-	klog.Info("Starting resource controller")
+	klog.Infof("Starting resource:%s controller", rc.resourceType)
 
 	// 启动informer
 	go rc.informer.Run(stopCh)
@@ -146,7 +198,7 @@ func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 		return
 	}
 
-	klog.Info("resource controller synced and ready")
+	klog.Infof("resource:%s controller synced and ready", rc.resourceType)
 
 	for i := 0; i < rc.threadiness; i++ {
 		go wait.Until(rc.runWorker, time.Second, stopCh)
@@ -165,7 +217,30 @@ func (rc *ResourceController) runWorker() {
 
 func (rc *ResourceController) processNextWorkItem() bool {
 	// 从队列中获取，这个队列的特性要记住
-	obj, ok := rc.queue.Get()
+	key, quit := rc.queue.Get()
+
+	if quit {
+		klog.Infof("resource:%s controller workqueue be shutdown", rc.resourceType)
+		return false
+	}
+
+	// 根据处理结果，处理key
+	defer rc.queue.Done(key)
+	err := rc.processItem(key.(string))
+	if err == nil {
+		// 处理成功
+		klog.Infof("resource:%s controller successfully processItem '%s'", key)
+		rc.queue.Forget(key)
+	} else {
+		// 重新入队列
+		klog.Errorf("resource:%s controller error processing %s (will retry): %v", rc.resourceType, key, err)
+		rc.queue.AddRateLimited(key)
+	}
 
 	return true
+}
+
+func (rc *ResourceController) processItem(key string) error {
+	rc.informer.GetIndexer().
+	return nil
 }
