@@ -14,6 +14,7 @@ require (
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
 	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
+	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.26.0
 	k8s.io/api v0.0.0
 	k8s.io/apimachinery v0.0.0

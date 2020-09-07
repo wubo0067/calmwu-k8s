@@ -2,7 +2,7 @@
  * @Author: calmwu
  * @Date: 2020-07-11 17:39:40
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-09-02 12:26:41
+ * @Last Modified time: 2020-09-07 14:30:14
  */
 
 package main
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	remoteruntime "kube-utils/remote_runtime"
+	"kube-utils/tinycontroller"
 	"kube-utils/workqueue"
 )
 
@@ -65,5 +66,5 @@ func testRemoteShell() {
 }
 
 func main() {
-	testWorkqueue()
+	tinycontroller.RunDeploymentController()
 }

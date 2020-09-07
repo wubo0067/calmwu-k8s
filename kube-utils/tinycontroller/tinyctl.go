@@ -2,19 +2,16 @@
  * @Author: calm.wu
  * @Date: 2020-09-02 15:03:34
  * @Last Modified by: calm.wu
- * @Last Modified time: 2020-09-02 18:01:21
+ * @Last Modified time: 2020-09-07 14:43:21
  */
+// https://engineering.bitnami.com/articles/a-deep-dive-into-kubernetes-controllers.html
 
 // Package tinycontroller  。。。
 package tinycontroller
 
 import (
-	"context"
 	"fmt"
 	"time"
-
-	"kube-utils/vendor/k8s.io/apimachinery/pkg/util/wait"
-	"kube-utils/vendor/k8s.io/client-go/util/workqueue"
 
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
@@ -22,50 +19,58 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
+	"k8s.io/apimachinery/pkg/util/wait"
 	informappsv1 "k8s.io/client-go/informers/apps/v1"
 	informcorev1 "k8s.io/client-go/informers/core/v1"
 	internalinterfaces "k8s.io/client-go/informers/internalinterfaces"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
 	"k8s.io/klog"
 )
 
-type ResourceControllerOption func(*ResourceControllerOptions)
+type ResourceProcesser func(clientSet kubernetes.Interface, indexer cache.Indexer, key string, resourceType ResourceType) error
 
 type ResourceControllerOptions struct {
 	resourceType      ResourceType
 	namespace         string
 	kubeCfgPath       string
-	resyncPeriod      time.Duration
+	resyncPeriod      time.Duration                           // ResyncPeriod defines how often the controller goes through all items remaining in the cache and fires the UpdateFunc again.
 	tweakListOptions  internalinterfaces.TweakListOptionsFunc // 对象过滤，apiserver将过滤后的数据发送给cache
-	threadiness       int
-	resourceIndexName string          // 索引名字
-	resourceIndexFunc cache.IndexFunc // 自定义索引函数，cache会将该函数作用于对象，返回对象的值，这个值决定了相同值的一堆对象
-	// labelSelector string
-	// fieldSelector string
+	threadiness       int                                     // 处理资源对象的routine数量
+	resourceIndexName string                                  // 索引名字
+	resourceIndexFunc cache.IndexFunc                         // 自定义索引函数，cache会将该函数作用于对象，返回对象的值，这个值决定了相同值的一堆对象
+	resourceProcesser ResourceProcesser                       // 资源处理函数
 }
 
 type ResourceController struct {
-	clientset    kubernetes.Interface
-	queue        workqueue.RateLimitingInterface
-	informer     cache.SharedIndexInformer
-	threadiness  int
-	resourceType ResourceType
+	clientset         kubernetes.Interface
+	queue             workqueue.RateLimitingInterface
+	informer          cache.SharedIndexInformer
+	threadiness       int
+	resourceType      ResourceType
+	resourceProcesser ResourceProcesser // 资源处理函数
 }
 
+const (
+	maxRetries = 5
+)
+
 var defaultResourceControllerOptions = ResourceControllerOptions{
-	namespace: corev1.NamespaceAll,
+	namespace:    corev1.NamespaceAll,
+	resyncPeriod: 0,
+	threadiness:  1,
 }
 
 // RunK8SResourceControllers 运行多个controller
-func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOption) error {
-	tcoptions := defaultResourceControllerOptions
+func RunK8SResourceControllers(stopCh <-chan struct{}, opts ...ResourceControllerOption) error {
+	tcoptions := &defaultResourceControllerOptions
 	for _, o := range opts {
-		o(&tcoptions)
+		o(tcoptions)
 	}
 
-	klog.Infof("options: %s", litter.Sdump(tcoptions))
+	klog.Infof("options: %#v", tcoptions)
 
 	// 获取k8sclientset
 	var kubeClient kubernetes.Interface
@@ -76,7 +81,7 @@ func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOp
 		kubeClient = GetClient()
 	}
 
-	//stopCh := make(chan struct{})
+	// 每种资源都有自己的informer，crd资源也是如此
 	var informer cache.SharedIndexInformer
 
 	// 加速对象在cache中查询，rc.informer.GetIndexer
@@ -98,18 +103,14 @@ func RunK8SResourceControllers(ctx context.Context, opts ...ResourceControllerOp
 	}
 
 	// 构造一个controller
-	if c, err := newResourceController(tcoptions.resourceType, kubeClient, informer, &tcoptions); err != nil {
+	c, err := newResourceController(tcoptions.resourceType, kubeClient, informer, tcoptions)
+	if err != nil {
 		return err
-	} else {
-		stopCh := make(chan struct{})
-		defer close(stopCh)
-		// 运行
-		go c.Run(stopCh)
-
-		// 等待停止
-		<-ctx.Done()
-		return nil
 	}
+
+	// 运行
+	c.Run(stopCh)
+	return nil
 }
 
 func newResourceController(resourceType ResourceType, client kubernetes.Interface, informer cache.SharedIndexInformer, tcoptions *ResourceControllerOptions) (*ResourceController, error) {
@@ -128,7 +129,7 @@ func newResourceController(resourceType ResourceType, client kubernetes.Interfac
 				utilruntime.HandleError(errors.Wrap(err, "informer add event handler get obj key failed."))
 				return
 			} else {
-				klog.Infof("resource:%s controller AddFunc add key:%s to workqueue", resourceType, key)
+				klog.Infof("resource[%s] controller AddFunc add key:%s to workqueue", resourceType, key)
 				rc.queue.Add(key)
 			}
 		},
@@ -138,10 +139,10 @@ func newResourceController(resourceType ResourceType, client kubernetes.Interfac
 			}
 
 			if key, err := cache.MetaNamespaceKeyFunc(newObj); err != nil {
-				utilruntime.HandleError(errors.Wrapf(err, "resource:%s controller informer update event handler get newObj key failed.", resourceType))
+				utilruntime.HandleError(errors.Wrapf(err, "resource[%s] controller informer update event handler get newObj key failed.", resourceType))
 				return
 			} else {
-				klog.Infof("resource:%s controller UpdateFunc add key:%s to workqueue", resourceType, key)
+				klog.Infof("resource[%s] controller UpdateFunc add key:%s to workqueue", resourceType, key)
 				rc.queue.Add(key)
 			}
 		},
@@ -153,13 +154,13 @@ func newResourceController(resourceType ResourceType, client kubernetes.Interfac
 			if object, ok = obj.(metav1.Object); !ok {
 				if tombStone, ok := obj.(cache.DeletedFinalStateUnknown); ok {
 					if _, ok := tombStone.Obj.(metav1.Object); ok {
-						klog.Infof("resource:%s controller Recovered deleted object '%s' from tombstone", resourceType, object.GetName())
+						klog.Infof("resource[%s] controller Recovered deleted object '%s' from tombstone", resourceType, object.GetName())
 
 						if key, err := cache.MetaNamespaceKeyFunc(obj); err != nil {
-							utilruntime.HandleError(errors.Wrapf(err, "resource:%s controller informer delete event handler get newObj key failed.", resourceType))
+							utilruntime.HandleError(errors.Wrapf(err, "resource[%s] controller informer delete event handler get newObj key failed.", resourceType))
 							return
 						} else {
-							klog.Infof("resource:%s controller DeleteFunc add key:%s to workqueue", resourceType, key)
+							klog.Infof("resource[%s] controller DeleteFunc add key:%s to workqueue", resourceType, key)
 							rc.queue.Add(key)
 						}
 					} else {
@@ -173,7 +174,7 @@ func newResourceController(resourceType ResourceType, client kubernetes.Interfac
 					utilruntime.HandleError(errors.Wrap(err, "informer delete event handler get newObj key failed."))
 					return
 				} else {
-					klog.Infof("resource:%s controller DeleteFunc add key:%s to workqueue", resourceType, key)
+					klog.Infof("resource[%s] controller DeleteFunc add key:%s to workqueue", resourceType, key)
 					rc.queue.Add(key)
 				}
 			}
@@ -187,7 +188,7 @@ func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 	defer utilruntime.HandleCrash()
 	defer rc.queue.ShutDown()
 
-	klog.Infof("Starting resource:%s controller", rc.resourceType)
+	klog.Infof("Starting resource[%s] controller", rc.resourceType)
 
 	// 启动informer
 	go rc.informer.Run(stopCh)
@@ -198,11 +199,16 @@ func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 		return
 	}
 
-	klog.Infof("resource:%s controller synced and ready", rc.resourceType)
+	klog.Infof("resource[%s] controller synced and ready", rc.resourceType)
 
+	// 每秒钟去执行一次runWorker
 	for i := 0; i < rc.threadiness; i++ {
 		go wait.Until(rc.runWorker, time.Second, stopCh)
 	}
+
+	klog.Info("Started workers")
+	<-stopCh
+	klog.Info("Shutting down workers")
 }
 
 // HasSynced is required for the cache.Controller interface.
@@ -220,7 +226,7 @@ func (rc *ResourceController) processNextWorkItem() bool {
 	key, quit := rc.queue.Get()
 
 	if quit {
-		klog.Infof("resource:%s controller workqueue be shutdown", rc.resourceType)
+		klog.V(7).Infof("resource[%s] controller workqueue be shutdown", rc.resourceType)
 		return false
 	}
 
@@ -229,18 +235,41 @@ func (rc *ResourceController) processNextWorkItem() bool {
 	err := rc.processItem(key.(string))
 	if err == nil {
 		// 处理成功
-		klog.Infof("resource:%s controller successfully processItem '%s'", key)
+		klog.Infof("resource[%s] controller successfully processItem '%s'", rc.resourceType, key)
 		rc.queue.Forget(key)
-	} else {
-		// 重新入队列
-		klog.Errorf("resource:%s controller error processing %s (will retry): %v", rc.resourceType, key, err)
+	} else if rc.queue.NumRequeues(key) < maxRetries {
+		// 重新入队次数小于最大重试次数
+		klog.Errorf("resource[%s] controller error processing %s (will retry): %v", rc.resourceType, key, err)
 		rc.queue.AddRateLimited(key)
+	} else {
+		// 超过重试次数，放弃处理
+		klog.Errorf("resource[%s] controller error processing %s (giving up): %v", rc.resourceType, key, err)
+		rc.queue.Forget(key)
 	}
 
 	return true
 }
 
 func (rc *ResourceController) processItem(key string) error {
-	rc.informer.GetIndexer().
+	if rc.resourceProcesser != nil {
+		return rc.resourceProcesser(rc.clientset, rc.informer.GetIndexer(), key, rc.resourceType)
+	}
+
+	obj, exists, err := rc.informer.GetIndexer().GetByKey(key)
+
+	if err != nil {
+		err = errors.Wrapf(err, "resource[%s] controller get object by key:%s failed.", rc.resourceType, key)
+		klog.Error(err.Error())
+		return err
+	}
+
+	if !exists {
+		// 如果是不存在，就需要忽略这个错误，不需要重新入队列
+		// 删除对象事件会执行到这里
+		klog.Warningf("resource[%s] controller object %s not found.", rc.resourceType, key)
+		return nil
+	}
+
+	klog.Infof("Get Resource[%s] \nmeta: %s", key, litter.Sdump(GetObjectMetaData(obj)))
 	return nil
 }
