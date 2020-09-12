@@ -4,6 +4,8 @@ github.com/BurntSushi/toml
 github.com/DeanThompson/ginpprof
 # github.com/Pallinder/go-randomdata v1.2.0
 github.com/Pallinder/go-randomdata
+# github.com/aviddiviner/gin-limit v0.0.0-20170918012823-43b5f79762c1
+github.com/aviddiviner/gin-limit
 # github.com/cheekybits/genny v1.0.0
 github.com/cheekybits/genny/generic
 # github.com/davecgh/go-spew v1.1.1
@@ -54,6 +56,10 @@ github.com/jmoiron/sqlx/reflectx
 github.com/json-iterator/go
 # github.com/konsorten/go-windows-terminal-sequences v1.0.1
 github.com/konsorten/go-windows-terminal-sequences
+# github.com/mailru/easyjson v0.0.0-20160728113105-d5b7844b561a
+github.com/mailru/easyjson/buffer
+github.com/mailru/easyjson/jlexer
+github.com/mailru/easyjson/jwriter
 # github.com/mattn/go-colorable v0.1.4
 github.com/mattn/go-colorable
 # github.com/mattn/go-isatty v0.0.11
@@ -87,7 +93,7 @@ github.com/spf13/afero/mem
 github.com/spf13/pflag
 # github.com/ugorji/go/codec v1.1.7
 github.com/ugorji/go/codec
-# github.com/wubo0067/calmwu-go v0.0.0-20200219020446-0236a7792879
+# github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
 github.com/wubo0067/calmwu-go/utils
 # go.uber.org/atomic v1.5.1
 go.uber.org/atomic

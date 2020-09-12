@@ -45,7 +45,7 @@ func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID st
 		}(&transactionFlag)
 
 		// 对tbl_K8SResourceIPBind加gap lock，找出要释放的地址资源
-		selRows, err := tx.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
+		selRows, err := tx.Queryx("SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=? for update",
 			k8sResourceID, k8sResourceType)
 		if err != nil {
 			err = errors.Wrapf(err, "SELECT ip, port_id FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%s failed",
@@ -70,7 +70,7 @@ func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID st
 			k8sResourceID, k8sResourceType.String())
 
 		// 删除tbl_K8SResourceIPBind表中对应记录
-		delRes, err := msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
+		delRes, err := tx.Exec("DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=? AND k8sresource_type=?",
 			k8sResourceID, k8sResourceType)
 		if err != nil {
 			err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPBind WHERE k8sresource_id=%s AND k8sresource_type=%d failed.",
@@ -85,7 +85,7 @@ func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID st
 		calm_utils.Debugf("Start --> DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=%s", k8sResourceID)
 
 		// 删除tbl_K8SResourceIPRecycle表中对应记录
-		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?",
+		delRes, err = tx.Exec("DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=?",
 			k8sResourceID)
 		if err != nil {
 			err = errors.Wrapf(err, "DELETE FROM tbl_K8SResourceIPRecycle WHERE k8sresource_id=%s failed.",
@@ -100,7 +100,7 @@ func (msm *mysqlStoreMgr) MaintainForceReleaseK8SResourceIPPool(k8sResourceID st
 		calm_utils.Debugf("Start --> DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s", k8sResourceID)
 
 		// 删除tbl_K8SScaleDownMark表中对应记录
-		delRes, err = msm.dbMgr.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?",
+		delRes, err = tx.Exec("DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=?",
 			k8sResourceID)
 		if err != nil {
 			err = errors.Wrapf(err, "DELETE FROM tbl_K8SScaleDownMark WHERE k8sresource_id=%s failed.",
