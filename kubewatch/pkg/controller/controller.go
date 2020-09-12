@@ -477,7 +477,10 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 			},
 			&api_v1.ConfigMap{},
 			0,                //Skip resync
-			cache.Indexers{}, // 这里设置为空是什么意思
+			cache.Indexers{}, // 这里设置为空是什么意思，不建立索引，传入对象，返回的对象的值，如果没有索引，就不能通过ByIndex来获取对象了
+			// 会对cache数据进行索引，对象查找都是倒排索引的
+			// cache.Indexers{cache.NamespaceIndex: cache.MetaNamespaceIndexFunc}
+			// "nodeName": indexByPodNodeName,
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, "configmap")
