@@ -410,8 +410,8 @@ func Start(conf *config.Config, eventHandler handlers.Handler) {
 				},
 			},
 			&rbac_v1beta1.ClusterRole{},
-			0, //Skip resync
-			cache.Indexers{},
+			0,                //Skip resync
+			cache.Indexers{}, // 这是对象的索引函数，传入对象，返回index
 		)
 
 		c := newResourceController(kubeClient, eventHandler, informer, "cluster role")
@@ -631,9 +631,11 @@ func (c *Controller) processNextItem() bool {
 */
 
 func (c *Controller) processItem(newEvent Event) error {
-	// 这是什么获取方式，这里的key和list、watch中的index是什么关系，
+	// 这是什么获取方式，这里的key和list、watch中的index是什么关系，indexer其实就是cache对象
 	// 这个真的是本质，很多controller就是对其进行封装了
 	obj, _, err := c.informer.GetIndexer().GetByKey(newEvent.key)
+	// 通过索引拿到，索引下所有对象
+	// c.informer.GetIndexer().ByIndex(indexName string, indexedValue string)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", newEvent.key, err)
 	}
