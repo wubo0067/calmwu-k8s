@@ -289,6 +289,7 @@ k8s.io/apimachinery/third_party/forked/golang/reflect
 # k8s.io/client-go v11.0.0+incompatible => k8s.io/kubernetes/staging/src/k8s.io/client-go v0.0.0-20200325144952-9e991415386e
 ## explicit
 k8s.io/client-go/discovery
+k8s.io/client-go/dynamic
 k8s.io/client-go/informers/apps/v1
 k8s.io/client-go/informers/core/v1
 k8s.io/client-go/informers/internalinterfaces
