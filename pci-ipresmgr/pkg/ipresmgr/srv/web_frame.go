@@ -17,12 +17,17 @@ import (
 	"github.com/DeanThompson/ginpprof"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
+	"github.com/s12i/gin-throttle"
 	calm_utils "github.com/wubo0067/calmwu-go/utils"
 )
 
 // var (
 // 	httpSrv *http.Server
 // )
+
+const (
+	_maxQPS = 100
+)
 
 func registerHandler(router *gin.Engine) {
 	// webhook接口
@@ -69,6 +74,7 @@ func startWebSrv(listenAddr string, listenPort int) error {
 	ginRouter := gin.New()
 	ginRouter.Use(calm_utils.GinLogger())
 	ginRouter.Use(calm_utils.GinRecovery())
+	ginRouter.Use(middleware.Throttle(_maxQPS, _maxQPS))
 
 	// 注册健康检查接口
 	ginRouter.Any("/ping", func(c *gin.Context) {

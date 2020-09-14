@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/DeanThompson/ginpprof v0.0.0-20190408063150-3be636683586
 	github.com/Pallinder/go-randomdata v1.2.0
+	github.com/aviddiviner/gin-limit v0.0.0-20170918012823-43b5f79762c1
 	github.com/cheekybits/genny v1.0.0 // indirect
 	github.com/dghubble/sling v1.3.0
 	github.com/fatih/color v1.9.0 // indirect
@@ -26,6 +27,7 @@ require (
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/mozhata/merr v0.0.0-20180518063345-876851b8134a // indirect
 	github.com/pkg/errors v0.8.1
+	github.com/s12i/gin-throttle v0.0.0-20180514153802-3eff61d15cc5 // indirect
 	github.com/sanity-io/litter v1.1.0
 	github.com/segmentio/ksuid v1.0.2
 	github.com/sergi/go-diff v1.1.0 // indirect

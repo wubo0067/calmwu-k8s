@@ -2,7 +2,7 @@
  * @Author: calmwu
  * @Date: 2019-06-23 11:18:36
  * @Last Modified by: calmwu
- * @Last Modified time: 2019-06-23 11:32:32
+ * @Last Modified time: 2020-08-15 19:42:14
  */
 
 package utils
@@ -44,7 +44,7 @@ func CmdExec(args ...string) (outStr string, errStr string, err error) {
 	return
 }
 
-// 输出 CmdExecCaptureAndShow
+// CmdExecCaptureAndShow 捕获输出
 func CmdExecCaptureAndShow(args ...string) (outStr string, errStr string, err error) {
 	baseCmd := args[0]
 	cmdArgs := args[1:]
@@ -92,6 +92,7 @@ func CmdExecCaptureAndShow(args ...string) (outStr string, errStr string, err er
 
 	outStr = stdoutBuf.String()
 	errStr = stderrBuf.String()
+
 	return
 }
 

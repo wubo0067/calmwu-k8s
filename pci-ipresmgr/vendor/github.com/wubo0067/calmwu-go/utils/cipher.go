@@ -2,7 +2,7 @@
  * @Author: calmwu
  * @Date: 2017-11-30 11:15:08
  * @Last Modified by: calmwu
- * @Last Modified time: 2017-12-08 16:54:33
+ * @Last Modified time: 2020-08-15 18:12:09
  */
 
 package utils
@@ -30,7 +30,7 @@ var (
 	dhGroup *dhkx.DHGroup = nil
 )
 
-// 算出来的ka发送给对方
+// GenerateDHKey 算出来的ka发送给对方
 func GenerateDHKey() (*dhkx.DHKey, error) {
 	once.Do(func() {
 		p, _ := new(big.Int).SetString(pValue, 16)
@@ -41,7 +41,7 @@ func GenerateDHKey() (*dhkx.DHKey, error) {
 	return dhGroup.GeneratePrivateKey(nil)
 }
 
-// 根据对方返回的kb计算加密密钥
+// GenerateEncryptionKey 根据对方返回的kb计算加密密钥
 func GenerateEncryptionKey(pub []byte, privateKey *dhkx.DHKey) ([]byte, error) {
 	//s := []byte(*kb)
 	peerPubKey := dhkx.NewPublicKey(pub)
@@ -57,12 +57,12 @@ func GenerateEncryptionKey(pub []byte, privateKey *dhkx.DHKey) ([]byte, error) {
 func NewCipherBlock(encryptionKey []byte) (cipher.Block, error) {
 	cipherBlock, err := aes.NewCipher(encryptionKey)
 	if err != nil {
-		return nil, fmt.Errorf("New cipherBlock failed. err[%s]", err.Error())
+		return nil, fmt.Errorf("new cipherBlock failed. err[%s]", err.Error())
 	}
 	return cipherBlock, nil
 }
 
-// 传入明文，返回密文
+// EncryptPlainText 传入明文，返回密文
 func EncryptPlainText(cipherBlock cipher.Block, plainText []byte) ([]byte, error) {
 	if cipherBlock == nil {
 		return nil, errors.New("cipher block object is nil")
@@ -91,7 +91,7 @@ func EncryptPlainText(cipherBlock cipher.Block, plainText []byte) ([]byte, error
 	return cipherTextBuff, nil
 }
 
-// in-place模式
+// DecryptCipherText in-place模式
 func DecryptCipherText(cipherBlock cipher.Block, cipherText []byte) ([]byte, error) {
 	if cipherBlock == nil {
 		return nil, errors.New("cipher block object is nil!")

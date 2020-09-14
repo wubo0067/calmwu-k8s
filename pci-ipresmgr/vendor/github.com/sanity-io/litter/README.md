@@ -1,21 +1,10 @@
-[![!Build Status](https://travis-ci.org/sanity-io/litter.svg?branch=master)](https://travis-ci.org/sanity-io/litter)
-
 # Litter
 
 **Litter is a pretty printer library for Go data structures to aid in debugging and testing.**
 
----
+It's named for the fact that it outputs *literals*, which you *litter* your output with. As a side benefit, all Litter output is compilable Go. You can use Litter to emit data during debug, and it's also really nice for "snapshot data" in unit tests, since it produces consistent, sorted output.
 
-Litter is provided by
-
-<a href="https://www.sanity.io/?utm_source=GitHub&utm_campaign=litter" rel="nofollow" target="_blank">
-	<img src="https://www.sanity.io/static/images/logo_red.svg?v=2" width="300"><br />
-	Sanity: The Headless CMS Construction Kit
-</a>
-
----
-
-Litter named for the fact that it outputs *literals*, which you *litter* your output with. As a side benefit, all Litter output is syntactically correct Go. You can use Litter to emit data during debug, and it's also really nice for "snapshot data" in unit tests, since it produces consistent, sorted output. Litter was inspired by [Spew](https://github.com/davecgh/go-spew), but focuses on terseness and readability.
+Litter was inspired by [Spew](https://github.com/davecgh/go-spew), but focuses on terseness and readability.
 
 ### Basic example
 
@@ -23,18 +12,18 @@ This:
 
 ```go
 type Person struct {
-	Name   string
-	Age    int
-	Parent *Person
+  Name   string
+  Age    int
+  Parent *Person
 }
 
 litter.Dump(Person{
-	Name:   "Bob",
-	Age:    20,
-	Parent: &Person{
-		Name: "Jane",
-		Age:  50,
-	},
+  Name:   "Bob",
+  Age:    20,
+  Parent: &Person{
+    Name: "Jane",
+    Age:  50,
+  },
 })
 ```
 
@@ -42,12 +31,12 @@ will output:
 
 ```
 Person{
-	Name: "Bob",
-	Age: 20,
-	Parent: &Person{
-		Name: "Jane",
-		Age: 50,
-	},
+  Name: "Bob",
+  Age: 20,
+  Parent: &Person{
+    Name: "Jane",
+    Age: 50,
+  },
 }
 ```
 
@@ -57,21 +46,21 @@ Litter is a great alternative to JSON or YAML for providing "snapshots" or examp
 
 ```go
 func TestSearch(t *testing.T) {
-	result := DoSearch()
+  result := DoSearch()
 
-	actual := litterOpts.Sdump(result)
-	expected, err := ioutil.ReadFile("testdata.txt")
-	if err != nil {
-		// First run, write test data since it doesn't exist
+  actual := litterOpts.Sdump(result)
+  expected, err := ioutil.ReadFile("testdata.txt")
+  if err != nil {
+    // First run, write test data since it doesn't exist
 		if !os.IsNotExist(err) {
-			t.Error(err)
-		}
-		ioutil.Write("testdata.txt", actual, 0644)
-		actual = expected
-	}
-	if expected != actual {
-		t.Errorf("Expected %s, got %s", expected, actual)
-	}
+      t.Error(err)
+    }
+    ioutil.Write("testdata.txt", actual, 0644)
+    actual = expected
+  }
+  if expected != actual {
+    t.Errorf("Expected %s, got %s", expected, actual)
+  }
 }
 ```
 
@@ -83,7 +72,7 @@ Litter detects circular references or aliasing, and will replace additional refe
 
 ```go
 type Circular struct {
-	Self *Circular
+  Self: *Circular
 }
 
 selfref := Circular{}
@@ -96,7 +85,7 @@ will output:
 
 ```
 Circular { // p0
-	Self: p0,
+  Self: p0,
 }
 ```
 
@@ -140,17 +129,11 @@ litter.Config.StripPackageNames = true
 // Hide private struct fields from dumped structs
 litter.Config.HidePrivateFields = true
 
-// Hide fields matched with given regexp if it is not nil. It is set up to hide fields generate with protoc-gen-go
-litter.Config.FieldExclusions = regexp.MustCompile(`^(XXX_.*)$`)
-
 // Sets a "home" package. The package name will be stripped from all its types
 litter.Config.HomePackage = "mypackage"
 
 // Sets separator used when multiple arguments are passed to Dump() or Sdump().
 litter.Config.Separator = "\n"
-
-// Use compact output: strip newlines and other unnecessary whitespace
-litter.Config.Compact = true
 ```
 
 ### `litter.Options`
@@ -158,13 +141,13 @@ litter.Config.Compact = true
 Allows you to configure a local configuration of litter to allow for proper compartmentalization of state at the expense of some comfort:
 
 ``` go
-	sq := litter.Options {
-		HidePrivateFields: true,
-		HomePackage: "thispack",
-		Separator: " ",
-	}
+  sq := litter.Options {
+    HidePrivateFields: true,
+    HomePackage: "thispack",
+    Separator: " ",
+  }
 
-	sq.Dump("dumped", "with", "local", "settings")
+  sq.Dump("dumped", "with", "local", "settings")
 ```
 
 ## Custom dumpers
@@ -173,7 +156,7 @@ Implement the interface Dumper on your types to take control of how your type is
 
 ``` go
 type Dumper interface {
-	LitterDump(w io.Writer)
+  LitterDump(w io.Writer)
 }
 ```
 
@@ -187,12 +170,12 @@ A couple of examples from the test suite:
 type CustomMultiLineDumper struct {}
 
 func (cmld *CustomMultiLineDumper) LitterDump(w io.Writer) {
-	w.Write([]byte("{\n  multi\n  line\n}"))
+  w.Write([]byte("{\n  multi\n  line\n}"))
 }
 
 type CustomSingleLineDumper int
 
 func (csld CustomSingleLineDumper) LitterDump(w io.Writer) {
-	w.Write([]byte("<custom>"))
+  w.Write([]byte("<custom>"))
 }
 ````
