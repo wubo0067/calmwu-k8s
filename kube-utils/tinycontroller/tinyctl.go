@@ -30,7 +30,7 @@ import (
 	"k8s.io/klog"
 )
 
-type ResourceProcesser func(clientSet kubernetes.Interface, indexer cache.Indexer, key string, resourceType ResourceType) error
+type ResourceProcessor func(clientSet kubernetes.Interface, indexer cache.Indexer, key string, resourceType ResourceType) error
 
 type ResourceControllerOptions struct {
 	resourceType      ResourceType
@@ -41,7 +41,7 @@ type ResourceControllerOptions struct {
 	threadiness       int                                     // 处理资源对象的routine数量
 	resourceIndexName string                                  // 索引名字
 	resourceIndexFunc cache.IndexFunc                         // 自定义索引函数，cache会将该函数作用于对象，返回对象的值，这个值决定了相同值的一堆对象
-	resourceProcesser ResourceProcesser                       // 资源处理函数
+	resourceProcessor ResourceProcessor                       // 资源处理函数
 }
 
 type ResourceController struct {
@@ -50,7 +50,7 @@ type ResourceController struct {
 	informer          cache.SharedIndexInformer
 	threadiness       int
 	resourceType      ResourceType
-	resourceProcesser ResourceProcesser // 资源处理函数
+	resourceProcessor ResourceProcessor // 资源处理函数
 }
 
 const (
@@ -115,11 +115,12 @@ func RunK8SResourceControllers(stopCh <-chan struct{}, opts ...ResourceControlle
 
 func newResourceController(resourceType ResourceType, client kubernetes.Interface, informer cache.SharedIndexInformer, tcoptions *ResourceControllerOptions) (*ResourceController, error) {
 	rc := &ResourceController{
-		threadiness:  tcoptions.threadiness,
-		queue:        workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()), // 构造队列，存放key
-		informer:     informer,
-		clientset:    client,
-		resourceType: resourceType,
+		threadiness:       tcoptions.threadiness,
+		queue:             workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter()), // 构造队列，存放key
+		informer:          informer,
+		clientset:         client,
+		resourceType:      resourceType,
+		resourceProcessor: tcoptions.resourceProcessor,
 	}
 
 	// 注册事件处理函数
@@ -251,8 +252,8 @@ func (rc *ResourceController) processNextWorkItem() bool {
 }
 
 func (rc *ResourceController) processItem(key string) error {
-	if rc.resourceProcesser != nil {
-		return rc.resourceProcesser(rc.clientset, rc.informer.GetIndexer(), key, rc.resourceType)
+	if rc.resourceProcessor != nil {
+		return rc.resourceProcessor(rc.clientset, rc.informer.GetIndexer(), key, rc.resourceType)
 	}
 
 	obj, exists, err := rc.informer.GetIndexer().GetByKey(key)

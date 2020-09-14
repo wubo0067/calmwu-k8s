@@ -8,11 +8,16 @@
 package tinycontroller
 
 import (
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/pkg/errors"
+	appsv1 "k8s.io/api/apps/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/cache"
 	"k8s.io/klog"
 )
 
@@ -42,6 +47,27 @@ func RunDeploymentController() {
 		Threadiness(1),
 		KubeCfg("/root/.kube/config"),
 		ResyncPeriod(15*time.Second),
+		Processor(
+			func(clientSet kubernetes.Interface, indexer cache.Indexer, key string, resourceType ResourceType) error {
+				deploymentItfs, err := indexer.ByIndex(cache.NamespaceIndex, "test-indexer")
+
+				if err != nil {
+					err = errors.Wrap(err, "get deployments in test-indexer namespace failed.")
+					klog.Error(err.Error())
+					return err
+				}
+
+				if len(deploymentItfs) > 0 {
+					for index := range deploymentItfs {
+						if deployment, ok := deploymentItfs[index].(*appsv1.Deployment); ok {
+							klog.Infof("index:%d deployment:%s", index,
+								fmt.Sprintf("%s/%s", deployment.ObjectMeta.Namespace, deployment.ObjectMeta.Name))
+						}
+					}
+				}
+
+				return nil
+			}),
 	)
 	if err != nil {
 		klog.Info(err.Error())

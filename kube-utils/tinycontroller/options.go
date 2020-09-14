@@ -40,3 +40,9 @@ func KubeCfg(kubeCfg string) ResourceControllerOption {
 		rcOptions.kubeCfgPath = kubeCfg
 	}
 }
+
+func Processor(resourceProcessor ResourceProcessor) ResourceControllerOption {
+	return func(rcOptions *ResourceControllerOptions) {
+		rcOptions.resourceProcessor = resourceProcessor
+	}
+}

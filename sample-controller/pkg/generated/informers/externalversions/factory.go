@@ -92,7 +92,7 @@ func NewFilteredSharedInformerFactory(client versioned.Interface, defaultResync 
 func NewSharedInformerFactoryWithOptions(client versioned.Interface, defaultResync time.Duration, options ...SharedInformerOption) SharedInformerFactory {
 	factory := &sharedInformerFactory{
 		client:           client,
-		namespace:        v1.NamespaceAll,
+		namespace:        v1.NamespaceAll, // 这里设置了监控所有namespace，影响到了list/watch的参数
 		defaultResync:    defaultResync,
 		informers:        make(map[reflect.Type]cache.SharedIndexInformer),
 		startedInformers: make(map[reflect.Type]bool),
@@ -160,7 +160,7 @@ func (f *sharedInformerFactory) InformerFor(obj runtime.Object, newFunc internal
 		resyncPeriod = f.defaultResync
 	}
 
-	// calmwu: informer其实就是cache.SharedIndexInformer
+	// calmwu: informer其实就是cache.SharedIndexInformer，在这里做了list watch
 	informer = newFunc(f.client, resyncPeriod)
 	f.informers[informerType] = informer
 

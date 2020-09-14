@@ -55,7 +55,7 @@ func main() {
 		klog.Fatalf("Error building kubernetes clientset: %s", err.Error())
 	}
 
-	// 这是自动生成的代码
+	// 这是自动生成的代码，看看怎么构造一个crd对象的clientset，传入的相同的配置文件
 	exampleClient, err := clientset.NewForConfig(cfg)
 	if err != nil {
 		klog.Fatalf("Error building example clientset: %s", err.Error())
@@ -68,6 +68,7 @@ func main() {
 	exampleInformerFactory := informers.NewSharedInformerFactory(exampleClient, time.Second*30)
 
 	controller := NewController(kubeClient, exampleClient,
+		// 构造 deploymentInformer对象，这里还没有调用list watch
 		kubeInformerFactory.Apps().V1().Deployments(),
 		// 下面这个就是构造 fooInformer对象
 		exampleInformerFactory.Samplecontroller().V1alpha1().Foos())

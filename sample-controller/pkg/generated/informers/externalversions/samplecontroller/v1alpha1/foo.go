@@ -61,6 +61,7 @@ func NewFilteredFooInformer(client versioned.Interface, namespace string, resync
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
+				// 这里的namespace来源于factory，如果""监控所有的namespace
 				return client.SamplecontrollerV1alpha1().Foos(namespace).List(options)
 			},
 			WatchFunc: func(options v1.ListOptions) (watch.Interface, error) {
