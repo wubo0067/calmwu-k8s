@@ -15,8 +15,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sanity-io/litter"
-	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -135,7 +135,21 @@ func newResourceController(resourceType ResourceType, client kubernetes.Interfac
 			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
-			if oldObj.(*appsv1.Deployment).ResourceVersion == newObj.(*appsv1.Deployment).ResourceVersion {
+			oldObjMeta, err := meta.Accessor(oldObj)
+			if err != nil {
+				klog.Errorf("resource[%s] controller UpdateFunc meta.Accessor oldObj failed. err:%s", resourceType, err.Error())
+
+				return
+			}
+
+			newObjMeta, err := meta.Accessor(newObj)
+			if err != nil {
+				klog.Errorf("resource[%s] controller UpdateFunc meta.Accessor newObj failed. err:%s", resourceType, err.Error())
+
+				return
+			}
+
+			if oldObjMeta.GetResourceVersion() == newObjMeta.GetResourceVersion() {
 				return
 			}
 

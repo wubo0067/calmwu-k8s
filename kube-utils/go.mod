@@ -7,6 +7,8 @@ require (
 	github.com/containerd/containerd v1.3.6
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 // indirect
 	github.com/gin-gonic/gin v1.6.3 // indirect
+	github.com/golang/protobuf v1.3.3
+	github.com/googleapis/gnostic v0.1.0
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sanity-io/litter v1.3.0

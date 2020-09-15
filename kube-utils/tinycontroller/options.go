@@ -7,7 +7,11 @@
 
 package tinycontroller
 
-import "time"
+import (
+	"time"
+
+	internalinterfaces "k8s.io/client-go/informers/internalinterfaces"
+)
 
 type ResourceControllerOption func(*ResourceControllerOptions)
 
@@ -44,5 +48,11 @@ func KubeCfg(kubeCfg string) ResourceControllerOption {
 func Processor(resourceProcessor ResourceProcessor) ResourceControllerOption {
 	return func(rcOptions *ResourceControllerOptions) {
 		rcOptions.resourceProcessor = resourceProcessor
+	}
+}
+
+func ListOption(tweakListOptions internalinterfaces.TweakListOptionsFunc) ResourceControllerOption {
+	return func(rcOption *ResourceControllerOptions) {
+		rcOption.tweakListOptions = tweakListOptions
 	}
 }
