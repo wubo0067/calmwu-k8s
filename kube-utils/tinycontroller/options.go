@@ -51,6 +51,7 @@ func Processor(resourceProcessor ResourceProcessor) ResourceControllerOption {
 	}
 }
 
+// ListOption 设置lableSelector和fieldSelector的选择函数
 func ListOption(tweakListOptions internalinterfaces.TweakListOptionsFunc) ResourceControllerOption {
 	return func(rcOption *ResourceControllerOptions) {
 		rcOption.tweakListOptions = tweakListOptions

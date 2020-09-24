@@ -66,5 +66,6 @@ func testRemoteShell() {
 }
 
 func main() {
-	tinycontroller.RunDeploymentController()
+	//tinycontroller.RunDeploymentController()
+	tinycontroller.RunEndpointsController()
 }

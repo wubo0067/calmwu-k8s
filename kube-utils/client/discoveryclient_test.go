@@ -10,8 +10,7 @@ package client
 import (
 	"testing"
 
-	"kube-utils/vendor/k8s.io/client-go/discovery"
-
+	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/tools/clientcmd"
 )
 

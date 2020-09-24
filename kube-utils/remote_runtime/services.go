@@ -45,11 +45,16 @@ type bashShellImpl struct {
 	cmdStdout   *bytes.Buffer
 	cmdStderr   *bytes.Buffer
 	wg          sync.WaitGroup
+	guard       sync.Mutex
 }
 
 var _ BashShell = &bashShellImpl{}
 
+// ExecCmd 执行命令，这个必须是串行，保证读取完整的命令返回
 func (bsi *bashShellImpl) ExecCmd(cmdLines []string, timeOutSecs time.Duration) (string, string, error) {
+	bsi.guard.Lock()
+	defer bsi.guard.Unlock()
+
 	bsi.cmdStderr.Reset()
 	bsi.cmdStdout.Reset()
 

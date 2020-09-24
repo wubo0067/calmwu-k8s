@@ -85,3 +85,17 @@ func RunDeploymentController() {
 		klog.Info(err.Error())
 	}
 }
+
+func RunEndpointsController() {
+	stopCh := SetupSignalHandler()
+
+	err := RunK8SResourceControllers(stopCh,
+		ResType(EndPoints),
+		Threadiness(3),
+		KubeCfg("/root/.kube/config"),
+		ResyncPeriod(15*time.Second),
+	)
+	if err != nil {
+		klog.Info(err.Error())
+	}
+}

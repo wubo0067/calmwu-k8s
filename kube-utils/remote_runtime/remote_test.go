@@ -8,12 +8,15 @@
 package remoteruntime
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
+	calmUtils "github.com/wubo0067/calmwu-go/utils"
 	"k8s.io/utils/exec"
 )
 
@@ -174,4 +177,59 @@ func TestOSPipe(t *testing.T) {
 
 	time.Sleep(time.Second)
 	fmt.Println("TestOSPipe exit")
+}
+
+func TestPipeScan(t *testing.T) {
+	pr, pw, _ := os.Pipe()
+
+	go func() {
+		pr.SetDeadline(time.Now().Add(time.Second))
+
+		scanner := bufio.NewScanner(pr)
+		scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+			//fmt.Printf("data len:%d, atEof:%v\n", len(data), atEOF)
+			if len(data) == 0 && atEOF {
+				// 读到结束符
+				return 0, nil, nil
+			}
+
+			if pos := strings.Index(calmUtils.Bytes2String(data), "0xEof"); pos >= 0 {
+				//fmt.Printf("pos: %d\n", pos)
+				// 返回偏移，自定义内容的长度，自定义数据的内容
+				return pos + 5, data[0 : pos+5], nil
+			}
+
+			if atEOF {
+				return len(data), data, nil
+			}
+
+			return 0, nil, nil
+		})
+
+		for scanner.Scan() {
+			fmt.Printf("read custom content:[%s]\n", scanner.Text())
+		}
+
+		if err := scanner.Err(); err != nil {
+			fmt.Printf("scanner error! read pipe failed. err:%s\n", err.Error())
+			return
+		}
+
+		fmt.Printf("scanner pipe routine exit\n")
+	}()
+
+	_, _ = pw.Write([]byte("---Hello world---\n"))
+	_, _ = pw.Write([]byte("0xEof"))
+	_, _ = pw.Write([]byte("---Hello sci---\n"))
+	_, _ = pw.Write([]byte("0xEof"))
+
+	toC := time.After(3 * time.Second)
+	// 读取超时，就关闭pipe
+	<-toC
+	fmt.Println("close pipe")
+	pw.Close()
+
+	time.Sleep(2 * time.Second)
+	pr.Close()
+	fmt.Println("TestScanFromPipe exit")
 }

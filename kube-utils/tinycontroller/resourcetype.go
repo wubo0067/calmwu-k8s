@@ -15,7 +15,7 @@ const (
 	ReplicationController ResourceType = "rc"
 	ReplicaSet            ResourceType = "rs"
 	DaemonSet             ResourceType = "ds"
-	Services              ResourceType = "svc"
+	Service               ResourceType = "svc"
 	Pod                   ResourceType = "po"
 	Job                   ResourceType = "job"
 	Node                  ResourceType = "node"
@@ -26,4 +26,5 @@ const (
 	Secret                ResourceType = "secret"
 	ConfigMap             ResourceType = "configmap"
 	Ingress               ResourceType = "ing"
+	EndPoints             ResourceType = "ep"
 )

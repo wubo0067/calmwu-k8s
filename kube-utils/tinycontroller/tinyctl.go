@@ -98,6 +98,12 @@ func RunK8SResourceControllers(stopCh <-chan struct{}, opts ...ResourceControlle
 	case Deployment:
 		informer = informappsv1.NewFilteredDeploymentInformer(kubeClient, tcoptions.namespace, tcoptions.resyncPeriod,
 			indexers, tcoptions.tweakListOptions)
+	case EndPoints:
+		informer = informcorev1.NewFilteredEndpointsInformer(kubeClient, tcoptions.namespace, tcoptions.resyncPeriod,
+			indexers, tcoptions.tweakListOptions)
+	case Service:
+		informer = informcorev1.NewFilteredServiceInformer(kubeClient, tcoptions.namespace, tcoptions.resyncPeriod,
+			indexers, tcoptions.tweakListOptions)
 	default:
 		return ErrResourceNotSupport
 	}
