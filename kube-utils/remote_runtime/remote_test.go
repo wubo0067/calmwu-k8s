@@ -52,30 +52,22 @@ func TestRunBash(t *testing.T) {
 
 	defer runtimeService.Close()
 
-	shell, err := runtimeService.NewBashShell("62ccc313a60fb")
+	shell, err := runtimeService.NewBashShell("ceff738df4c57")
 	if err != nil {
 		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
 		return
 	}
 
-	cmdLines := []string{
-		"cat<<EOF\n",
-		"123456\n",
-		"654321\n",
-		"calmwu\n",
-		"EOF",
-	}
+	// cmdLines := []string{
+	// 	"ls -al /dev;echo $?;echo 0xEof",
+	// }
 
-	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
-	if err != nil {
-		if len(stderr) > 0 {
-			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
-		} else {
-			t.Errorf("ExecCmd failed, %s\n", err.Error())
-		}
-	} else {
-		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
-	}
+	// out, err := shell.ExecCmd(cmdLines, 200*time.Millisecond)
+	// if err != nil {
+	// 	t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", out)
+	// }
 
 	// time.Sleep(1 * time.Second)
 
@@ -104,51 +96,97 @@ func TestRunBash(t *testing.T) {
 	// }
 
 	pipeCmdLines := []string{
+		"echo bbbbbbbbwb|grep -n wb;echo $?;echo 0xEof",
+	}
+
+	_, err = shell.ExecCmd(pipeCmdLines, 200*time.Millisecond)
+	if err != nil {
+		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	}
+
+	pipeCmdLines = []string{
+		"sdsd bbbbbbbbwb|grep -n wb;echo $?;echo 0xEof",
+	}
+
+	_, err = shell.ExecCmd(pipeCmdLines, 200*time.Millisecond)
+	if err != nil {
+		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	}
+
+	// cmdLines = []string{
+	// 	"ls -al /dev",
+	// }
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	// cmdLines = []string{
+	// 	"uptime",
+	// }
+
+	// stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	// if err != nil {
+	// 	if len(stderr) > 0 {
+	// 		t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
+	// 	} else {
+	// 		t.Errorf("ExecCmd failed, %s\n", err.Error())
+	// 	}
+	// } else {
+	// 	t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+	// }
+
+	shell.Exit()
+}
+
+func TestMulitiExec(t *testing.T) {
+	runtimeService, err := NewRemoteRuntimeService("", 3*time.Second)
+	if err != nil {
+		t.Error(err.Error())
+
+		return
+	}
+
+	defer runtimeService.Close()
+
+	pipeCmdLines := []string{
 		"echo \"aaaaaaa\n",
-		"bbbbbbwb\n",
-		"\" |grep -n wb",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"wbbbbbdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddbwb\n",
+		"\" |grep -n wb;echo $?;echo 0xEof",
 	}
 
-	stdout, stderr, err = shell.ExecCmd(pipeCmdLines, 1)
+	shell, err := runtimeService.NewBashShell("ceff738df4c57")
 	if err != nil {
-		if len(stderr) > 0 {
-			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
-		} else {
-			t.Errorf("ExecCmd failed, %s\n", err.Error())
-		}
-	} else {
-		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
+		t.Errorf("NewBashShell failed, err:%s\n", err.Error())
+
+		return
 	}
 
-	cmdLines = []string{
-		"ls -al /dev",
+	timeStart := time.Now()
+
+	for i := 0; i < 200; i++ {
+		shell.ExecCmd(pipeCmdLines, 200*time.Millisecond)
 	}
 
-	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
-	if err != nil {
-		if len(stderr) > 0 {
-			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
-		} else {
-			t.Errorf("ExecCmd failed, %s\n", err.Error())
-		}
-	} else {
-		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
-	}
-
-	cmdLines = []string{
-		"uptime",
-	}
-
-	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
-	if err != nil {
-		if len(stderr) > 0 {
-			t.Errorf("ExecCmd failed, stderr:\n%s\n", stderr)
-		} else {
-			t.Errorf("ExecCmd failed, %s\n", err.Error())
-		}
-	} else {
-		t.Logf("ExecCmd successed. response:\n%s\n", stdout)
-	}
+	t.Logf("execute consume time: %s", time.Since(timeStart).String())
 
 	shell.Exit()
 }

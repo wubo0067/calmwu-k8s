@@ -150,19 +150,25 @@ type writerWrapper struct {
 }
 
 func (w writerWrapper) Write(p []byte) (int, error) {
-	klog.Infof("---Write p size:%d---", len(p))
+	//klog.Infof("---Write p size:%d---", len(p))
 	return w.writer.Write(p)
 }
 
 // NewBashShell ...
 func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, error) {
-	pr, pw, _ := os.Pipe()
+	inPipeRead, inPipeWriter, _ := os.Pipe()
+	outPipeRead, outPipeWriter, _ := os.Pipe()
 
 	bashShell := &bashShellImpl{
 		containerID: containerID,
-		shWriter:    pw,
-		cmdStdout:   new(bytes.Buffer),
-		cmdStderr:   new(bytes.Buffer),
+
+		inPipeWriter: inPipeWriter,
+		inPipeRead:   inPipeRead,
+
+		outPipeRead:   outPipeRead,
+		outPipeWriter: outPipeWriter,
+		// cmdStdout:   outPw,
+		// cmdStderr:   outPw,
 	}
 
 	request := &runtimeapi.ExecRequest{
@@ -204,10 +210,10 @@ func (r *RemoteRuntimeService) NewBashShell(containerID string) (BashShell, erro
 
 	// 本来想测试，看看为何有累积的数据，这样wrapper就没问题了，奇怪
 	streamOptions := remoteclient.StreamOptions{
-		Stdout: writerWrapper{bashShell.cmdStdout},
-		Stderr: writerWrapper{bashShell.cmdStderr},
+		Stdout: writerWrapper{bashShell.outPipeWriter},
+		Stderr: writerWrapper{bashShell.outPipeWriter},
 		Tty:    false,
-		Stdin:  pr,
+		Stdin:  inPipeRead,
 	}
 
 	klog.Infof("NewBashShell %s StreamOptions: %v", containerID, streamOptions)

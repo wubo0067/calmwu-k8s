@@ -8,8 +8,11 @@
 package remoteruntime
 
 import (
+	"bufio"
 	"bytes"
 	"os"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,7 +23,7 @@ import (
 
 type BashShell interface {
 	// ExecCmd 执行命令，返回shell返回值和命令结果
-	ExecCmd(cmdLines []string, timeOutSecs time.Duration) (string, string, error)
+	ExecCmd(cmdLines []string, timeoutDelay time.Duration) (string, error)
 
 	// 结束shell
 	Exit()
@@ -40,68 +43,106 @@ type RuntimeService interface {
 }
 
 type bashShellImpl struct {
-	containerID string
-	shWriter    *os.File
-	cmdStdout   *bytes.Buffer
-	cmdStderr   *bytes.Buffer
-	wg          sync.WaitGroup
-	guard       sync.Mutex
+	containerID   string
+	inPipeRead    *os.File
+	inPipeWriter  *os.File
+	outPipeRead   *os.File
+	outPipeWriter *os.File
+	wg            sync.WaitGroup
+	guard         sync.Mutex
+	// cmdStdout   *bytes.Buffer
+	// cmdStderr   *bytes.Buffer
 }
 
 var _ BashShell = &bashShellImpl{}
 
 // ExecCmd 执行命令，这个必须是串行，保证读取完整的命令返回
-func (bsi *bashShellImpl) ExecCmd(cmdLines []string, timeOutSecs time.Duration) (string, string, error) {
+func (bsi *bashShellImpl) ExecCmd(cmdLines []string, timeoutDelay time.Duration) (string, error) {
 	bsi.guard.Lock()
 	defer bsi.guard.Unlock()
 
-	bsi.cmdStderr.Reset()
-	bsi.cmdStdout.Reset()
+	// bsi.cmdStderr.Reset()
+	// bsi.cmdStdout.Reset()
 
-	klog.Infof("cmdStdout len:%d", bsi.cmdStdout.Len())
+	//klog.Infof("cmdStdout len:%d", bsi.cmdStdout.Len())
 
 	// 通过pipe写入命令
 	writeLen := 0
 	for _, cmdLine := range cmdLines {
-		len, err := bsi.shWriter.Write(calmUtils.String2Bytes(cmdLine))
+		len, err := bsi.inPipeWriter.Write(calmUtils.String2Bytes(cmdLine))
 		if err != nil {
 			err = errors.Wrapf(err, "ExecCmd %s write cmd failed.", bsi.containerID)
 			klog.Errorf(err.Error())
-			return "", "", err
+			return "", err
 		}
 		writeLen += len
 	}
 
 	// 回车执行命令
-	bsi.shWriter.Write(calmUtils.String2Bytes("\n"))
+	bsi.inPipeWriter.Write(calmUtils.String2Bytes("\n"))
 	klog.Infof("containerid[%s] ExecCmd write bytes:%d", bsi.containerID, writeLen)
 
 	// 等待结果
-	waitTimeout := time.Now().Add(timeOutSecs * time.Second)
-	for {
-		if bsi.cmdStdout.Len() > 0 || bsi.cmdStderr.Len() > 0 {
-			klog.Infof("containerid[%s] ExecCmd cmdStdout len:%d, cmdStderr len:%d",
-				bsi.containerID, bsi.cmdStdout.Len(), bsi.cmdStderr.Len())
-			break
-		}
-		if time.Now().After(waitTimeout) {
-			// 超时时间1秒
-			err := errors.Errorf("ExecCmd %s timeout.", bsi.containerID)
-			return "", "", err
+
+	// 设置读取结果超时时间
+	bsi.outPipeRead.SetDeadline(time.Now().Add(timeoutDelay))
+
+	scanner := bufio.NewScanner(bsi.outPipeRead)
+	scanner.Split(func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		//fmt.Printf("data len:%d, atEof:%v\n", len(data), atEOF)
+		if len(data) == 0 && atEOF {
+			// 读到结束符
+			return 0, nil, nil
 		}
 
-		time.Sleep(5 * time.Millisecond)
+		if pos := strings.Index(calmUtils.Bytes2String(data), "0xEof"); pos >= 0 {
+			//fmt.Printf("pos: %d\n", pos)
+			// 返回偏移，自定义内容的长度，自定义数据的内容
+			return pos + 5, data[0 : pos+5], nil
+		}
+
+		if atEOF {
+			return len(data), data, nil
+		}
+
+		return 0, nil, nil
+	})
+
+	for scanner.Scan() {
+		// 读取到结果
+		// fmt.Printf("read custom content:[%s]\n", scanner.Text())
+		// TODO: 解析结果
+		pos1 := bytes.LastIndexByte(scanner.Bytes(), '\n')
+		pos2 := bytes.LastIndexByte(scanner.Bytes()[:pos1], '\n')
+		resNum, err := strconv.Atoi(calmUtils.Bytes2String(scanner.Bytes()[pos2+1 : pos1]))
+
+		if err != nil {
+			return "", err
+		}
+
+		if resNum != 0 {
+			err = errors.Errorf("cmd exec res code:%d", resNum)
+
+			return "", err
+		}
+
+		return scanner.Text(), nil
 	}
 
-	if bsi.cmdStderr.Len() > 0 {
-		return "", bsi.cmdStderr.String(), errors.New("stderr")
+	if err := scanner.Err(); err != nil {
+		err = errors.Wrap(err, "read cmd response failed.")
+
+		return "", err
 	}
 
-	return bsi.cmdStdout.String(), "", nil
+	return "", nil
 }
 
 func (bsi *bashShellImpl) Exit() {
-	bsi.shWriter.Write(calmUtils.String2Bytes("exit\n"))
-	bsi.shWriter.Close()
+	bsi.inPipeWriter.Write(calmUtils.String2Bytes("exit\n"))
+	bsi.inPipeWriter.Close()
 	bsi.wg.Wait()
+	bsi.inPipeRead.Close()
+	bsi.outPipeWriter.Close()
+	bsi.outPipeRead.Close()
 }
