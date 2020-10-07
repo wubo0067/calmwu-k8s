@@ -1,3 +1,4 @@
+
 FROM golang:alpine3.12 AS builder
 WORKDIR /build
 
