@@ -7,15 +7,18 @@ require (
 	github.com/containerd/containerd v1.3.6
 	github.com/docker/docker v0.7.3-0.20190327010347-be7ac8be2ae0 // indirect
 	github.com/gin-gonic/gin v1.6.3 // indirect
-	github.com/golang/protobuf v1.3.3
-	github.com/googleapis/gnostic v0.1.0
+	github.com/golang/protobuf v1.3.3 // indirect
+	github.com/googleapis/gnostic v0.1.0 // indirect
+	github.com/imdario/mergo v0.3.5
 	github.com/monnand/dhkx v0.0.0-20180522003156-9e5b033f1ac4 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/sanity-io/litter v1.3.0
 	github.com/snwfdhmp/errlog v0.0.0-20191219134421-4c9e67f11ebc // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
+	github.com/spf13/pflag v1.0.5
 	github.com/wubo0067/calmwu-go v0.0.0-20200815121908-354ed4fe3bfd
-	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a // indirect
+	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975
+	golang.org/x/net v0.0.0-20191204025024-5ee1b9f4859a
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	google.golang.org/grpc v1.26.0
 	k8s.io/api v0.0.0
