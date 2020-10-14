@@ -40,32 +40,32 @@ func testRemoteShell() {
 
 	defer shell.Exit()
 
-	stdout, stderr, err := shell.ExecCmd(cmdLines, 1)
+	res, err := shell.ExecCmd(cmdLines, 1)
 	if err != nil {
-		if len(stderr) > 0 {
-			log.Fatalf("ExecCmd failed, stderr:\n%s\n", stderr)
+		if len(res) > 0 {
+			log.Fatalf("ExecCmd failed, stderr:\n%s\n", res)
 		} else {
 			log.Fatalf("ExecCmd failed, %s\n", err.Error())
 		}
 	} else {
-		log.Printf("ExecCmd successed. response:\n%s\n", stdout)
+		log.Printf("ExecCmd successed. response:\n%s\n", res)
 	}
 
-	stdout, stderr, err = shell.ExecCmd(cmdLines, 1)
+	res, err = shell.ExecCmd(cmdLines, 1)
 	if err != nil {
-		if len(stderr) > 0 {
-			log.Fatalf("ExecCmd failed, stderr:\n%s\n", stderr)
+		if len(res) > 0 {
+			log.Fatalf("ExecCmd failed, stderr:\n%s\n", res)
 		} else {
 			log.Fatalf("ExecCmd failed, %s\n", err.Error())
 		}
 	} else {
-		log.Printf("ExecCmd successed. response:\n%s\n", stdout)
+		log.Printf("ExecCmd successed. response:\n%s\n", res)
 	}
 
 	time.Sleep(100 * time.Second)
 }
 
 func main() {
-	//tinycontroller.RunDeploymentController()
-	tinycontroller.RunEndpointsController()
+	tinycontroller.RunDeploymentController()
+	//tinycontroller.RunEndpointsController()
 }
