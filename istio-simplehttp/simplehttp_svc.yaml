@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: istio-ns
+  name: simplehttp
+spec:
+  selector:
+    app: simplehttp
+  ports:
+    - protocol: TCP
+      port: 8089
+      targetPort: 80
+      #nodePort: 30061
+  #clusterIP: 10.0.171.239
+  #loadBalancerIP: 78.11.24.19
+  #type: LoadBalancer

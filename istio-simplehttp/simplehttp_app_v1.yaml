@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: istio-ns
+  name: simplehttp
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simplehttp-v1
+  namespace: istio-ns
+  labels:
+    app: simplehttp
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: simplehttp
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: simplehttp
+        version: v1
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"        
+    spec:
+      serviceAccountName: simplehttp
+      containers:
+      - name: simplehttp
+        image: python:3.9.0
+        imagePullPolicy: IfNotPresent
+        command: ["sh", "-c", "python -m http.server 80"]
+        ports:
+        - containerPort: 80
