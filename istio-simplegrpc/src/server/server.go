@@ -2,7 +2,7 @@
  * @Author: CALM.WU
  * @Date: 2020-11-29 12:07:36
  * @Last Modified by: CALM.WU
- * @Last Modified time: 2020-11-29 12:39:52
+ * @Last Modified time: 2020-11-29 22:04:22
  */
 
 package main
@@ -24,9 +24,13 @@ type GreeterServerImpl struct{
 	protoHelloworld.UnimplementedGreeterServer
 }
 
+var (
+	_index = 0
+)
+
 // 
 func (gsi *GreeterServerImpl) SayHello(ctx context.Context, in *protoHelloworld.HelloRequest) (*protoHelloworld.HelloReply, error) {
-	calmwuUtils.Debugf("Greeter.SayHello called, in: %#v", in)
+	calmwuUtils.Debugf("index:%d Greeter.SayHello called, in: %#v", _index++, in)
 	return &protoHelloworld.HelloReply{
 		Message: "Hello" + in.Name,
 	}, nil
@@ -37,6 +41,8 @@ var (
 )
 
 func main() {
+	calmwuUtils.Debug("istio-simplegrpc-server now start.")
+	
 	listen, err := net.Listen("tcp", "0.0.0.0:8081")
 	if err != nil {
 		calmwuUtils.Fatalf("failed to listen: %v", err.Error())

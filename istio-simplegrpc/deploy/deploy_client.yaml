@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-simplegrpc-client
+  namespace: istio-ns
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-simplegrpc-client
+  template:
+    metadata:
+      labels:
+        app: istio-simplegrpc-client
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"        
+    spec:
+      containers:
+      - name: istio-simplegrpc-client
+        image: istio_simplegrpc_client:0.0.1
+        imagePullPolicy: IfNotPresent

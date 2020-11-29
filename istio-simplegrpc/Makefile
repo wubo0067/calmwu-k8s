@@ -33,3 +33,5 @@ clean:
 	find ./proto -name "*.go"|xargs rm
 	rm -f container/server/${APP_PREFIX}_server
 	rm -f container/client/${APP_PREFIX}_client
+	-docker rmi ${APP_PREFIX}_client:${RELEASE}
+	-docker rmi ${APP_PREFIX}_server:${RELEASE}	

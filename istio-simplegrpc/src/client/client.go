@@ -2,7 +2,7 @@
  * @Author: CALM.WU
  * @Date: 2020-11-29 11:46:02
  * @Last Modified by: CALM.WU
- * @Last Modified time: 2020-11-29 20:12:12
+ * @Last Modified time: 2020-11-29 22:04:41
  */
 
 package main
@@ -20,14 +20,18 @@ import (
 )
 
 const (
-	_helloWorldServiceAddr = "helloworld.istio-ns.svc.cluster.local:8081"
+	_greeterServiceAddr = "greeter.istio-ns.svc.cluster.local:8081"
 	_defaultName = "CalmWU"
 	_defaultGRPCTimeout = 10 * time.Second
 )
 
+var (
+	_index = 0
+)
+
 func main() {
 	pCtx, pCancel := context.WithCancel(context.Background())
-	
+
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
@@ -44,7 +48,7 @@ func main() {
 		}		
 	}()
 	
-	conn, err := grpc.Dial(_helloWorldServiceAddr, grpc.WithInsecure())
+	conn, err := grpc.Dial(_greeterServiceAddr, grpc.WithInsecure())
 	if err != nil {
 		calmwuUtils.Fatalf("grpc dial to %s failed. err:%s", err.Error())
 	}
@@ -57,7 +61,7 @@ func main() {
 		name = os.Args[1]
 	}
 	
-	tickerCall := time.NewTicker(2 * time.Second)
+	tickerCall := time.NewTicker(5 * time.Second)
 	defer tickerCall.Stop()
 
 L:
@@ -73,7 +77,7 @@ L:
 				calmwuUtils.Errorf("call greet.SayHello failed. err:%s", err.Error())
 				break L
 			} else {
-				calmwuUtils.Debugf("call greet.SayHello resp:%#v", resp)
+				calmwuUtils.Debugf("index:%d call greet.SayHello resp:%#v", index++, resp)
 			}
 		case <-pCtx.Done():
 			calmwuUtils.Debug("istio-simplegrpc-client recv exit notify")

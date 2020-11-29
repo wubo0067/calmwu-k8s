@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: istio-simplegrpc-server-v1
+  namespace: istio-ns
+  labels:
+    app: istio-simplegrpc-server
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: istio-simplegrpc-server
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: istio-simplegrpc-server
+        version: v1
+      annotations:
+        io.kubernetes.cri.untrusted-workload: "true"        
+    spec:
+      containers:
+      - name: istio-simplegrpc-server
+        image: istio_simplegrpc_server:0.0.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+---
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: istio-ns
+  name: greeter
+spec:
+  selector:
+    app: istio-simplegrpc-server
+  ports:
+    - protocol: TCP
+      port: 8081
+      targetPort: 8081
+      #nodePort: 30061
+  #clusterIP: 10.0.171.239
+  #loadBalancerIP: 78.11.24.19
+  #type: LoadBalancer        
