@@ -2,11 +2,50 @@
  * @Author: CALM.WU
  * @Date: 2020-11-29 12:07:36
  * @Last Modified by: CALM.WU
- * @Last Modified time: 2020-11-29 12:10:57
+ * @Last Modified time: 2020-11-29 12:39:52
  */
 
 package main
 
- func main() {
-	 
- }
+import (
+	"context"
+	"net"
+
+	protoHelloworld "istio-simplegrpc/proto/helloworld"
+
+	calmwuUtils "github.com/wubo0067/calmwu-go/utils"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+)
+
+//
+type GreeterServerImpl struct{
+	// 这里必须嵌入，https://github.com/grpc/grpc-go/issues/3669
+	protoHelloworld.UnimplementedGreeterServer
+}
+
+// 
+func (gsi *GreeterServerImpl) SayHello(ctx context.Context, in *protoHelloworld.HelloRequest) (*protoHelloworld.HelloReply, error) {
+	calmwuUtils.Debugf("Greeter.SayHello called, in: %#v", in)
+	return &protoHelloworld.HelloReply{
+		Message: "Hello" + in.Name,
+	}, nil
+}
+
+var (
+	_ protoHelloworld.GreeterServer = &GreeterServerImpl{}
+)
+
+func main() {
+	listen, err := net.Listen("tcp", "0.0.0.0:8081")
+	if err != nil {
+		calmwuUtils.Fatalf("failed to listen: %v", err.Error())
+	}
+	
+	grpcSrv := grpc.NewServer()
+	protoHelloworld.RegisterGreeterServer(grpcSrv, &GreeterServerImpl{})
+	reflection.Register(grpcSrv)
+	if err := grpcSrv.Serve(listen); err != nil {
+		calmwuUtils.Fatal("failed to serve: %v", err.Error())
+	}
+}
