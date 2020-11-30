@@ -9,7 +9,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"net"
+	"os"
 
 	protoHelloworld "istio-simplegrpc/proto/helloworld"
 
@@ -26,13 +28,15 @@ type GreeterServerImpl struct{
 
 var (
 	_index = 0
+	_hostName = ""
 )
 
 // 
 func (gsi *GreeterServerImpl) SayHello(ctx context.Context, in *protoHelloworld.HelloRequest) (*protoHelloworld.HelloReply, error) {
-	calmwuUtils.Debugf("index:%d Greeter.SayHello called, in: %#v", _index++, in)
+	_index++
+	calmwuUtils.Debugf("index:%d Greeter.SayHello called, name: %s", _index, in.Name)
 	return &protoHelloworld.HelloReply{
-		Message: "Hello" + in.Name,
+		Message: fmt.Sprintf("srv-host:%s index:%d Hello %s", _hostName, _index, in.Name),
 	}, nil
 }
 
@@ -42,6 +46,8 @@ var (
 
 func main() {
 	calmwuUtils.Debug("istio-simplegrpc-server now start.")
+
+	_hostName = os.Getenv("HOSTNAME")
 	
 	listen, err := net.Listen("tcp", "0.0.0.0:8081")
 	if err != nil {

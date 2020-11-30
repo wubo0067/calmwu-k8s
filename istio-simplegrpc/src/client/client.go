@@ -9,6 +9,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	protoHelloworld "istio-simplegrpc/proto/helloworld"
 	"os"
 	"os/signal"
@@ -27,6 +28,7 @@ const (
 
 var (
 	_index = 0
+	_hostName = ""
 )
 
 func main() {
@@ -47,6 +49,8 @@ func main() {
 			pCancel()
 		}		
 	}()
+
+	_hostName = os.Getenv("HOSTNAME")
 	
 	conn, err := grpc.Dial(_greeterServiceAddr, grpc.WithInsecure())
 	if err != nil {
@@ -72,12 +76,12 @@ L:
 			defer cancel()
 		
 			resp, err := client.SayHello(ctx, &protoHelloworld.HelloRequest{
-				Name: name,})
+				Name: fmt.Sprintf("cli-host:%s index:%d name:%s", _hostName, _index, name),})
 			if err != nil {
 				calmwuUtils.Errorf("call greet.SayHello failed. err:%s", err.Error())
 				break L
 			} else {
-				calmwuUtils.Debugf("index:%d call greet.SayHello resp:%#v", index++, resp)
+				calmwuUtils.Debugf("call greet.SayHello resp:%s", resp.Message)
 			}
 		case <-pCtx.Done():
 			calmwuUtils.Debug("istio-simplegrpc-client recv exit notify")

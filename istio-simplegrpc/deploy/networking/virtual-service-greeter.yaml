@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  namespace: istio-ns
+  name: istio-simplegrpc-greeter
+spec:
+  hosts:
+  - greeter.istio-ns.svc.cluster.local
+  http:
+  - match:
+    - uri:
+        exact: /helloworld.Greeter/SayHello
+    route:
+    - destination:
+        host: greeter.istio-ns.svc.cluster.local
+        subset: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  namespace: istio-ns
+  name: istio-simplegrpc-greeter-destination-rule  
+spec:
+  host: greeter.istio-ns.svc.cluster.local
+  trafficPolicy: #默认的负载均衡策略
+    loadBalancer:
+      simple: ROUND_ROBIN
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+       

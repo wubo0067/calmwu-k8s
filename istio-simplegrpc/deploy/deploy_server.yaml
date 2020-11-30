@@ -7,7 +7,7 @@ metadata:
     app: istio-simplegrpc-server
     version: v1
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: istio-simplegrpc-server

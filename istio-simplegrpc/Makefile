@@ -24,11 +24,18 @@ server:
 		-o container/server/${APP_PREFIX}_server src/server/server.go		
 
 container:
-	-docker rmi ${APP_PREFIX}_client:${RELEASE}
-	-docker rmi ${APP_PREFIX}_server:${RELEASE}
+	crictl rmi ${APP_PREFIX}_client:${RELEASE}
+	crictl rmi ${APP_PREFIX}_server:${RELEASE}
 	docker build -t ${APP_PREFIX}_client:${RELEASE} container/client		
 	docker build -t ${APP_PREFIX}_server:${RELEASE} container/server
-
+	docker save ${APP_PREFIX}_server:${RELEASE} -o ${APP_PREFIX}_server:${RELEASE}.tar
+	docker save ${APP_PREFIX}_client:${RELEASE} -o ${APP_PREFIX}_client:${RELEASE}.tar
+	ctr -n=k8s.io images import ${APP_PREFIX}_server:${RELEASE}.tar
+	ctr -n=k8s.io images import ${APP_PREFIX}_client:${RELEASE}.tar
+	-docker rmi ${APP_PREFIX}_client:${RELEASE}
+	-docker rmi ${APP_PREFIX}_server:${RELEASE}
+	rm ${APP_PREFIX}_server:${RELEASE}.tar ${APP_PREFIX}_client:${RELEASE}.tar
+ 
 clean:
 	find ./proto -name "*.go"|xargs rm
 	rm -f container/server/${APP_PREFIX}_server
