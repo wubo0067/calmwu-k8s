@@ -3,11 +3,25 @@ syntax = "proto3";
 option go_package = "istio-simplegrpc/proto/helloworld";
  
 package helloworld;
+
+import "google/api/annotations.proto";
  
 // The greeting service definition.
 service Greeter {
   // Sends a greeting
-  rpc SayHello (HelloRequest) returns (HelloReply) {}
+  rpc SayHello(HelloRequest) returns (HelloReply) {
+    option (google.api.http) = {
+      get: "/v1/say"
+    };
+  }
+
+  // 创建预订
+  rpc CreateReservation(CreateReservationRequest) returns (Reservation) {  
+    option (google.api.http) = {
+      post: "/v1/reservations"
+      body: "reservation" // he field named body inside the option tells the transcoder to marshall the request body into the reservation field of the CreateReservationRequest message.
+   };  
+  }
 }
  
 // The request message containing the user's name.
@@ -18,4 +32,28 @@ message HelloRequest {
 // The response message containing the greetings
 message HelloReply {
   string message = 1;
+}
+
+// Reservation 预订信息
+message Reservation {
+    string id = 1;
+    string title = 2;
+    string venue = 3;
+    string room = 4;
+    string timestamp = 5;
+    repeated Person attendees = 6;
+}
+
+message Person {
+    string ssn = 1;
+    string firstName = 2;
+    string lastName = 3;
+}
+
+message CreateReservationRequest {
+    Reservation reservation = 2;
+}
+
+message CreateReservationResponse {
+    Reservation reservation = 1;
 }

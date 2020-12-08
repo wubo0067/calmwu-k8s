@@ -1,0 +1,43 @@
+# Created by github.com/tetratelabs/istio-tools/grpc-transcoder
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: istio-simplegrpc-server
+  namespace: istio-ns
+spec:
+  workloadSelector:
+    labels:
+      app: istio-simplegrpc-server
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        portNumber: 8081
+        filterChain:
+          filter:
+            name: "envoy.http_connection_manager"
+            subFilter:
+              name: "envoy.router" 
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.http.grpc_json_transcoder
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
+          proto_descriptor: /etc/envoy/helloworld.Greeter.pd
+          match_incoming_request_route: true
+          auto_mapping: false
+          services: ["helloworld.Greeter"] # Service name defined in proto          
+          print_options:
+            add_whitespace: true
+            always_print_enums_as_ints: true
+            always_print_primitive_fields: true
+            preserve_proto_field_names: true
+  #- applyTo: CLUSTER
+  #  patch:
+  #    operation: MERGE
+  #    value:
+  #      http2_protocol_options:
+  #        initial_stream_window_size: 65536
+  #        initial_connection_window_size: 65536        

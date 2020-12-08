@@ -1,0 +1,42 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: my-grpc-json-transcoder
+  namespace: istio-ns
+spec:
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: envoy.http_connection_manager
+            subFilter:
+              name: envoy.filters.http.router
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.http.grpc_json_transcoder.v3.GrpcJsonTranscoder
+          print_options:
+             add_whitespace: true
+             always_print_enums_as_ints: false
+             always_print_primitive_fields: true
+             preserve_proto_field_names: false
+          proto_descriptor: /etc/envoy/helloworld.Greeter.pd
+          match_incoming_request_route: true
+          auto_mapping: false
+          services:
+          - helloworld.Greeter
+        name: envoy.http.grpc_json_transcoder
+  - applyTo: CLUSTER
+    patch:
+      operation: MERGE
+      value:
+        http2_protocol_options:
+          initial_stream_window_size: 65536
+          initial_connection_window_size: 65536
+  workloadSelector:
+    labels:
+      app: istio-simplegrpc-server

@@ -14,6 +14,10 @@ spec:
     - destination:
         host: greeter.istio-ns.svc.cluster.local
         subset: v1
+  - route:
+    - destination:
+        host: greeter.istio-ns.svc.cluster.local
+        subset: v1       
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule

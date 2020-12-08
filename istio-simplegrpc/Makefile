@@ -9,7 +9,7 @@ BUILD_TIME ?= $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 all: proto client server
 
 proto:
-	protoc --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative proto/helloworld/helloworld.proto
+	protoc -I${GOOGLEAPIS_DIR} -I. --include_imports --include_source_info --descriptor_set_out=proto/helloworld/helloworld.Greeter.pd --go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative proto/helloworld/helloworld.proto
 
 client:
 	CGO_ENABLED=0 GOOS=${GOOS} GOARCH=${GOARCH} go build -mod=vendor \
@@ -37,7 +37,7 @@ container:
 	rm ${APP_PREFIX}_server:${RELEASE}.tar ${APP_PREFIX}_client:${RELEASE}.tar
  
 clean:
-	find ./proto -name "*.go"|xargs rm
+	find ./proto -regex ".*\.go\|.*\.pd"|xargs rm
 	rm -f container/server/${APP_PREFIX}_server
 	rm -f container/client/${APP_PREFIX}_client
 	-docker rmi ${APP_PREFIX}_client:${RELEASE}
