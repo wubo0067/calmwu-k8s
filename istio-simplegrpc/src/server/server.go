@@ -15,6 +15,7 @@ import (
 	"strconv"
 
 	protoHelloworld "istio-simplegrpc/proto/helloworld"
+	protoPerson "istio-simplegrpc/proto/person"
 
 	"github.com/sanity-io/litter"
 	calmwuUtils "github.com/wubo0067/calmwu-go/utils"
@@ -27,6 +28,7 @@ import (
 type GreeterServerImpl struct {
 	// 这里必须嵌入，https://github.com/grpc/grpc-go/issues/3669
 	protoHelloworld.UnimplementedGreeterServer
+	protoPerson.UnimplementedPersonRegistryServer
 }
 
 var (
@@ -68,6 +70,43 @@ func (gsi *GreeterServerImpl) CreateReservation(ctx context.Context, in *protoHe
 		Room:      in.Reservation.Room,
 		Timestamp: in.Reservation.Timestamp,
 		Attendees: in.Reservation.Attendees,
+	}, nil
+}
+
+func (gsi *GreeterServerImpl) Lookup(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
+	_index++
+
+	calmwuUtils.Debugf("index:%d Greeter.Lookup called, Person: %s", _index, litter.Sdump(in))
+	return &protoPerson.Person{
+		Name: in.Name,
+		Age:  in.Age,
+		Addr: &protoPerson.Address{
+			HouseNum:   fmt.Sprintf("Lookup-HouseNum-%d", _index),
+			Building:   fmt.Sprintf("Lookup-Building-%d", _index),
+			Street:     fmt.Sprintf("Lookup-Street-%d", _index),
+			Locality:   fmt.Sprintf("Lookup-Locality-%d", _index),
+			City:       fmt.Sprintf("Lookup-City-%d", _index),
+			PostalCode: fmt.Sprintf("Lookup-PostalCode-%d", _index),
+		},
+	}, nil
+}
+
+func (gsi *GreeterServerImpl) Create(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
+	_index++
+
+	calmwuUtils.Debugf("index:%d Greeter.Create called, Person: %s", _index, litter.Sdump(in))
+
+	return &protoPerson.Person{
+		Name: in.Name,
+		Age:  in.Age,
+		Addr: &protoPerson.Address{
+			HouseNum:   fmt.Sprintf("Create-HouseNum-%d", _index),
+			Building:   fmt.Sprintf("Create-Building-%d", _index),
+			Street:     fmt.Sprintf("Create-Street-%d", _index),
+			Locality:   fmt.Sprintf("Create-Locality-%d", _index),
+			City:       fmt.Sprintf("Create-City-%d", _index),
+			PostalCode: fmt.Sprintf("Create-PostalCode-%d", _index),
+		},
 	}, nil
 }
 
