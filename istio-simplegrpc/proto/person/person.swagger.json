@@ -1,0 +1,180 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "proto/person/person.proto",
+    "version": "version not set"
+  },
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/person/v1/create": {
+      "post": {
+        "operationId": "PersonRegistry_Create",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/personPerson"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "PersonRegistry"
+        ]
+      }
+    },
+    "/person/v1/lookup": {
+      "get": {
+        "operationId": "PersonRegistry_Lookup",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/personPerson"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "age",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "addr.houseNum",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "addr.building",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "addr.street",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "addr.locality",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "addr.city",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "addr.postalCode",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "PersonRegistry"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "personAddress": {
+      "type": "object",
+      "properties": {
+        "houseNum": {
+          "type": "string"
+        },
+        "building": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "locality": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        }
+      }
+    },
+    "personPerson": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "age": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "addr": {
+          "$ref": "#/definitions/personAddress"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "typeUrl": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
