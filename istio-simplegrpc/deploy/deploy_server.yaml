@@ -22,6 +22,7 @@ spec:
         sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"proto-descriptor","items":[{"key":"helloworld.Greeter.pd","path":"helloworld.Greeter.pd"}]}}]'
         sidecar.istio.io/userVolumeMount: '[{"name":"descriptor","mountPath":"/etc/envoy"}]'        
     spec:
+      serviceAccountName: istio-simplegrpc-server
       containers:
       - name: istio-simplegrpc-server
         image: istio_simplegrpc_server:0.0.1
@@ -45,4 +46,10 @@ spec:
       #nodePort: 30061
   #clusterIP: 10.0.171.239
   #loadBalancerIP: 78.11.24.19
-  #type: LoadBalancer        
+  #type: LoadBalancer  
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: istio-ns
+  name: istio-simplegrpc-server       

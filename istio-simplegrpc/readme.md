@@ -6,8 +6,8 @@
 
 ### 2. 部署  
 * Create configmap from descriptor set  
-    `kubectl delete cm proto-descriptor -n istio-ns`  
-    `kubectl create configmap proto-descriptor --from-file=helloworld.Greeter.pd -n istio-ns `
+    `kubectl delete cm helloworld-proto-describe -n istio-ns`  
+    `kubectl create configmap helloworld-proto-describe --from-file=helloworld.Greeter.pd -n istio-ns `
 
 * Add annotations to your Deployment spec  
     `sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"proto-descriptor","items":[{"key":"proto.pb","path":"proto.pb"}]}}]'`  
