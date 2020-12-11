@@ -25,7 +25,7 @@ import (
 )
 
 //
-type GreeterServerImpl struct {
+type IstioSimpleGRPCServerImpl struct {
 	// 这里必须嵌入，https://github.com/grpc/grpc-go/issues/3669
 	protoHelloworld.UnimplementedGreeterServer
 	protoPerson.UnimplementedPersonRegistryServer
@@ -41,7 +41,7 @@ const (
 )
 
 // SayHello 测试接口
-func (gsi *GreeterServerImpl) SayHello(ctx context.Context, in *protoHelloworld.HelloRequest) (*protoHelloworld.HelloReply, error) {
+func (isgsi *IstioSimpleGRPCServerImpl) SayHello(ctx context.Context, in *protoHelloworld.HelloRequest) (*protoHelloworld.HelloReply, error) {
 	_index++
 
 	// 获取http header
@@ -55,7 +55,7 @@ func (gsi *GreeterServerImpl) SayHello(ctx context.Context, in *protoHelloworld.
 }
 
 // CreateReservation 测试接口
-func (gsi *GreeterServerImpl) CreateReservation(ctx context.Context, in *protoHelloworld.CreateReservationRequest) (*protoHelloworld.Reservation, error) {
+func (isgsi *IstioSimpleGRPCServerImpl) CreateReservation(ctx context.Context, in *protoHelloworld.CreateReservationRequest) (*protoHelloworld.Reservation, error) {
 	_index++
 
 	// 获取http header
@@ -73,7 +73,7 @@ func (gsi *GreeterServerImpl) CreateReservation(ctx context.Context, in *protoHe
 	}, nil
 }
 
-func (gsi *GreeterServerImpl) Lookup(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
+func (isgsi *IstioSimpleGRPCServerImpl) Lookup(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
 	_index++
 
 	calmwuUtils.Debugf("index:%d Greeter.Lookup called, Person: %s", _index, litter.Sdump(in))
@@ -91,7 +91,7 @@ func (gsi *GreeterServerImpl) Lookup(ctx context.Context, in *protoPerson.Person
 	}, nil
 }
 
-func (gsi *GreeterServerImpl) Create(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
+func (isgsi *IstioSimpleGRPCServerImpl) Create(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
 	_index++
 
 	calmwuUtils.Debugf("index:%d Greeter.Create called, Person: %s", _index, litter.Sdump(in))
@@ -111,7 +111,8 @@ func (gsi *GreeterServerImpl) Create(ctx context.Context, in *protoPerson.Person
 }
 
 var (
-	_ protoHelloworld.GreeterServer = &GreeterServerImpl{}
+	_ protoHelloworld.GreeterServer    = &IstioSimpleGRPCServerImpl{}
+	_ protoPerson.PersonRegistryServer = &IstioSimpleGRPCServerImpl{}
 )
 
 func main() {
@@ -125,7 +126,9 @@ func main() {
 	}
 
 	grpcSrv := grpc.NewServer()
-	protoHelloworld.RegisterGreeterServer(grpcSrv, &GreeterServerImpl{})
+	// 注册服务
+	protoHelloworld.RegisterGreeterServer(grpcSrv, &IstioSimpleGRPCServerImpl{})
+	protoPerson.RegisterPersonRegistryServer(grpcSrv, &IstioSimpleGRPCServerImpl{})
 	reflection.Register(grpcSrv)
 	if err := grpcSrv.Serve(listen); err != nil {
 		calmwuUtils.Fatal("failed to serve: %v", err.Error())

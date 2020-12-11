@@ -8475,8 +8475,8 @@ spec:
         - mountPath: /etc/istio/ingressgateway-ca-certs
           name: ingressgateway-ca-certs
           readOnly: true
-        - mountPath: /etc/helloworld-proto-describe
-          name: helloworld-proto-describe
+        - mountPath: /etc/simplegrpcsrv-proto-describe
+          name: simplegrpcsrv-proto-describe
           readOnly: true                    
       securityContext:
         fsGroup: 1337
@@ -8513,9 +8513,9 @@ spec:
         secret:
           optional: true
           secretName: istio-ingressgateway-ca-certs
-      - name: helloworld-proto-describe
+      - name: simplegrpcsrv-proto-describe
         configMap:
-          name: helloworld-proto-describe
+          name: simplegrpcsrv-proto-describe
           optional: true
 ---
 apiVersion: apps/v1

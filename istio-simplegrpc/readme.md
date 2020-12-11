@@ -6,22 +6,22 @@
 
 ### 2. 部署  
 * Create configmap from descriptor set  
-    `kubectl delete cm helloworld-proto-describe -n istio-ns`  
-    `kubectl create configmap helloworld-proto-describe --from-file=helloworld.Greeter.pd -n istio-ns `
+    `kubectl delete cm simplegrpcsrv-proto-describe -n istio-ns`  
+    `kubectl create configmap simplegrpcsrv-proto-describe --from-file=istio-simplegrpc.pd -n istio-ns`
 
 * Add annotations to your Deployment spec  
-    `sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"proto-descriptor","items":[{"key":"proto.pb","path":"proto.pb"}]}}]'`  
+    `sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"simplegrpcsrv-proto-describe","items":[{"key":"istio-simplegrpc.pd","path":"istio-simplegrpc.pd"}]}}]'`  
     `sidecar.istio.io/userVolumeMount: '[{"name":"descriptor","mountPath":"/etc/envoy"}]'`
 
 
 ### 3. 测试  
 
-* get测试命令, 带上自定义头  
-    ` curl -H "CallType: GRPC_Call" http://greeter.istio-ns.svc.cluster.local:8081/v1/say?name=sdsdsd -v `  
+* get测试命令, 带上自定义头
+    `curl -H "CallType: GRPC_Call" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/say?name=sdsdsd -v`  
 
 
 * post测试命令  
-    ` curl -X POST -H "CallType: GRPC_Call" http://greeter.istio-ns.svc.cluster.local:8081/v1/reservations
+    ` curl -X POST -H "CallType: GRPC_Call" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/reservations
     -d '{
         "title": "Lunchmeeting",
         "venue": "JDriven Coltbaan 3",
@@ -40,3 +40,8 @@
         }
         ]
         }' `
+
+### 4. 绑定到网关  
+* Create configmap from descriptor set  
+    `kubectl delete cm simplegrpcsrv-proto-describe -n istio-system`  
+    `kubectl create configmap simplegrpcsrv-proto-describe --from-file=istio-simplegrpc.pd -n istio-system`

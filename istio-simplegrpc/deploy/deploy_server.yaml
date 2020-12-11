@@ -19,7 +19,7 @@ spec:
         version: v1
       annotations:
         io.kubernetes.cri.untrusted-workload: "true"
-        sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"proto-descriptor","items":[{"key":"helloworld.Greeter.pd","path":"helloworld.Greeter.pd"}]}}]'
+        sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"simplegrpcsrv-proto-describe","items":[{"key":"istio-simplegrpc.pd","path":"istio-simplegrpc.pd"}]}}]'
         sidecar.istio.io/userVolumeMount: '[{"name":"descriptor","mountPath":"/etc/envoy"}]'        
     spec:
       serviceAccountName: istio-simplegrpc-server
@@ -34,7 +34,7 @@ kind: Service
 apiVersion: v1
 metadata:
   namespace: istio-ns
-  name: greeter
+  name: istio-simplegrpc
 spec:
   selector:
     app: istio-simplegrpc-server
