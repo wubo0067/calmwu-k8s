@@ -1,0 +1,40 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-simplegrpc-gateway
+  namespace: istio-ns
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller, gateway资源可以gateway pod不在同一个namespace
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "www.istio-simplegrpc.com"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: istio-simplegrpc-gateway-virtualservice
+  namespace: istio-ns
+spec:
+  hosts:
+  - "www.istio-simplegrpc.com"
+  gateways:
+  - istio-simplegrpc-gateway # 这个virtual server对应gateway，gateway出来的流量怎么匹配
+  http:
+  - match:
+    - uri:
+        exact: /v1/say
+    - uri:
+        exact: /v1/reservations
+    - uri:
+        prefix: /person
+    route:
+    - destination:
+        host: istio-simplegrpc.istio-ns.svc.cluster.local
+        subset: v1
+        port:
+          number: 8081

@@ -41,7 +41,36 @@
         ]
         }' `
 
-### 4. 绑定到网关  
+### 4. 使用configmap，绑定到网关  
 * Create configmap from descriptor set  
     `kubectl delete cm simplegrpcsrv-proto-describe -n istio-system`  
     `kubectl create configmap simplegrpcsrv-proto-describe --from-file=istio-simplegrpc.pd -n istio-system`
+
+### 5. 从网关外部访问  
+* 编写网关和virtualservice资源，simplegrpc-gateway.yaml  
+* 访问命令, 这里指定了Host。`curl -H 'Host:www.istio-simplegrpc.com' -H 'CallType:GRPC_Call' http://192.168.6.128:32197/v1/say?name=sdsdsd -v` 
+* 结果：  
+```
+    [root@localhost networking]# curl -H 'Host:www.istio-simplegrpc.com' -H 'CallType:GRPC_Call1' http://192.168.6.128:32197/v1/say?name=sdsdsd -v
+    *   Trying 192.168.6.128...
+    * TCP_NODELAY set
+    * Connected to 192.168.6.128 (192.168.6.128) port 32197 (#0)
+    > GET /v1/say?name=sdsdsd HTTP/1.1
+    > Host:www.istio-simplegrpc.com
+    > User-Agent: curl/7.61.1
+    > Accept: */*
+    > CallType:GRPC_Call1
+    > 
+    < HTTP/1.1 200 OK
+    < content-type: application/json
+    < x-envoy-upstream-service-time: 4
+    < grpc-status: 0
+    < grpc-message: 
+    < content-length: 92
+    < date: Mon, 14 Dec 2020 08:23:15 GMT
+    < server: istio-envoy
+    < 
+    {
+    "message": "srv-host:istio-simplegrpc-server-v1-75785b9d7d-j88rt index:7 Hello sdsdsd"
+    }
+```   
