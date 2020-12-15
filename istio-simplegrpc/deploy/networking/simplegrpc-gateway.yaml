@@ -38,3 +38,12 @@ spec:
         subset: v1
         port:
           number: 8081
+    fault:  #测试故障注入，50%的失败，从网关到后端服务的失败注入，精准控制失败比例
+      abort:
+        percentage:
+          value: 10
+        httpStatus: 400 
+      delay:
+        percentage:
+          value: 50
+        fixedDelay: 5s          

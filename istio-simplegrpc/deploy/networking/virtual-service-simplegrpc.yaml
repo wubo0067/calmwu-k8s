@@ -17,7 +17,12 @@ spec:
   - route:
     - destination:
         host: istio-simplegrpc.istio-ns.svc.cluster.local
-        subset: v1       
+        subset: v1 
+#    fault:  #测试故障注入，千分之5的失败
+#      abort:
+#        percentage:
+#          value: 0.5
+#        httpStatus: 400      
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule

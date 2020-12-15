@@ -16,8 +16,9 @@
 
 ### 3. 测试  
 
-* get测试命令, 带上自定义头
-    `curl -H "CallType: GRPC_Call" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/say?name=sdsdsd -v`  
+* get测试命令, 带上自定义头  
+    `curl -H "CallType: GRPC_Call" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/say?name=sdsdsd -v`   
+    `curl -H 'Host:www.istio-simplegrpc.com' -H 'CallType:GRPC_Call'128:32197/person/v1/lookup?name=sdsdsd -v`   
 
 
 * post测试命令  
