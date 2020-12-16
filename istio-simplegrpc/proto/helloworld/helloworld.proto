@@ -11,16 +11,23 @@ service Greeter {
   // Sends a greeting
   rpc SayHello(HelloRequest) returns (HelloReply) {
     option (google.api.http) = {
-      get: "/v1/say"
+        get: "/v1/say"
     };
   }
 
   // 创建预订
   rpc CreateReservation(CreateReservationRequest) returns (Reservation) {  
     option (google.api.http) = {
-      post: "/v1/reservations"
-      body: "reservation" // he field named body inside the option tells the transcoder to marshall the request body into the reservation field of the CreateReservationRequest message.
+        post: "/v1/reservations"
+        body: "reservation" // he field named body inside the option tells the transcoder to marshall the request body into the reservation field of the CreateReservationRequest message.
    };  
+  }
+
+  // 测试istio超时，重试功能
+  rpc EchoTimeout(EchoRequest) returns (EchoReply) {
+    option (google.api.http) = {
+        get: "/v1/echotimeout"
+    };      
   }
 }
  
@@ -56,4 +63,13 @@ message CreateReservationRequest {
 
 message CreateReservationResponse {
     Reservation reservation = 1;
+}
+
+//
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoReply {
+    string message = 1;
 }

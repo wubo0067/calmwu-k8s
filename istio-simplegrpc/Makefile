@@ -26,8 +26,8 @@ server:
 		-o container/server/${APP_PREFIX}_server src/server/server.go		
 
 container:
-	crictl rmi ${APP_PREFIX}_client:${RELEASE}
-	crictl rmi ${APP_PREFIX}_server:${RELEASE}
+	-crictl rmi ${APP_PREFIX}_client:${RELEASE}
+	-crictl rmi ${APP_PREFIX}_server:${RELEASE}
 	docker build -t ${APP_PREFIX}_client:${RELEASE} container/client		
 	docker build -t ${APP_PREFIX}_server:${RELEASE} container/server
 	docker save ${APP_PREFIX}_server:${RELEASE} -o ${APP_PREFIX}_server:${RELEASE}.tar

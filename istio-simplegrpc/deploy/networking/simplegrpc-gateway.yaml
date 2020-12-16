@@ -21,7 +21,7 @@ metadata:
   namespace: istio-ns
 spec:
   hosts:
-  - "www.istio-simplegrpc.com"
+  - "www.istio-simplegrpc.com" # 这里是外部能访问的域名或地址
   gateways:
   - istio-simplegrpc-gateway # 这个virtual server对应gateway，gateway出来的流量怎么匹配
   http:
@@ -34,7 +34,7 @@ spec:
         prefix: /person
     route:
     - destination:
-        host: istio-simplegrpc.istio-ns.svc.cluster.local
+        host: istio-simplegrpc.istio-ns.svc.cluster.local # kubernetes的服务
         subset: v1
         port:
           number: 8081

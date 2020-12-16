@@ -11,6 +11,37 @@
     "application/json"
   ],
   "paths": {
+    "/v1/echotimeout": {
+      "get": {
+        "summary": "测试istio超时，重试功能",
+        "operationId": "Greeter_EchoTimeout",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/helloworldEchoReply"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "message",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Greeter"
+        ]
+      }
+    },
     "/v1/reservations": {
       "post": {
         "summary": "创建预订",
@@ -77,6 +108,14 @@
     }
   },
   "definitions": {
+    "helloworldEchoReply": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string"
+        }
+      }
+    },
     "helloworldHelloReply": {
       "type": "object",
       "properties": {

@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"time"
 
 	protoHelloworld "istio-simplegrpc/proto/helloworld"
 	protoPerson "istio-simplegrpc/proto/person"
@@ -73,6 +74,22 @@ func (isgsi *IstioSimpleGRPCServerImpl) CreateReservation(ctx context.Context, i
 	}, nil
 }
 
+func (isgsi *IstioSimpleGRPCServerImpl) EchoTimeout(ctx context.Context, in *protoHelloworld.EchoRequest) (*protoHelloworld.EchoReply, error) {
+	_index++
+
+	// 获取http header
+	md, _ := metadata.FromIncomingContext(ctx)
+	vals := md.Get(_defaultCallType)
+	calmwuUtils.Debugf("index:%d Greeter.EchoTimeout called, name: %s, CallType:%#v", _index, in.Message, vals)
+
+	// 故意延迟5秒钟，测试istio的超时和重试功能
+	time.Sleep(5 * time.Second)
+
+	return &protoHelloworld.EchoReply{
+		Message: fmt.Sprintf("srv-host:%s index:%d Echo %s", _hostName, _index, in.Message),
+	}, nil
+}
+
 func (isgsi *IstioSimpleGRPCServerImpl) Lookup(ctx context.Context, in *protoPerson.Person) (*protoPerson.Person, error) {
 	_index++
 
@@ -111,8 +128,9 @@ func (isgsi *IstioSimpleGRPCServerImpl) Create(ctx context.Context, in *protoPer
 }
 
 var (
-	_ protoHelloworld.GreeterServer    = &IstioSimpleGRPCServerImpl{}
-	_ protoPerson.PersonRegistryServer = &IstioSimpleGRPCServerImpl{}
+	simpleGrpcSrvImpl *IstioSimpleGRPCServerImpl       = &IstioSimpleGRPCServerImpl{}
+	_                 protoHelloworld.GreeterServer    = simpleGrpcSrvImpl
+	_                 protoPerson.PersonRegistryServer = simpleGrpcSrvImpl
 )
 
 func main() {
@@ -127,8 +145,9 @@ func main() {
 
 	grpcSrv := grpc.NewServer()
 	// 注册服务
-	protoHelloworld.RegisterGreeterServer(grpcSrv, &IstioSimpleGRPCServerImpl{})
-	protoPerson.RegisterPersonRegistryServer(grpcSrv, &IstioSimpleGRPCServerImpl{})
+	protoHelloworld.RegisterGreeterServer(grpcSrv, simpleGrpcSrvImpl)
+	protoPerson.RegisterPersonRegistryServer(grpcSrv, simpleGrpcSrvImpl)
+
 	reflection.Register(grpcSrv)
 	if err := grpcSrv.Serve(listen); err != nil {
 		calmwuUtils.Fatal("failed to serve: %v", err.Error())

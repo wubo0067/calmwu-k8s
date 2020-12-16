@@ -21,6 +21,8 @@ type GreeterClient interface {
 	SayHello(ctx context.Context, in *HelloRequest, opts ...grpc.CallOption) (*HelloReply, error)
 	// 创建预订
 	CreateReservation(ctx context.Context, in *CreateReservationRequest, opts ...grpc.CallOption) (*Reservation, error)
+	// 测试istio超时，重试功能
+	EchoTimeout(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoReply, error)
 }
 
 type greeterClient struct {
@@ -49,6 +51,15 @@ func (c *greeterClient) CreateReservation(ctx context.Context, in *CreateReserva
 	return out, nil
 }
 
+func (c *greeterClient) EchoTimeout(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoReply, error) {
+	out := new(EchoReply)
+	err := c.cc.Invoke(ctx, "/helloworld.Greeter/EchoTimeout", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GreeterServer is the server API for Greeter service.
 // All implementations must embed UnimplementedGreeterServer
 // for forward compatibility
@@ -57,6 +68,8 @@ type GreeterServer interface {
 	SayHello(context.Context, *HelloRequest) (*HelloReply, error)
 	// 创建预订
 	CreateReservation(context.Context, *CreateReservationRequest) (*Reservation, error)
+	// 测试istio超时，重试功能
+	EchoTimeout(context.Context, *EchoRequest) (*EchoReply, error)
 	mustEmbedUnimplementedGreeterServer()
 }
 
@@ -69,6 +82,9 @@ func (UnimplementedGreeterServer) SayHello(context.Context, *HelloRequest) (*Hel
 }
 func (UnimplementedGreeterServer) CreateReservation(context.Context, *CreateReservationRequest) (*Reservation, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateReservation not implemented")
+}
+func (UnimplementedGreeterServer) EchoTimeout(context.Context, *EchoRequest) (*EchoReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EchoTimeout not implemented")
 }
 func (UnimplementedGreeterServer) mustEmbedUnimplementedGreeterServer() {}
 
@@ -119,6 +135,24 @@ func _Greeter_CreateReservation_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Greeter_EchoTimeout_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(EchoRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).EchoTimeout(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/helloworld.Greeter/EchoTimeout",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).EchoTimeout(ctx, req.(*EchoRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Greeter_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "helloworld.Greeter",
 	HandlerType: (*GreeterServer)(nil),
@@ -130,6 +164,10 @@ var _Greeter_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateReservation",
 			Handler:    _Greeter_CreateReservation_Handler,
+		},
+		{
+			MethodName: "EchoTimeout",
+			Handler:    _Greeter_EchoTimeout_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

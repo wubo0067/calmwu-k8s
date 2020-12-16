@@ -13,12 +13,21 @@
     `sidecar.istio.io/userVolume: '[{"name":"descriptor","configMap":{"name":"simplegrpcsrv-proto-describe","items":[{"key":"istio-simplegrpc.pd","path":"istio-simplegrpc.pd"}]}}]'`  
     `sidecar.istio.io/userVolumeMount: '[{"name":"descriptor","mountPath":"/etc/envoy"}]'`
 
+* 启动服务  
+   `kubectl apply -f deploy_server.yaml`  
+
+* 修改istio-proxy loglevel  
+    `kubectl exec -it istio-simplegrpc-server-v1-75785b9d7d-dm47b -c istio-proxy -n istio-ns -- curl -X POST localhost:15000/logging?level=debug`
+
 
 ### 3. 测试  
 
-* get测试命令, 带上自定义头  
+* get测试命令, 带上自定义头，在pod内部访问  
     `curl -H "CallType: GRPC_Call" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/say?name=sdsdsd -v`   
-    `curl -H 'Host:www.istio-simplegrpc.com' -H 'CallType:GRPC_Call'128:32197/person/v1/lookup?name=sdsdsd -v`   
+    `curl -H "CallType: GRPC_Echo" http://istio-simplegrpc.istio-ns.svc.cluster.local:8081/v1/echotimeout?message=sdsdsd -v`  
+
+* 通过nodeport访问  
+    `curl -H 'Host:www.istio-simplegrpc.com' -H 'CallType:GRPC_Call' http://192.168.6.128:32197/v1/say?name=sdsdsd -v`   
 
 
 * post测试命令  

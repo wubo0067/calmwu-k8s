@@ -9,7 +9,8 @@ spec:
   http:
   - match:
     - uri:
-        exact: /helloworld.Greeter/SayHello
+        #exact: /helloworld.Greeter/SayHello
+        prefix: /helloworld.Greeter
     route:
     - destination:
         host: istio-simplegrpc.istio-ns.svc.cluster.local
