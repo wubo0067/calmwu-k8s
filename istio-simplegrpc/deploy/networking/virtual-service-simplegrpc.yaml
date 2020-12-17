@@ -19,6 +19,10 @@ spec:
     - destination:
         host: istio-simplegrpc.istio-ns.svc.cluster.local
         subset: v1 
+    #timeout: 3s # envoy 上游服务超时未响应，HTTP/1.1 504 Gateway Timeout
+    retries:
+      attempts: 3
+      perTryTimeout: 2s    
 #    fault:  #测试故障注入，千分之5的失败
 #      abort:
 #        percentage:
