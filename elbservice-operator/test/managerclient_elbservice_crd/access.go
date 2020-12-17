@@ -96,12 +96,15 @@ func newSCIKube(config *rest.Config) *SCIKube {
 		calm_utils.Fatalf("failed to new Cache, err:%s", err.Error())
 	}
 
-	// 创建client
+	// 创建controller-runtime/pkg/client
 	c, err := client.New(config, client.Options{Scheme: sciKubeScheme, Mapper: mapper})
 	if err != nil {
 		calm_utils.Fatalf("failed to new Client, err:%s", err.Error())
 	}
 
+	// DelegatingClient从Cache中读取（Get/List），写入（Create/Update/Delete）请求则直接发送给API Server。
+	// 使用Cache可以大大减轻API Server的压力，随着缓存的更新，读操作会达成最终一致。
+	// 核心还是controller-runtime/client对象，只是结合了cache
 	sciKubeClient := client.DelegatingClient{
 		Reader: &client.DelegatingReader{
 			CacheReader:  sciKubeCache,

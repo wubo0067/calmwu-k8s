@@ -7,6 +7,7 @@
 
 // 使用dynclient "sigs.k8s.io/controller-runtime/pkg/client"去访问CRD资源
 // 使用sigs.k8s.io/controller-runtime/pkg/client构造dynamic client，很好的结合GVK、GVR、RESTMapper、Scheme、CR反序列化，CRUD扩展k8s资源更方便
+// controller-runtime Client of Operator SDK and Kubebuilder https://www.oreilly.com/library/view/programming-kubernetes/9781492047094/ch04.html
 
 package main
 

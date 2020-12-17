@@ -66,6 +66,9 @@ func main() {
 
 	calm_utils.Debugf("elbService %s", litter.Sdump(elbService))
 
+	// 序列化，然后在umarshal对象化，这样就可以结构化了。
+	// elbService.MarshalJSON()
+
 	// resourceVersion每次update都会变化，当你用dynamic client去update时要使用该rv
 	calm_utils.Debugf("ELBService resource version: %s", elbService.GetResourceVersion())
 }
