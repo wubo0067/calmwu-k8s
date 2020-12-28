@@ -99,6 +99,13 @@
             "in": "query",
             "required": false,
             "type": "string"
+          },
+          {
+            "name": "birthday",
+            "in": "query",
+            "required": false,
+            "type": "string",
+            "format": "date-time"
           }
         ],
         "tags": [
@@ -143,6 +150,10 @@
         },
         "addr": {
           "$ref": "#/definitions/personAddress"
+        },
+        "birthday": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },

@@ -4,6 +4,7 @@ option go_package = "istio-simplegrpc/proto/person";
  
 package person;
 
+import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
 
 message Address {
@@ -19,6 +20,7 @@ message Address {
     string name = 1;
     int32 age = 2;
     Address addr = 3;
+    google.protobuf.Timestamp birthday = 4; 
   }
   
   service PersonRegistry {

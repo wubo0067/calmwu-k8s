@@ -8,8 +8,9 @@ BUILD_TIME ?= $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 
 all: proto client server
 
+#GOOGLEAPIS_DIR = /home/calmwu/Program/googleapis
 proto:
-	protoc -I${GOOGLEAPIS_DIR} -I. --include_imports --include_source_info --descriptor_set_out=proto/istio-simplegrpc.pd \
+	protoc -I${GOOGLEAPIS_DIR} -I. -I/usr/local/include --include_imports --include_source_info --descriptor_set_out=proto/istio-simplegrpc.pd \
 		--go_out=. --go-grpc_out=. --go_opt=paths=source_relative --go-grpc_opt=paths=source_relative --openapiv2_out=. \
 		proto/helloworld/helloworld.proto proto/person/person.proto
 
