@@ -19,10 +19,11 @@ import (
 	"github.com/sanity-io/litter"
 	calmwuUtils "github.com/wubo0067/calmwu-go/utils"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
-	_greeterServiceAddr = "greeter.istio-ns.svc.cluster.local:8081"
+	_greeterServiceAddr = "istio-simplegrpc.istio-ns.svc.cluster.local:8081"
 	_defaultName        = "CalmWU"
 	_defaultGRPCTimeout = 10 * time.Second
 )
@@ -76,7 +77,12 @@ L:
 			ctx1, cancel1 := context.WithTimeout(pCtx, _defaultGRPCTimeout)
 			defer cancel1()
 
-			resp1, err := client.SayHello(ctx1, &protoHelloworld.HelloRequest{
+			// 建立带有metadata的context
+			mdCtx := metadata.NewOutgoingContext(ctx1, metadata.New(map[string]string{
+				"CallType": "istio-simplegrpc-client",
+			}))
+
+			resp1, err := client.SayHello(mdCtx, &protoHelloworld.HelloRequest{
 				Name: fmt.Sprintf("cli-host:%s index:%d name:%s", _hostName, _index, name)})
 			if err != nil {
 				calmwuUtils.Errorf("call greet.SayHello failed. err:%s", err.Error())

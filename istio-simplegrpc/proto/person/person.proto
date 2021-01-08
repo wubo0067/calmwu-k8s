@@ -4,7 +4,9 @@ option go_package = "istio-simplegrpc/proto/person";
  
 package person;
 
+// timestamp.proto在protobuf源码中
 import "google/protobuf/timestamp.proto";
+// 
 import "google/api/annotations.proto";
 
 message Address {
