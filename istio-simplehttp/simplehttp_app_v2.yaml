@@ -26,4 +26,4 @@ spec:
         image: nginx:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 70
+        - containerPort: 80
