@@ -16,9 +16,7 @@ spec:
     metadata:
       labels:
         app: simplehttp
-        version: v2
-      annotations:
-        io.kubernetes.cri.untrusted-workload: "true"        
+        version: v2       
     spec:
       serviceAccountName: simplehttp
       containers:

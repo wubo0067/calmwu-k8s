@@ -16,7 +16,7 @@ require (
 	github.com/snwfdhmp/errlog v0.0.0-20200925125138-ded779345378 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/afero v1.4.1 // indirect
-	github.com/wubo0067/calmwu-go v0.0.0-20201016043056-08465d16b08b
+	github.com/wubo0067/calmwu-go v0.0.0-20210111023916-5188a348a346
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/time v0.0.0-20200630173020-3af7569d3a1e // indirect
 	google.golang.org/genproto v0.0.0-20201203001206-6486ece9c497
