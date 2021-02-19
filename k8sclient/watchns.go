@@ -8,6 +8,7 @@
 package main
 
 import (
+	"context"
 	"reflect"
 
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +18,7 @@ import (
 )
 
 func watchNS(clientSet *kubernetes.Clientset) {
-	nsWatcher, err := clientSet.CoreV1().Namespaces().Watch(metav1.ListOptions{
+	nsWatcher, err := clientSet.CoreV1().Namespaces().Watch(context.TODO(), metav1.ListOptions{
 		ResourceVersion: "0",
 	})
 	if err != nil {

@@ -12,6 +12,7 @@ import (
 	// "k8s.io/kubernetes/pkg/registry/apps/deployment"
 	// "k8s.io/kubernetes/pkg/kubectl/util/deployment"
 	// "k8s.io/kubernetes/pkg/api/v1/service"
+	"context"
 	"log"
 	"os"
 	"reflect"
@@ -32,7 +33,7 @@ var (
 )
 
 func listPod(clientSet *kubernetes.Clientset) {
-	pods, err := clientSet.CoreV1().Pods("").List(metav1.ListOptions{})
+	pods, err := clientSet.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -50,7 +51,7 @@ func listDeployment(clientSet *kubernetes.Clientset) {
 	deploymentsClient := clientSet.ExtensionsV1beta1().Deployments(corev1.NamespaceDefault)
 	//deploymentsClient := clientSet.AppsV1().Deployments(corev1.NamespaceDefault)
 
-	deployments, err := deploymentsClient.List(metav1.ListOptions{})
+	deployments, err := deploymentsClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -64,7 +65,7 @@ func listServices(clientSet *kubernetes.Clientset) {
 	var kubeClient kubernetes.Interface = clientSet
 	servicesClient := kubeClient.CoreV1().Services(corev1.NamespaceDefault)
 
-	services, err := servicesClient.List(metav1.ListOptions{})
+	services, err := servicesClient.List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -110,7 +111,7 @@ func createJob(clientSet *kubernetes.Clientset) {
 	// 创建job,
 	// job无法重复创建
 	// 删除了job，job下面的pod也被释放
-	jobRes, err := jobClient.Create(job)
+	jobRes, err := jobClient.Create(context.TODO(), job, metav1.CreateOptions{})
 	if err != nil {
 		logger.Fatalf("create sleep-job failed, reason:%s\n", err.Error())
 	}
@@ -119,7 +120,7 @@ func createJob(clientSet *kubernetes.Clientset) {
 
 	// 开始watch
 	//labelSelector := metav1.LabelSelector{MatchLabels: map[string]string{"app":"pci-sleep-job"}}
-	jobWatcher, _ := jobClient.Watch(metav1.ListOptions{
+	jobWatcher, _ := jobClient.Watch(context.TODO(), metav1.ListOptions{
 		ResourceVersion: "0",
 		LabelSelector:   "app=pci-sleep-job",
 		// LabelSelector: labels.Set(labelSelector.MatchLabels).String(),
