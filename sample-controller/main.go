@@ -77,6 +77,7 @@ func main() {
 	// notice that there is no need to run Start methods in a separate goroutine. (i.e. go kubeInformerFactory.Start(stopCh)
 	// Start method is non-blocking and runs all registered informers in a dedicated goroutine.
 	// // 启动 informer，list & watch，这里包括自定义的类型的Informer，调用cache.NewSharedIndexInformer.Run
+	// 对factory创建所有的informer启动，循环调用
 	kubeInformerFactory.Start(stopCh)
 	// 其实这里就是启动 cache.NewSharedIndexInformer
 	exampleInformerFactory.Start(stopCh)
