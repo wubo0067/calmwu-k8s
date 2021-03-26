@@ -2,12 +2,14 @@
  * @Author: CALM.WU
  * @Date: 2021-03-19 16:31:02
  * @Last Modified by: CALM.WU
- * @Last Modified time: 2021-03-19 17:36:11
+ * @Last Modified time: 2021-03-19 17:42:03
  */
 
 package main
 
 import (
+	"os"
+
 	"github.com/urfave/cli/v2"
 	calmUtils "github.com/wubo0067/calmwu-go/utils"
 	"k8s.io/client-go/kubernetes"
@@ -20,6 +22,9 @@ var (
 
 func inplaceUpdatePod(ns, pod, newImage string) {
 	calmUtils.Debugf("ns: %s, pod: %s, newImage: %s", ns, pod, newImage)
+
+	//_clientSet.CoreV1().Pods(ns).Patch(context.TODO(), pod, types.StrategicMergePatchType)
+
 }
 
 func main() {
@@ -70,5 +75,10 @@ func main() {
 			Value: "",
 			Usage: "Set the image of the upgrade update",
 		},
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		calmUtils.Fatal(err.Error())
 	}
 }
