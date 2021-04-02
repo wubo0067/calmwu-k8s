@@ -1,0 +1,13 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: calmwu-rb
+  namespace: kata-ns
+subjects:
+- kind: User  #重点，这里是User，如果是服务，则是ServiceAccount
+  name: calmwu
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: calmwu-role
+  apiGroup: rbac.authorization.k8s.io
