@@ -133,5 +133,4 @@ func main() {
 		log.Printf("----------Pod:%s status:%s\n", pod.Name, pod.Status.String())
 	}
 	<-stopInformerCh
-	return
 }
