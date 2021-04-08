@@ -1,0 +1,16 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: kata-ns
+  name: py-simplehttp-elb-svc
+spec:
+  selector:
+    name: py-simplehttp
+  ports:
+    - protocol: TCP
+      port: 8089
+      targetPort: 8089
+      #nodePort: 30061
+  #clusterIP: 10.0.171.239
+  #loadBalancerIP: 78.11.24.19
+  type: LoadBalancer

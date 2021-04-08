@@ -65,6 +65,7 @@ func main() {
 	// Shared指在多个Informer中共享一个本地cache，每隔30秒resync一次（list）,每种类型的resource都需要一个informer
 	// 为每个资源创建一个informer
 	kubeInformerFactory := kubeinformers.NewSharedInformerFactory(kubeClient, time.Second*30)
+
 	// 这里先构造Factory对象，其实我觉得没必要，因为Factory中就管理一个type
 	exampleInformerFactory := informers.NewSharedInformerFactory(exampleClient, time.Second*30)
 

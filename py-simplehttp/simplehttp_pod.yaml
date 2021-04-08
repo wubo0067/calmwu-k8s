@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: kata-ns
+  name: py-simplehttp-app
+  annotations:
+    io.kubernetes.cri.untrusted-workload: "true"
+  labels:
+    name: py-simplehttp
+spec:
+  containers:
+  - name: py-simplehttp-container
+    image: python:3.9.0-slim
+    imagePullPolicy: IfNotPresent
+    command: ["sh", "-c", "python -m SimpleHTTPServer 8089"]
+    ports:
+    - containerPort: 8089

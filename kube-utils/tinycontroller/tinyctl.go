@@ -234,6 +234,7 @@ func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 
 // HasSynced is required for the cache.Controller interface.
 func (rc *ResourceController) HasSynced() bool {
+	// 怎么判断同步完成
 	return rc.informer.HasSynced()
 }
 

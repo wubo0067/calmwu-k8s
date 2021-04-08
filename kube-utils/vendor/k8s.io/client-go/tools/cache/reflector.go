@@ -230,6 +230,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 			// Attempt to gather list in chunks, if supported by listerWatcher, if not, the first
 			// list request will return the full response.
 			pager := pager.New(pager.SimplePageFunc(func(opts metav1.ListOptions) (runtime.Object, error) {
+				// example 获取DeploymentList对象
 				return r.listerWatcher.List(opts)
 			}))
 			switch {
@@ -255,6 +256,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 				pager.PageSize = 0
 			}
 
+			// 开始list对象
 			list, paginatedResult, err = pager.List(context.Background(), options)
 			if isExpiredError(err) {
 				r.setIsLastSyncResourceVersionExpired(true)
@@ -273,6 +275,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 		case r := <-panicCh:
 			panic(r)
 		case <-listCh:
+			// 这里会等待list结束
 		}
 		if err != nil {
 			return fmt.Errorf("%s: Failed to list %v: %v", r.name, r.expectedTypeName, err)
@@ -320,6 +323,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	cancelCh := make(chan struct{})
 	defer close(cancelCh)
 	go func() {
+		// 计算resync的时间
 		resyncCh, cleanup := r.resyncChan()
 		defer func() {
 			cleanup() // Call the last one written into cleanup
@@ -327,6 +331,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 		for {
 			select {
 			case <-resyncCh:
+				// resync到期
 			case <-stopCh:
 				return
 			case <-cancelCh:
@@ -334,6 +339,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 			}
 			if r.ShouldResync == nil || r.ShouldResync() {
 				klog.V(4).Infof("%s: forcing resync", r.name)
+				// 同步是在DeltaFIFO和cache之间的操作
 				if err := r.store.Resync(); err != nil {
 					resyncerrc <- err
 					return
@@ -413,6 +419,7 @@ func (r *Reflector) syncWith(items []runtime.Object, resourceVersion string) err
 	for _, item := range items {
 		found = append(found, item)
 	}
+	// 这里会将list对象存放到DeltaFIFO
 	return r.store.Replace(found, resourceVersion)
 }
 

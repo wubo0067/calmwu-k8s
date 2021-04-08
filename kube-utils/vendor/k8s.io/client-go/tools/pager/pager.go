@@ -88,6 +88,7 @@ func (p *ListPager) List(ctx context.Context, options metav1.ListOptions) (runti
 		default:
 		}
 
+		// 实际是调用r.listerWatcher.List(opts)
 		obj, err := p.PageFn(ctx, options)
 		if err != nil {
 			// Only fallback to full list if an "Expired" errors is returned, FullListIfExpired is true, and
