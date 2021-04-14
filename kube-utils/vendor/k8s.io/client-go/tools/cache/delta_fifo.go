@@ -222,6 +222,7 @@ func (f *DeltaFIFO) KeyOf(obj interface{}) (string, error) {
 	if d, ok := obj.(DeletedFinalStateUnknown); ok {
 		return d.Key, nil
 	}
+	// keyFunc如果没有设置，默认为MetaNamespaceKeyFunc，也就是namespace() + name()
 	return f.keyFunc(obj)
 }
 
@@ -522,6 +523,7 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 	}
 
 	for _, item := range list {
+		// key没有特殊设置的情况下，默认是meta.GetNamespace() + "/" + meta.GetName()
 		key, err := f.KeyOf(item)
 		if err != nil {
 			return KeyError{item, err}
@@ -532,14 +534,18 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 		}
 	}
 
+	// knownObjects是sharedIndexInformer.indexer对象
 	if f.knownObjects == nil {
 		// Do deletion detection against our own list.
 		queuedDeletions := 0
 		for k, oldItem := range f.items {
 			if keys.Has(k) {
+				// cache和本次list都存在，就跳过
 				continue
 			}
+			// list中不存在，cache中存在，说明对象被删除了
 			var deletedObj interface{}
+			// 得到最新的deltas，获取里面的object，delete是重复的有可能
 			if n := oldItem.Newest(); n != nil {
 				deletedObj = n.Object
 			}

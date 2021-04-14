@@ -139,9 +139,10 @@ func (c *controller) Run(stopCh <-chan struct{}) {
 
 	var wg wait.Group
 	defer wg.Wait()
-
+	// 启动list/watch
 	wg.StartWithChannel(stopCh, r.Run)
 
+	// 读取DeltaFIFO
 	wait.Until(c.processLoop, time.Second, stopCh)
 }
 

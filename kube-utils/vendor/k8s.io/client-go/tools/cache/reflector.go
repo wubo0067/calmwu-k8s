@@ -303,11 +303,13 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 		}
 		resourceVersion = listMetaInterface.GetResourceVersion()
 		initTrace.Step("Resource version extracted")
+		// 提取list资源对象
 		items, err := meta.ExtractList(list)
 		if err != nil {
 			return fmt.Errorf("%s: Unable to understand list result %#v (%v)", r.name, list, err)
 		}
 		initTrace.Step("Objects extracted")
+		// items写入DeltaFIFO
 		if err := r.syncWith(items, resourceVersion); err != nil {
 			return fmt.Errorf("%s: Unable to sync list result: %v", r.name, err)
 		}
@@ -323,7 +325,7 @@ func (r *Reflector) ListAndWatch(stopCh <-chan struct{}) error {
 	cancelCh := make(chan struct{})
 	defer close(cancelCh)
 	go func() {
-		// 计算resync的时间
+		// 计算resync的时间，这里会计算resyncPeriod的剩余时间
 		resyncCh, cleanup := r.resyncChan()
 		defer func() {
 			cleanup() // Call the last one written into cleanup
@@ -419,7 +421,7 @@ func (r *Reflector) syncWith(items []runtime.Object, resourceVersion string) err
 	for _, item := range items {
 		found = append(found, item)
 	}
-	// 这里会将list对象存放到DeltaFIFO
+	// 这里会将list对象存放到DeltaFIFO，store接口实现是DeltaFIFO
 	return r.store.Replace(found, resourceVersion)
 }
 

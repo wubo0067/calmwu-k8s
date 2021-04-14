@@ -92,6 +92,20 @@ func getItemsPtr(list runtime.Object) (interface{}, error) {
 		return nil, err
 	}
 
+	// curl localhost:9091/api/v1/namespaces/kata-ns/pods 命令结果头部如下
+	/*
+			{
+		  "kind": "PodList",
+		  "apiVersion": "v1",
+		  "metadata": {
+		    "selfLink": "/api/v1/namespaces/kata-ns/pods",
+		    "resourceVersion": "974446"
+		  },
+		  "items": [
+		    {
+		      "metadata": {
+	*/
+	// 返回一个slice的interface
 	items := v.FieldByName("Items")
 	if !items.IsValid() {
 		return nil, errExpectFieldItems
@@ -176,6 +190,7 @@ func ExtractList(obj runtime.Object) ([]runtime.Object, error) {
 		return nil, err
 	}
 	list := make([]runtime.Object, items.Len())
+	// 提取list的元素
 	for i := range list {
 		raw := items.Index(i)
 		switch item := raw.Interface().(type) {
