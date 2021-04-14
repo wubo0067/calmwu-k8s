@@ -1,0 +1,20 @@
+{
+    "watch-conf" : {
+        "kubecfg" : "/root/.kube/config",
+        "namespace" : "all",
+        "resources": [
+            {
+                "name" : "deployments.v1.apps"
+            },
+            {
+                "name" : "envoyfilters.v1alpha3.networking.istio.io"
+            },            
+            {
+                "name" : "configmaps.v1.core"
+            },
+            {
+                "name" : "mutatingwebhookconfigurations.v1beta1.admissionregistration.k8s.io"
+            }
+        ]
+    }
+}
