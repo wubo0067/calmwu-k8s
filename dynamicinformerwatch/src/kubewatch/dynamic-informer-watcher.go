@@ -14,9 +14,11 @@ import (
 	"github.com/sanity-io/litter"
 	calmUtils "github.com/wubo0067/calmwu-go/utils"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
+	"k8s.io/client-go/tools/cache"
 )
 
 // DynamicInformerWatchResources watch kubernetes resources
@@ -28,13 +30,50 @@ func DynamicInformerWatchResources(dc dynamic.Interface, stopCh <-chan struct{})
 	}
 
 	// it will give us back an informer for watch resource
-	_ = dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, watchNamespace, nil)
+	f := dynamicinformer.NewFilteredDynamicSharedInformerFactory(dc, 0, watchNamespace, nil)
 
 	watchResources := cfgData.WatchResources
 	for index, resource := range watchResources {
 		gvr, gs := schema.ParseResourceArg(resource.ResGVK)
 		calmUtils.Debugf("%d watch resource:%s gvr:%s gs:%s ", index, resource, litter.Sdump(gvr), litter.Sdump(gs))
+
+		// 传入资源的gvr，类似envoyfilters.v1alpha3.networking.istio.io，应该支持crd
+		// 通过grv创建资源的通用informer对象
+		ifr := f.ForResource(*gvr)
+		// 获得informer的cache.SharedIndexInformer接口对象
+		go startWatchingResource(ifr.Informer(), stopCh)
 	}
 
 	return nil
+}
+
+func startWatchingResource(s cache.SharedIndexInformer, stopCh <-chan struct{}) {
+	// 注册回调事件
+	evtHandlers := cache.ResourceEventHandlerFuncs{
+		AddFunc: func(obj interface{}) {
+			switch v := obj.(type) {
+			case *unstructured.Unstructured:
+				calmUtils.Debugf("received add event. u: name: %s, namespace: %s, gvk: %s", v.GetName(), v.GetNamespace(), v.GroupVersionKind().String())
+			case *unstructured.UnstructuredList:
+				calmUtils.Debugf("received add event. list gvk: %s", v.GroupVersionKind().String())
+			}
+		},
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			ou := oldObj.(*unstructured.Unstructured)
+			nu := newObj.(*unstructured.Unstructured)
+
+			calmUtils.Debugf("received update event. ou: %s\n ===>\n nu: %s", litter.Sdump(ou), litter.Sdump(nu))
+		},
+		DeleteFunc: func(obj interface{}) {
+			switch v := obj.(type) {
+			case *unstructured.Unstructured:
+				calmUtils.Debugf("received delete event. u: %s", litter.Sdump(v))
+			case *unstructured.UnstructuredList:
+				calmUtils.Debugf("received delete event. list u: %s", litter.Sdump(v))
+			}
+		},
+	}
+	s.AddEventHandler(evtHandlers)
+	// 这里就是启动list/watch，
+	s.Run(stopCh)
 }

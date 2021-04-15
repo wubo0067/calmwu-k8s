@@ -10,7 +10,7 @@
                 "name" : "envoyfilters.v1alpha3.networking.istio.io"
             },            
             {
-                "name" : "configmaps.v1.core"
+                "name" : "configmaps.v1."
             },
             {
                 "name" : "mutatingwebhookconfigurations.v1beta1.admissionregistration.k8s.io"

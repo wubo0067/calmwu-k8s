@@ -505,8 +505,10 @@ k8s.io/client-go/util/homedir
 k8s.io/client-go/util/keyutil
 k8s.io/client-go/util/workqueue
 # k8s.io/klog/v2 v2.8.0
+## explicit
 k8s.io/klog/v2
 # k8s.io/utils v0.0.0-20210111153108-fddb29f9d009
+## explicit
 k8s.io/utils/buffer
 k8s.io/utils/integer
 k8s.io/utils/trace
