@@ -13,8 +13,10 @@ import (
 
 	"github.com/sanity-io/litter"
 	calmUtils "github.com/wubo0067/calmwu-go/utils"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/dynamic/dynamicinformer"
@@ -53,7 +55,17 @@ func startWatchingResource(s cache.SharedIndexInformer, stopCh <-chan struct{}) 
 		AddFunc: func(obj interface{}) {
 			switch v := obj.(type) {
 			case *unstructured.Unstructured:
-				calmUtils.Debugf("received add event. u: name: %s, namespace: %s, gvk: %s", v.GetName(), v.GetNamespace(), v.GroupVersionKind().String())
+				switch v.GroupVersionKind() {
+				// vendor\k8s.io\client-go\informers\generic.go
+				// resources 是小写复数
+				// kind是大写驼峰
+				case corev1.SchemeGroupVersion.WithKind("ConfigMap"):
+					cm := &corev1.ConfigMap{}
+					runtime.DefaultUnstructuredConverter.FromUnstructured(v.UnstructuredContent(), cm)
+					calmUtils.Debugf("configmap convert unstruct to object, %s", litter.Sdump(cm))
+				default:
+					calmUtils.Debugf("received add event. u: name: %s, namespace: %s, gvk: %s", v.GetName(), v.GetNamespace(), v.GroupVersionKind().String())
+				}
 			case *unstructured.UnstructuredList:
 				calmUtils.Debugf("received add event. list gvk: %s", v.GroupVersionKind().String())
 			}
