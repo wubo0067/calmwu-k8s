@@ -62,26 +62,26 @@ func startWatchingResource(s cache.SharedIndexInformer, stopCh <-chan struct{}) 
 				case corev1.SchemeGroupVersion.WithKind("ConfigMap"):
 					cm := &corev1.ConfigMap{}
 					runtime.DefaultUnstructuredConverter.FromUnstructured(v.UnstructuredContent(), cm)
-					calmUtils.Debugf("configmap convert unstruct to object, %s", litter.Sdump(cm))
+					calmUtils.Debugf("<AddEvt>. configmap convert unstruct to object, %s", litter.Sdump(cm))
 				default:
-					calmUtils.Debugf("received add event. u: name: %s, namespace: %s, gvk: %s", v.GetName(), v.GetNamespace(), v.GroupVersionKind().String())
+					calmUtils.Debugf("<AddEvt>. name: %s, namespace: %s, gvk: %s", v.GetName(), v.GetNamespace(), v.GroupVersionKind().String())
 				}
 			case *unstructured.UnstructuredList:
-				calmUtils.Debugf("received add event. list gvk: %s", v.GroupVersionKind().String())
+				calmUtils.Debugf("<AddEvt>. list gvk: %s", v.GroupVersionKind().String())
 			}
 		},
 		UpdateFunc: func(oldObj, newObj interface{}) {
 			ou := oldObj.(*unstructured.Unstructured)
 			nu := newObj.(*unstructured.Unstructured)
 
-			calmUtils.Debugf("received update event. ou: %s\n ===>\n nu: %s", litter.Sdump(ou), litter.Sdump(nu))
+			calmUtils.Debugf("<UpdateEvt>. ou: %s\n ===>\n nu: %s", litter.Sdump(ou), litter.Sdump(nu))
 		},
 		DeleteFunc: func(obj interface{}) {
 			switch v := obj.(type) {
 			case *unstructured.Unstructured:
-				calmUtils.Debugf("received delete event. u: %s", litter.Sdump(v))
+				calmUtils.Debugf("<DeleteEvt>. u: %s", litter.Sdump(v))
 			case *unstructured.UnstructuredList:
-				calmUtils.Debugf("received delete event. list u: %s", litter.Sdump(v))
+				calmUtils.Debugf("<DeleteEvt>. list u: %s", litter.Sdump(v))
 			}
 		},
 	}

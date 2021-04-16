@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dynamic-informer-watchres
+  namespace: kata-ns
+spec:
+  serviceAccountName: dynamic-informer-watchres
+  containers:
+  - image: littlebull/dynamic-informer-watchres:v0.0.1
+    imagePullPolicy: IfNotPresent
+    name: dynamic-informer-watchres
+    volumeMounts:
+    - name: config-volume
+      mountPath: /dynamic-informer-watchres/config
+  restartPolicy: Always
+  volumes:
+  - name: config-volume
+    configMap:
+      name: dynamic-informer-watchres-config

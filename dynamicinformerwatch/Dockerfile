@@ -25,8 +25,10 @@ FROM alpine:latest AS final
 # 变量重新声明，必须如此
 #ARG app
 
-COPY config/config.json /dynamicinformerwatch/config/config.json
-COPY bin/dynamic-informer-watch /dynamicinformerwatch/bin/dynamic-informer-watch
-RUN chmod +x /dynamicinformerwatch/bin/dynamic-informer-watch
+#COPY config/config.json /dynamic-informer-watchres/config/config.json
+COPY bin/dynamic-informer-watchres /dynamic-informer-watchres/bin/dynamic-informer-watchres
+RUN chmod +x /dynamic-informer-watchres/bin/dynamic-informer-watchres
 
-ENTRYPOINT ["/dynamicinformerwatch/bin/dynamic-informer-watch"]
+WORKDIR /dynamic-informer-watchres/bin
+
+ENTRYPOINT ["./dynamic-informer-watchres"]

@@ -9,8 +9,6 @@
 package kubehelper
 
 import (
-	"os"
-
 	"github.com/pkg/errors"
 	calmUtils "github.com/wubo0067/calmwu-go/utils"
 	"k8s.io/client-go/dynamic"
@@ -21,12 +19,12 @@ import (
 
 // GetRestConfig 得到kubecfg对象
 func GetRestConfig(kubeCfgPath string) (*rest.Config, error) {
-	if kubeCfgPath == "" {
-		kubeCfgPath = os.Getenv("KUBECONFIG")
-		if kubeCfgPath == "" {
-			kubeCfgPath = os.Getenv("HOME") + "/.kube/config"
-		}
-	}
+	// if kubeCfgPath == "" {
+	// 	kubeCfgPath = os.Getenv("KUBECONFIG")
+	// 	if kubeCfgPath == "" {
+	// 		kubeCfgPath = os.Getenv("HOME") + "/.kube/config"
+	// 	}
+	// }
 
 	var conf *rest.Config
 	var err error

@@ -1,5 +1,5 @@
-APP := dynamic-informer-watch
-RELEASE ?= 0.0.1
+APP := dynamic-informer-watchres
+RELEASE ?= v0.0.1
 COMMIT ?= $(shell git rev-parse --short HEAD)
 BUILD_TIME ?= $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 WORKDIR=$(shell pwd)
@@ -29,7 +29,10 @@ build:
 image:
 	-docker images | grep "<none>" | awk '{print $3}' | xargs docker rmi
 	-docker rmi ${APP}:$(RELEASE)
-	docker build --rm -t ${APP}:$(RELEASE) --build-arg commitid=${COMMIT} --build-arg app=${APP} --build-arg release=${RELEASE} --build-arg buildtime=${BUILD_TIME} .
+	docker build --rm -t littlebull/${APP}:$(RELEASE) --build-arg commitid=${COMMIT} --build-arg app=${APP} --build-arg release=${RELEASE} --build-arg buildtime=${BUILD_TIME} .
+
+push:
+	docker image push littlebull/${APP}:$(RELEASE)
 
 test:
 	docker run --rm -v ${WORKDIR}:/src/dynifr-watchres -w /src/dynifr-watchres golang:1.16 go test -v ./...
