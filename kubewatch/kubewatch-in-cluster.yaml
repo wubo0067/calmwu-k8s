@@ -5,8 +5,8 @@ metadata:
   namespace: default
 spec:
   containers:
-  - image: tuna/kubewatch:v0.0.1
-    imagePullPolicy: Always
+  - image: littlebull/kubewatch:v0.0.1
+    imagePullPolicy: IfNotPresent
     name: kubewatch
     volumeMounts:
     - name: config-volume

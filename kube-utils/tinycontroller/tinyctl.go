@@ -211,10 +211,11 @@ func (rc *ResourceController) Run(stopCh <-chan struct{}) {
 
 	klog.Infof("Starting resource[%s] controller", rc.resourceType)
 
-	// 启动informer
+	// 启动informer，实际上是做开始了list/watch
 	go rc.informer.Run(stopCh)
 
-	// 等待同步，每个资源一个，不像传统的controller多个资源用这个来同步
+	// 等待list，DeltaFIFO的replace，cache的add完毕，也就是事件和对象都完全准备完毕
+	// 后面实际是个消费者，处理事件回调写入的对象
 	if !cache.WaitForCacheSync(stopCh, rc.HasSynced) {
 		utilruntime.HandleError(ErrCacheSyncTimeout)
 		return

@@ -349,7 +349,7 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 		RetryOnError:     false,
 		ShouldResync:     s.processor.shouldResync,
 
-		Process: s.HandleDeltas,
+		Process: s.HandleDeltas, // 这是controller pop后的处理函数
 	}
 
 	func() {
@@ -521,6 +521,7 @@ func (s *sharedIndexInformer) HandleDeltas(obj interface{}) error {
 				}
 				s.processor.distribute(updateNotification{oldObj: old, newObj: d.Object}, isSync)
 			} else {
+				// 将对象加入indexer中。
 				if err := s.indexer.Add(d.Object); err != nil {
 					return err
 				}
@@ -735,6 +736,7 @@ func (p *processorListener) run() {
 	// the next notification will be attempted.  This is usually better than the alternative of never
 	// delivering again.
 	stopCh := make(chan struct{})
+	// 在这里进行事件回调
 	wait.Until(func() {
 		for next := range p.nextCh {
 			switch notification := next.(type) {

@@ -103,6 +103,7 @@ type DeltaFIFOOptions struct {
 // items. See also the comment on DeltaFIFO.
 func NewDeltaFIFOWithOptions(opts DeltaFIFOOptions) *DeltaFIFO {
 	if opts.KeyFunction == nil {
+		// 默认的obj生成key方法
 		opts.KeyFunction = MetaNamespaceKeyFunc
 	}
 
@@ -371,11 +372,14 @@ func (f *DeltaFIFO) queueActionLocked(actionType DeltaType, obj interface{}) err
 		return KeyError{obj, err}
 	}
 
+	// actiontype+obj转变为delta，添加到items中，可能原有items不存在，slice是个nil
 	newDeltas := append(f.items[id], Delta{actionType, obj})
+	// 去重
 	newDeltas = dedupDeltas(newDeltas)
 
 	if len(newDeltas) > 0 {
 		if _, exists := f.items[id]; !exists {
+			// 新对象，将key插入队列中
 			f.queue = append(f.queue, id)
 		}
 		f.items[id] = newDeltas
@@ -477,19 +481,24 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 				return nil, ErrFIFOClosed
 			}
 
+			// 插入items后，会触发条件变量，这里会处理
 			f.cond.Wait()
 		}
+		// 读取第一个key
 		id := f.queue[0]
 		f.queue = f.queue[1:]
 		if f.initialPopulationCount > 0 {
 			f.initialPopulationCount--
 		}
+		// 得到deltas
 		item, ok := f.items[id]
 		if !ok {
 			// Item may have been deleted subsequently.
 			continue
 		}
+		// 从map中删除
 		delete(f.items, id)
+		// 开始处理deltas
 		err := process(item)
 		if e, ok := err.(ErrRequeue); ok {
 			f.addIfNotPresent(id, item)
@@ -514,6 +523,7 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 	f.lock.Lock()
 	defer f.lock.Unlock()
+	// keys是这次全量list的keys。
 	keys := make(sets.String, len(list))
 
 	// keep backwards compat for old clients
@@ -524,6 +534,7 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 
 	for _, item := range list {
 		// key没有特殊设置的情况下，默认是meta.GetNamespace() + "/" + meta.GetName()
+		// 通过对象计算key
 		key, err := f.KeyOf(item)
 		if err != nil {
 			return KeyError{item, err}
@@ -535,20 +546,22 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 	}
 
 	// knownObjects是sharedIndexInformer.indexer对象
+	// 如果本地缓存时nil，就对items就是全部数据
 	if f.knownObjects == nil {
 		// Do deletion detection against our own list.
 		queuedDeletions := 0
 		for k, oldItem := range f.items {
 			if keys.Has(k) {
-				// cache和本次list都存在，就跳过
+				// 本地数据存在全量list的key中，就忽略
 				continue
 			}
-			// list中不存在，cache中存在，说明对象被删除了
+			// list中不存在，items中存在，说明对象被删除了
 			var deletedObj interface{}
 			// 得到最新的deltas，获取里面的object，delete是重复的有可能
 			if n := oldItem.Newest(); n != nil {
 				deletedObj = n.Object
 			}
+			// 加入一个删除对象
 			queuedDeletions++
 			if err := f.queueActionLocked(Deleted, DeletedFinalStateUnknown{k, deletedObj}); err != nil {
 				return err
@@ -556,9 +569,11 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 		}
 
 		if !f.populated {
+			// 这是第一次，标识下
 			f.populated = true
 			// While there shouldn't be any queued deletions in the initial
 			// population of the queue, it's better to be on the safe side.
+			// 记录下设置的对象数量
 			f.initialPopulationCount = len(list) + queuedDeletions
 		}
 
@@ -566,6 +581,7 @@ func (f *DeltaFIFO) Replace(list []interface{}, resourceVersion string) error {
 	}
 
 	// Detect deletions not already in the queue.
+	// 过滤indexer中的数据
 	knownKeys := f.knownObjects.ListKeys()
 	queuedDeletions := 0
 	for _, k := range knownKeys {
