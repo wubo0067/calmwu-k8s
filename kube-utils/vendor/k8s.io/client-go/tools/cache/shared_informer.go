@@ -367,6 +367,7 @@ func (s *sharedIndexInformer) Run(stopCh <-chan struct{}) {
 	defer wg.Wait()              // Wait for Processor to stop
 	defer close(processorStopCh) // Tell Processor to stop
 	wg.StartWithChannel(processorStopCh, s.cacheMutationDetector.Run)
+	// 在run之前，事件处理函数已经AddEventHandler被加入了
 	wg.StartWithChannel(processorStopCh, s.processor.run)
 
 	defer func() {
@@ -470,9 +471,11 @@ func (s *sharedIndexInformer) AddEventHandlerWithResyncPeriod(handler ResourceEv
 		}
 	}
 
+	// resyncPeriod 默认值是0
 	listener := newProcessListener(handler, resyncPeriod, determineResyncPeriod(resyncPeriod, s.resyncCheckPeriod), s.clock.Now(), initialBufferSize)
 
 	if !s.started {
+		// 在没有Run之前，started=false，这里会添加一个Listener
 		s.processor.addListener(listener)
 		return
 	}
@@ -485,12 +488,15 @@ func (s *sharedIndexInformer) AddEventHandlerWithResyncPeriod(handler ResourceEv
 	s.blockDeltas.Lock()
 	defer s.blockDeltas.Unlock()
 
+	// run之后加入的Listener，还是要被触发add事件
+
 	s.processor.addListener(listener)
 	for _, item := range s.indexer.List() {
 		listener.add(addNotification{newObj: item})
 	}
 }
 
+// HandleDeltas 从deltaFIFO中pop的对象，到这里处理，触发事件回调
 func (s *sharedIndexInformer) HandleDeltas(obj interface{}) error {
 	s.blockDeltas.Lock()
 	defer s.blockDeltas.Unlock()
@@ -499,8 +505,9 @@ func (s *sharedIndexInformer) HandleDeltas(obj interface{}) error {
 	for _, d := range obj.(Deltas) {
 		switch d.Type {
 		case Sync, Replaced, Added, Updated:
-			s.cacheMutationDetector.AddObject(d.Object)
+			s.cacheMutationDetector.AddObject(d.Object) // cacheMutationDetector默认是关闭的
 			if old, exists, err := s.indexer.Get(d.Object); err == nil && exists {
+				// 从本地存储中获取对象，这个是old对象，传入的是new对象，这样就可以调用update了
 				if err := s.indexer.Update(d.Object); err != nil {
 					return err
 				}
@@ -558,6 +565,7 @@ func (p *sharedProcessor) addListener(listener *processorListener) {
 
 	p.addListenerLocked(listener)
 	if p.listenersStarted {
+		// 如果run之后添加，这个Listener要自己start
 		p.wg.Start(listener.run)
 		p.wg.Start(listener.pop)
 	}
@@ -697,6 +705,7 @@ func newProcessListener(handler ResourceEventHandler, requestedResyncPeriod, res
 }
 
 func (p *processorListener) add(notification interface{}) {
+	// 加入indexer中的对象
 	p.addCh <- notification
 }
 
@@ -708,11 +717,13 @@ func (p *processorListener) pop() {
 	var notification interface{}
 	for {
 		select {
-		case nextCh <- notification:
+		case nextCh <- notification: // 如果nextCh是nil，那么是不能写入的
 			// Notification dispatched
 			var ok bool
+			// 没有pending数据的时候这里返回nil
 			notification, ok = p.pendingNotifications.ReadOne()
 			if !ok { // Nothing to pop
+				// 没有数据可以pop了，这里将ch设置为nil
 				nextCh = nil // Disable this select case
 			}
 		case notificationToAdd, ok := <-p.addCh:
@@ -724,6 +735,7 @@ func (p *processorListener) pop() {
 				notification = notificationToAdd
 				nextCh = p.nextCh
 			} else { // There is already a notification waiting to be dispatched
+				// 如果有数据等待发送到nextCh，新来的数据就插入pending缓存中
 				p.pendingNotifications.WriteOne(notificationToAdd)
 			}
 		}
@@ -736,7 +748,7 @@ func (p *processorListener) run() {
 	// the next notification will be attempted.  This is usually better than the alternative of never
 	// delivering again.
 	stopCh := make(chan struct{})
-	// 在这里进行事件回调
+	// 在这里进行事件回调，回调在一个协程中，pop协程有一定的缓存功能
 	wait.Until(func() {
 		for next := range p.nextCh {
 			switch notification := next.(type) {

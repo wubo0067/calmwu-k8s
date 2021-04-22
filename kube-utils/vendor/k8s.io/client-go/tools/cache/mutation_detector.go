@@ -47,6 +47,7 @@ type MutationDetector interface {
 
 // NewCacheMutationDetector creates a new instance for the defaultCacheMutationDetector.
 func NewCacheMutationDetector(name string) MutationDetector {
+	// 这里默认是关闭的
 	if !mutationDetectionEnabled {
 		return dummyMutationDetector{}
 	}
