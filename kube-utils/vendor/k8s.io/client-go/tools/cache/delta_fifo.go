@@ -473,6 +473,7 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 	f.lock.Lock()
 	defer f.lock.Unlock()
 	for {
+		// 循环处理queue中的数据，就是一次要处理完的数据，但是items还是存在
 		for len(f.queue) == 0 {
 			// When the queue is empty, invocation of Pop() is blocked until new item is enqueued.
 			// When Close() is called, the f.closed is set and the condition is broadcasted.
@@ -488,6 +489,7 @@ func (f *DeltaFIFO) Pop(process PopProcessFunc) (interface{}, error) {
 		id := f.queue[0]
 		f.queue = f.queue[1:]
 		if f.initialPopulationCount > 0 {
+			// 只有初始化的对象处理完毕，才是同步完毕
 			f.initialPopulationCount--
 		}
 		// 得到deltas
