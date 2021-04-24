@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: logpod
+  namespace: kata-ns
 spec:
   containers:
   - name: logpod
