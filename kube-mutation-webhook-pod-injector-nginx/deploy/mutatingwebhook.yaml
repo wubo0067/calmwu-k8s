@@ -1,0 +1,30 @@
+apiVersion: admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: nginx-injector-pod-webhook
+  labels:
+    app: sidecar-injector
+webhooks:
+- name: nginx-injector-pod-webhook.calmwu.org
+  failurePolicy: Fail # Fail定义了如何处理 admission webhook 中无法识别的错误和超时错误。允许的值为Ignore或Fail，
+                      # Ignore表示调用 webhook 的错误将被忽略并且允许 API 请求继续。
+                      # Fail表示调用 webhook 的错误导致准入失败并且 API 请求被拒绝。
+
+  clientConfig:
+    service:
+      name: nginx-injector-pod-webhook-svc
+      namespace: nginx-injector-pod-webhook
+      path: "/mutate"
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUR4RENDQXF5Z0F3SUJBZ0lVQ3Vxc0NxbXNVWGRNY2prSU4vSWFHcHcwcjlvd0RRWUpLb1pJaHZjTkFRRUwKQlFBd2FERUxNQWtHQTFVRUJoTUNWVk14RHpBTkJnTlZCQWdUQms5eVpXZHZiakVSTUE4R0ExVUVCeE1JVUc5eQpkR3hoYm1ReEV6QVJCZ05WQkFvVENrdDFZbVZ5Ym1WMFpYTXhDekFKQmdOVkJBc1RBa05CTVJNd0VRWURWUVFECkV3cExkV0psY201bGRHVnpNQjRYRFRJeE1EUXpNREEyTXpnd01Gb1hEVEkyTURReU9UQTJNemd3TUZvd2FERUwKTUFrR0ExVUVCaE1DVlZNeER6QU5CZ05WQkFnVEJrOXlaV2R2YmpFUk1BOEdBMVVFQnhNSVVHOXlkR3hoYm1ReApFekFSQmdOVkJBb1RDa3QxWW1WeWJtVjBaWE14Q3pBSkJnTlZCQXNUQWtOQk1STXdFUVlEVlFRREV3cExkV0psCmNtNWxkR1Z6TUlJQklqQU5CZ2txaGtpRzl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUFuWlRCZlJ5aytDSGIKdm9mK3dVVWNxelhXc2hudzBKWlArRTB5bWxZYzY2aDRoRGxhZmliRTlUMC9MSjVTTnFyVjI5NCtiZEdib1NpaQpNaDdNSTZXSE9FY2wySVhvU0tiZi84dFNmdWJZN1VxcHNjdW1zQ015RUowaDVUMFc4WFB6RHRZTkdQK3JJMklTCk9VbEFmdDZab1lnQ3Q4YjFhekV1eXpSc3FZOUhzRXZHaE5SOXZJMjRyUXRBcHFpWUVkdDMvM2Myek9XbktWOXAKRjlLR1hRay9pS01peS9OdmNpWVRvazFPUTY4LzNyQk9ManI2RGdHNElFa2pxbzFaMExXUjVWWFF0Ym1RS2t4WQpSSEhucHBha1NKM2NOM2h1cmZhRjdNRVFvd1lFUURpTmx4bHY1V0pEVnkvTFZwWlp2eTVTTVdySldCVkh2TG9jCjdVcGpqRnRINXdJREFRQUJvMll3WkRBT0JnTlZIUThCQWY4RUJBTUNBUVl3RWdZRFZSMFRBUUgvQkFnd0JnRUIKL3dJQkFqQWRCZ05WSFE0RUZnUVVQck5KL2NsR2llNGFmUkYwbkJqZi9WNGdpRVl3SHdZRFZSMGpCQmd3Rm9BVQpQck5KL2NsR2llNGFmUkYwbkJqZi9WNGdpRVl3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQUF3ZjRGTnYvVzJwCmJWZWJpQXM4a3V4TGM2TVB3c2cwaDRhSEZtNFBBSUtDS3hWT1N6TTM5MnVCMi92NGJmT0hSTkVWcEU0MEdWQ0QKSGdUQ1kzUnYwTFgxQ0V4eE9EbHdSajhnWFMyQ2Y2emtOSnpLTDNWaTRYWWN1ZEVUbnRrKzZKR2dhc0Zza1NJTgpMMnp6b3ZvNUlHa3huWFVwMU1RRHdTUTBNSndBUnZPZnZhRHZrSVZEcWZ0bGtBVmRUMUZBWUxFV1h0LzVtK0YvCnFJc05ORUlJdzlvbGNOUFo0aElpZllTRURDQW5Gc0VIRnJmN2pmKzE4bnZMS1N6U0l0TFMyZXdtNXg1OWhjcVUKL2szbjhVb2RFWmh0YmpYUzVzU0kxVDlTSUxUYjR1TWh1azRlUjhXdlJBMzJ2ekRNVUhia0RnZ3g3MUxWSUpFQgpUTEpmMCszTTZhWT0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""] # 列出了一个或多个要匹配的 API 组。"" 是核心 API 组。"*" 匹配所有 API 组。
+    apiVersions: ["v1"] # 列出了一个或多个要匹配的 API 版本。"*" 匹配所有 API 版本。
+    resources: ["pods"]
+  admissionReviewVersions: ["v1", "v1beta1"] # 字段指定可接受的 AdmissionReview 对象版本：
+  namespaceSelector:
+    matchLabels:
+      nginx-injection: "enabled" # 名字空间具有值为 "enabled" 的 "nginx-injection" 标签
+  objectSelector:
+    matchLabels:    
+      nginx-injection: "true" # 它将匹配带有标签 nginx-injection:true 的pod     
