@@ -35,7 +35,8 @@ func HandleMutate(w http.ResponseWriter, r *http.Request) {
 	var body []byte
 
 	if r.Body != nil {
-		if data, err := ioutil.ReadAll(r.Body); err != nil {
+		if data, err := ioutil.ReadAll(r.Body); err == nil {
+			glog.Infof("read request body successed! body size: %d", len(data))
 			body = data
 		}
 	}
@@ -66,7 +67,7 @@ func HandleMutate(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		// 默认通过
-		glog.Infof("AdmissionReview: %s", litter.Sdump(ar))
+		glog.Infof("mutate AdmissionReview: %s", litter.Sdump(ar))
 		admissionResponse = &v1beta1.AdmissionResponse{
 			Allowed: true,
 			Patch:   []byte{},

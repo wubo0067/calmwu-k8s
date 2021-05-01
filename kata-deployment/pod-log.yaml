@@ -6,6 +6,7 @@ metadata:
 spec:
   containers:
   - name: logpod
+    imagePullPolicy: IfNotPresent
     image: busybox
     args: [/bin/sh, -c,
-            'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 3; done']
+            'i=0; while true; do echo "$i: $(date)"; i=$((i+1)); sleep 10; done']
