@@ -34,6 +34,8 @@ func main() {
 
 	glog.Info("nginx-injector-pod-webhook-server starting...")
 
+	pkg.LoadConfig(svrParameters.SidecarCfgFile)
+
 	router := gin.Default()
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		glog.Infof("endpoint %v %v %v %v\n", httpMethod, absolutePath, handlerName, nuHandlers)
@@ -42,7 +44,8 @@ func main() {
 	router.GET("/ping", func(c *gin.Context) {
 		c.String(200, "pong")
 	})
-	router.POST("/mutate", gin.WrapF(pkg.HandleMutate))
+	router.POST("/inject", gin.WrapF(pkg.HandleInject))
+	router.POST("/inject/", gin.WrapF(pkg.HandleInject))
 
 	router.RunTLS(fmt.Sprintf("0.0.0.0:%d", svrParameters.Port), svrParameters.CertFile, svrParameters.KeyFile)
 }

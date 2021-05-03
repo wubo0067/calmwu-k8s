@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sleep
+  namespace: ns-test-injector-nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sleep
+  template:
+    metadata:
+      annotations:
+        nginx-injector-pod-webhook/inject: "true"
+      labels:
+        app: sleep
+    spec:
+      containers:
+      - name: sleep
+        image: busybox
+        command: ["/bin/sleep","infinity"]
+        imagePullPolicy: IfNotPresent

@@ -20,6 +20,7 @@ spec:
           image: docker.io/littlebull/nginx-injector-pod-webhook-server:v0.0.1
           imagePullPolicy: IfNotPresent
           args:
+          - -port=8443
           - -sidecarCfgFile=/etc/webhook/config/sidecarconfig.yaml
           - -tlsCertFile=/etc/webhook/certs/cert.pem
           - -tlsKeyFile=/etc/webhook/certs/key.pem
@@ -32,6 +33,13 @@ spec:
             readOnly: true
           - name: webhook-config
             mountPath: /etc/webhook/config
+          env:
+            #定义环境变量
+            - name: IGNORE_NAMESPACES
+              valueFrom:
+                configMapKeyRef:
+                  name: nginx-injector-pod-webhook-sidecar-configmap
+                  key: ignore_namespaces
       volumes:
       - name: webhook-certs
         secret:

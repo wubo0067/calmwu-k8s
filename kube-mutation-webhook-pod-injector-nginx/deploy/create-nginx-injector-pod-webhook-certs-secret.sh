@@ -1,5 +1,7 @@
 #!/bin/bash
 
+kubectl create namespace nginx-injector-pod-webhook
+
 kubectl delete secret nginx-injector-pod-webhook-certs -n nginx-injector-pod-webhook
 
 #创建secret，作为证书的配置，部署文件中使用卷加载

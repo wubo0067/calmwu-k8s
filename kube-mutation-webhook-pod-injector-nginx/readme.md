@@ -41,11 +41,21 @@
       caBundle: ${CA_BUNDLE}
   ```
 
+```
+
+```
+
 
 
 #### 部署
 
-- 创建server 证书的secret。
+- 在apiserver中启用admission
+
+  ```shell
+  --enable-admission-plugins=NodeRestriction,MutatingAdmissionWebhook,ValidatingAdmissionWebhook
+  ```
+
+- 创建namespace以及server证书的secret。
 
   ```
   ./create-nginx-injector-pod-webhook-certs-secret.sh
@@ -119,6 +129,36 @@
   curl --insecure https://10.96.200.99:8443/ping
   ```
 
+
+- 创建测试用namespace，打注入标签
+
+  ```
+  kubectl create namespace ns-test-injector-nginx
+  
+  kubectl label namespace ns-test-injector-nginx nginx-injection=enabled
+  ```
+
+- 验证注入的deployment，重点**nginx-injector-pod-webhook/inject: "true"**
+
+  ```
+  apiVersion: extensions/v1beta1
+  kind: Deployment
+  metadata:
+   name: sleep
+   namespace: ns-test-injector-nginx
+  spec:
+   replicas: 1
+   template:
+    metadata:
+     annotations:
+       nginx-injector-pod-webhook/inject: "true"
+    spec:
+     containers:
+     - name: sleep
+       image: busybox
+       command: ["/bin/sleep","infinity"]
+       imagePullPolicy: IfNotPresent
+  ```
+
   
 
-#### 测试webhook
