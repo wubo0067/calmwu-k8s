@@ -18,4 +18,4 @@ data:
     - name: nginx-conf
       configMap:
         name: nginx-injector-pod-webhook-nginx-configmap
-  ignore_namespaces: "kube-system:kube-public:nginx-injector-pod-webhook"
+  ignore_namespaces: "kube-system:kube-public:nginx-injector-pod-webhook:ns-test1"

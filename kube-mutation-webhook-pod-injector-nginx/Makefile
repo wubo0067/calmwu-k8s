@@ -28,8 +28,8 @@ build:
 
 image:
 	-docker rmi littlebull/${APP}:$(RELEASE)
-	docker build --rm -t littlebull/${APP}:$(RELEASE) --build-arg commitid=${COMMIT} --build-arg app=${APP} --build-arg release=${RELEASE} --build-arg buildtime=${BUILD_TIME} .
 	-docker images | grep "<none>" | awk '{print $3}' | xargs docker rmi
+	docker build --rm -t littlebull/${APP}:$(RELEASE) --build-arg commitid=${COMMIT} --build-arg app=${APP} --build-arg release=${RELEASE} --build-arg buildtime=${BUILD_TIME} .
 
 push:
 	docker image push littlebull/${APP}:$(RELEASE)

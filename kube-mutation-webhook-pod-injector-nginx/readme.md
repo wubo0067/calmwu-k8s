@@ -138,7 +138,7 @@
   kubectl label namespace ns-test-injector-nginx nginx-injection=enabled
   ```
 
-- 验证注入的deployment，重点**nginx-injector-pod-webhook/inject: "true"**
+- 验证注入的deployment，annotation是注入的标识：**nginx-injector-pod-webhook/inject: "true"**
 
   ```
   apiVersion: extensions/v1beta1

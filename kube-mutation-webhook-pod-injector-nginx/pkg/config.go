@@ -35,33 +35,63 @@ type SidecarConfig struct {
 }
 
 var (
-	_ignoreNamespaces = hashset.New()
-
+	_ignoreNamespaces        = hashset.New()
 	_defaultIgnoreNamespaces = []string{"kube-system", "kube-public", "nginx-injector-pod-webhook"}
+	_configFile              string
+	_configWatcher           Watcher
+	_sidecarConfig           *SidecarConfig
+	// StopWatchCh stop watch file
+	StopWatchCh chan struct{}
 )
 
 // LoadConfig read config data from configmap
-func LoadConfig(configFile string) (*SidecarConfig, error) {
+func LoadConfig(configFile string) error {
+	if _configWatcher == nil {
+		var err error
+		_configWatcher, err = NewFileWatcher(configFile)
+		if err != nil {
+			err = errors.Wrap(err, "Create file watcher failed.")
+			glog.Infof(err.Error())
+			return err
+		}
+
+		_configFile = configFile
+		_configWatcher.SetUpdateNotify(loadConfig)
+
+		StopWatchCh = make(chan struct{})
+		go _configWatcher.Run(StopWatchCh)
+	}
+
+	return loadConfig(configFile)
+}
+
+func loadConfig(configFile string) error {
 	data, err := ioutil.ReadFile(configFile)
 	if err != nil {
 		err = errors.Wrapf(err, "read config file:%s failed.", configFile)
 		glog.Error(err.Error())
-
-		return nil, err
+		return err
 	}
 
-	var cfg SidecarConfig
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
+	if _sidecarConfig != nil {
+		_sidecarConfig = nil
+	}
+
+	_sidecarConfig = new(SidecarConfig)
+	if err := yaml.Unmarshal(data, _sidecarConfig); err != nil {
 		err = errors.Wrapf(err, "yaml decode config file:%s failed.", configFile)
 		glog.Error(err.Error())
-
-		return nil, err
+		return err
 	}
 
 	// 读取环境变量
 	ignoreNamespacesStr := os.Getenv("IGNORE_NAMESPACES")
 	nsList := strings.Split(ignoreNamespacesStr, ":")
 	nsList = append(nsList, _defaultIgnoreNamespaces...)
+
+	if _ignoreNamespaces.Size() != 0 {
+		_ignoreNamespaces.Clear()
+	}
 
 	for _, ignoreNS := range nsList {
 		_ignoreNamespaces.Add(ignoreNS)
@@ -70,9 +100,13 @@ func LoadConfig(configFile string) (*SidecarConfig, error) {
 	glog.Infof("Sidecar config:\n%s", string(data))
 	glog.Infof("ENV IGNORE_NAMESPACES: %s", _ignoreNamespaces.Values())
 
-	return &cfg, nil
+	return nil
 }
 
 func isIgnoreNamespace(ns string) bool {
 	return _ignoreNamespaces.Contains(ns)
+}
+
+func getSidecarConfig() *SidecarConfig {
+	return _sidecarConfig
 }

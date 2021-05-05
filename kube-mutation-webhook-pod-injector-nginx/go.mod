@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/emirpasic/gods v1.12.0
+	github.com/fsnotify/fsnotify v1.4.9
 	github.com/gin-gonic/gin v1.7.1
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/pkg/errors v0.9.1

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-./nginx-injector-pod-webhook-server --tlsCertFile=../ca/nginx-injector-pod-webhook-server.pem --tlsKeyFile=../ca/nginx-injector-pod-webhook-server-key.pem
+./nginx-injector-pod-webhook-server --tlsCertFile=../ca/nginx-injector-pod-webhook-server.pem --tlsKeyFile=../ca/nginx-injector-pod-webhook-server-key.pem --sidecarCfgFile=./sidecarconfig.yaml -alsologtostderr -v=4
