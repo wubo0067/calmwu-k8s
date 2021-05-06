@@ -1,0 +1,7 @@
+domain: k8s.calmwu.org
+repo: k8s.calmwu.org
+resources:
+- group: batch
+  kind: CronJob
+  version: v1
+version: "2"
