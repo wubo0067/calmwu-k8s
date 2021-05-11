@@ -13,6 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/glog"
+	kubelib "istio.io/istio/pkg/kube"
+	"k8s.io/client-go/rest"
 	"pod.injector.nginx/pkg"
 )
 
@@ -33,6 +35,11 @@ func main() {
 	flag.Parse()
 
 	glog.Info("nginx-injector-pod-webhook-server starting...")
+
+	kubelib.DefaultRestConfig("", "", func(config *rest.Config) {
+		config.QPS = 80.0
+		config.Burst = 160
+	})
 
 	pkg.LoadConfig(svrParameters.SidecarCfgFile)
 

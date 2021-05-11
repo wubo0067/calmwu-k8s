@@ -156,5 +156,9 @@
        imagePullPolicy: IfNotPresent
   ```
 
-  
 
+#### 资料
+
+-  [k8s-hello-mutating-webhook/app.go at main · didil/k8s-hello-mutating-webhook (github.com)](https://github.com/didil/k8s-hello-mutating-webhook/blob/main/webhook/api/app.go) 
+-   [如何部署自己的webhook admission - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/137070531)  生成证书方式
+-  https://kubernetes.io/zh/docs/tasks/administer-cluster/certificates/ 

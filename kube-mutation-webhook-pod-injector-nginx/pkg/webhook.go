@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	jsoniter "github.com/json-iterator/go"
 	"github.com/pkg/errors"
 	"istio.io/istio/pkg/kube"
 	admissionregistrationv1 "k8s.io/api/admission/v1"
@@ -35,8 +36,15 @@ var (
 	defaulter = runtime.ObjectDefaulter(runtimeScheme)
 )
 
+type patchOperation struct {
+	Op    string      `json:"op"`
+	Path  string      `json:"path"`
+	Value interface{} `json:"value,omitempty"`
+}
+
 const (
 	_admissionWebhookAnnotationInjectKey = "nginx-injector-pod-webhook/inject"
+	_admissionWebhookAnnotationStatusKey = "nginx-injector-pod-webhook/status"
 )
 
 func init() {
@@ -130,7 +138,7 @@ func HandleInject(w http.ResponseWriter, r *http.Request) {
 		glog.Errorf("Can't encode response: %v", err)
 		http.Error(w, fmt.Sprintf("could not encode response: %v", err), http.StatusInternalServerError)
 	}
-	glog.Infof("Ready to write reponse ...")
+	glog.Infof("Ready to write response ...")
 	if _, err := w.Write(resp); err != nil {
 		glog.Errorf("Can't write response: %v", err)
 		http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
@@ -160,14 +168,22 @@ func inject(ar *kube.AdmissionReview, path string) *kube.AdmissionResponse {
 		}
 	}
 
-	glog.Infof("AdmissionResponse: patch=%s\n", "wait.............")
+	annotations := map[string]string{_admissionWebhookAnnotationStatusKey: "injected"}
+	patchBytes, err := createPatch(&pod, annotations)
+	if err != nil {
+		err = errors.Wrap(err, "Create pod patch failed.")
+		glog.Error(err.Error())
+		return toAdmissionResponse(err)
+	}
+
+	glog.Infof("AdmissionResponse: patch=%s\n", patchBytes)
 	return &kube.AdmissionResponse{
 		Allowed: true,
-		// Patch:   []byte{},
-		// PatchType: func() *string {
-		// 	pt := "JSONPatch"
-		// 	return &pt
-		// }(),
+		Patch:   patchBytes,
+		PatchType: func() *string {
+			pt := "JSONPatch"
+			return &pt
+		}(),
 	}
 }
 
@@ -193,4 +209,92 @@ func injectRequired(podSpec *corev1.PodSpec, metadata *metav1.ObjectMeta) bool {
 
 	glog.Infof("Pod %s/%s: inject required:%v", metadata.Namespace, metadata.Name, inject)
 	return inject
+}
+
+func createPatch(pod *corev1.Pod, annotations map[string]string) ([]byte, error) {
+	var patch []patchOperation
+
+	patch = append(patch, addContainer(pod.Spec.Containers, getSidecarConfig().Containers, "/spec/containers")...)
+	patch = append(patch, addVolume(pod.Spec.Volumes, getSidecarConfig().Volumes, "/spec/volumes")...)
+	patch = append(patch, updateAnnotaion(pod.Annotations, annotations)...)
+
+	var json = jsoniter.ConfigCompatibleWithStandardLibrary
+	return json.Marshal(patch)
+}
+
+func addContainer(baseContainers, addContainers []corev1.Container, basePath string) (patch []patchOperation) {
+	// 每个容器对象加入
+	firstContainer := len(baseContainers) == 0
+	var val interface{}
+
+	for _, addContainer := range addContainers {
+		val = addContainer
+		path := basePath
+
+		if firstContainer {
+			// 如果没有容器对象，val必须是个sliace对象
+			firstContainer = false
+			val = []corev1.Container{addContainer}
+		} else {
+			path = path + "/-"
+		}
+
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: val,
+		})
+	}
+	return
+}
+
+func addVolume(baseVolumes, addVolumes []corev1.Volume, basePath string) (patch []patchOperation) {
+	// 加入卷对象
+	firstVolume := len(baseVolumes) == 0
+	var val interface{}
+
+	for _, addVolume := range addVolumes {
+		val = addVolume
+		path := basePath
+
+		if firstVolume {
+			firstVolume = false
+			val = []corev1.Volume{addVolume}
+		} else {
+			path = path + "/-"
+		}
+
+		patch = append(patch, patchOperation{
+			Op:    "add",
+			Path:  path,
+			Value: val,
+		})
+	}
+	return
+}
+
+func updateAnnotaion(baseAnnotations, addAnnotations map[string]string) (patch []patchOperation) {
+	if baseAnnotations == nil {
+		baseAnnotations = map[string]string{}
+	}
+
+	for key, value := range addAnnotations {
+		if baseAnnotations[key] == "" {
+			// 之前不存在annotation，或annotation中该key不准在
+			patch = append(patch, patchOperation{
+				Op:   "add",
+				Path: "/metadata/annotations",
+				Value: map[string]string{
+					key: value,
+				},
+			})
+		} else {
+			patch = append(patch, patchOperation{
+				Op:    "replace",
+				Path:  "/metadata/annotations/" + key,
+				Value: value,
+			})
+		}
+	}
+	return
 }
