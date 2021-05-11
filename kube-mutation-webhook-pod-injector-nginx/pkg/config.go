@@ -14,9 +14,10 @@ import (
 	"strings"
 
 	"github.com/emirpasic/gods/sets/hashset"
+	"github.com/ghodss/yaml"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"gopkg.in/yaml.v2"
+	"github.com/sanity-io/litter"
 	corev1 "k8s.io/api/core/v1"
 )
 
@@ -97,7 +98,7 @@ func loadConfig(configFile string) error {
 		_ignoreNamespaces.Add(ignoreNS)
 	}
 
-	glog.Infof("Sidecar config:\n%s", string(data))
+	glog.Infof("Sidecar config:\n%s", litter.Sdump(_sidecarConfig))
 	glog.Infof("ENV IGNORE_NAMESPACES: %s", _ignoreNamespaces.Values())
 
 	return nil

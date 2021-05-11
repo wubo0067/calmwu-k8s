@@ -75,6 +75,12 @@
   kubectl apply -f mutatingwebhook.yaml
   ```
 
+  查看证书内容
+
+  ```
+  kubectl get mutatingwebhookconfigurations.admissionregistration.k8s.io nginx-injector-pod-control -ojsonpath="{.webhooks[0].clientConfig.caBundle}" | base64 -d > /tmp/cert-inj && openssl x509 -noout -text -in /tmp/cert-inj
+  ```
+
 - 查看命名空间下所有资源。
 
   ```

@@ -5,12 +5,13 @@ go 1.16
 require (
 	github.com/emirpasic/gods v1.12.0
 	github.com/fsnotify/fsnotify v1.4.9
+	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.7.1
 	github.com/golang/glog v0.0.0-20210429001901-424d2337a529
 	github.com/json-iterator/go v1.1.10
 	github.com/pkg/errors v0.9.1
-	github.com/sanity-io/litter v1.5.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0
+	github.com/sanity-io/litter v1.5.0
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	istio.io/istio v0.0.0-20210430230726-22a21763af0f
 	k8s.io/api v0.21.0
 	k8s.io/apimachinery v0.21.0
