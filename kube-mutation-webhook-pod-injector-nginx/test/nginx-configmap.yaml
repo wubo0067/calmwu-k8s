@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-injector-pod-webhook-nginx-configmap
-  namespace: nginx-injector-pod-webhook
+  namespace: ns-test-injector-nginx
 data:
   nginx.conf: |
     worker_processes  1;

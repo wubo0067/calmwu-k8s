@@ -115,8 +115,6 @@
   ctr -n=k8s.io images import nginjector-wb.tar
   ```
 
-
-
 #### 部署、测试
 
 - 部署

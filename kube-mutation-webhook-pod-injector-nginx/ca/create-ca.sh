@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -v
+set -x
+
 rm *.pem *.csr 
 
 #创建CA cert

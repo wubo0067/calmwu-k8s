@@ -227,6 +227,8 @@ func addContainer(baseContainers, addContainers []corev1.Container, basePath str
 	firstContainer := len(baseContainers) == 0
 	var val interface{}
 
+	glog.Infof("firstContainer is %v", firstContainer)
+
 	for _, addContainer := range addContainers {
 		val = addContainer
 		path := basePath
@@ -250,26 +252,36 @@ func addContainer(baseContainers, addContainers []corev1.Container, basePath str
 
 func addVolume(baseVolumes, addVolumes []corev1.Volume, basePath string) (patch []patchOperation) {
 	// 加入卷对象
-	firstVolume := len(baseVolumes) == 0
-	var val interface{}
+	// firstVolume := len(baseVolumes) == 0
+	// var val interface{}
 
-	for _, addVolume := range addVolumes {
-		val = addVolume
-		path := basePath
+	volumes := append(baseVolumes, addVolumes...)
 
-		if firstVolume {
-			firstVolume = false
-			val = []corev1.Volume{addVolume}
-		} else {
-			path = path + "/-"
-		}
+	glog.Infof("volumes is %#v", volumes)
 
-		patch = append(patch, patchOperation{
-			Op:    "add",
-			Path:  path,
-			Value: val,
-		})
-	}
+	patch = append(patch, patchOperation{
+		Op:    "replace",
+		Path:  basePath,
+		Value: volumes,
+	})
+
+	// for _, addVolume := range addVolumes {
+	// 	val = addVolume
+	// 	path := basePath
+
+	// 	if firstVolume {
+	// 		firstVolume = false
+	// 		val = []corev1.Volume{addVolume}
+	// 	} else {
+	// 		path = path + "/-"
+	// 	}
+
+	// 	patch = append(patch, patchOperation{
+	// 		Op:    "add",
+	// 		Path:  path,
+	// 		Value: val,
+	// 	})
+	// }
 	return
 }
 

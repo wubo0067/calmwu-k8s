@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -v 
+set -x 
+
 kubectl create namespace nginx-injector-pod-webhook
 
 kubectl delete secret nginx-injector-pod-webhook-certs -n nginx-injector-pod-webhook
