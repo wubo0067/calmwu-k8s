@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-deployment
-  namespace: nm-nginxdeployment
+  name: dp-nginx
+  namespace: ns-nginx
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: nginx
+      app: dp-nginx
   template:
     metadata:
-      namespace: nm-nginxdeployment
+      namespace: ns-nginx
       labels:
-        app: nginx
+        app: dp-nginx
     spec:
       containers:
       - name: nginx
